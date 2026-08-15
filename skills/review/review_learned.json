@@ -1,0 +1,33 @@
+{
+  "rebuilt_ts": 1786735301,
+  "total_outcomes": 30,
+  "fp_downrank": [],
+  "hotspots": [],
+  "blindspots": [
+    {
+      "pattern": "flow-B:edge-case",
+      "missed": 1,
+      "note": "FN-Pass fand 1x einen uebersehenen Bug dieser Klasse — gezielten Check in Reviewer-Prompt + Phase 5.6 injizieren"
+    },
+    {
+      "pattern": "security:CWE-862",
+      "missed": 1,
+      "note": "FN-Pass fand 1x einen uebersehenen Bug dieser Klasse — gezielten Check in Reviewer-Prompt + Phase 5.6 injizieren"
+    },
+    {
+      "pattern": "security:CWE-494",
+      "missed": 1,
+      "note": "FN-Pass fand 1x einen uebersehenen Bug dieser Klasse — gezielten Check in Reviewer-Prompt + Phase 5.6 injizieren"
+    },
+    {
+      "pattern": "security:gitignore-pattern",
+      "missed": 1,
+      "note": "FN-Pass fand 1x einen uebersehenen Bug dieser Klasse — gezielten Check in Reviewer-Prompt + Phase 5.6 injizieren"
+    },
+    {
+      "pattern": "ops:ops",
+      "missed": 1,
+      "note": "FN-Pass fand 1x einen uebersehenen Bug dieser Klasse — gezielten Check in Reviewer-Prompt + Phase 5.6 injizieren"
+    }
+  ]
+}

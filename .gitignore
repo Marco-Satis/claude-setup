@@ -1,0 +1,27 @@
+# Nichts aus dem laufenden Betrieb — diese Pfade sind der Grund, warum das Repo
+# ein kuratierter Auszug ist und kein Spiegel von ~/.claude
+secrets/
+logs/
+state/
+backups/
+projects/
+reports/
+audit/
+flags/
+*.log
+*.jsonl
+.credentials.json
+settings.local.json
+
+# Arbeitsstände
+*.bak
+*.bak.*
+*.sync-conflict-*
+__pycache__/
+.pytest_cache/
+*.pyc
+_archive*/
+.venv/
+
+# detect-secrets-Baseline ist lokal, nicht versioniert
+.secrets.baseline

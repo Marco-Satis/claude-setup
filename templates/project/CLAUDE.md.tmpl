@@ -1,0 +1,33 @@
+# {{PROJECT}} — Claude-Projekt-Anweisungen
+
+> v0.1 (AUTO-SCAFFOLD {{DATE}}) | SKELETT — alle `<!-- TODO -->`-Platzhalter mit echtem Projekt-Wissen füllen (Stack/Run-Commands/Konventionen, Projekt ggf. via Explore mappen), dann diese Warn-Zeile entfernen. Fertig = kein `<!-- TODO -->` mehr im File.
+
+## Pflicht-Regeln (zuerst lesen)
+1. **Erst lesen, dann ändern** (Always-Read-Never-Guess): vor Edit Datei lesen, nach Edit Match prüfen. Pfade/Funktionsnamen/APIs vor Nutzung per Read/Grep verifizieren.
+2. **Backup vor Edit** an gepflegten/persistenten Files: `cp -a <file> <file>.bak.pre-<tag>.$(date +%s)`.
+3. **Atomic-Write** für State-/Config-Files: `.tmp` + `os.replace()`.
+4. **Secrets** nur über ENV + KeePass (`Vault.kdbx`); `.env` gitignoren. Vor jeder Secret-/Token-Operation: KeePass.
+5. Bei Library-/Framework-/SDK-Code: `context7` für aktuelle Docs (nicht aus Trainingsdaten raten).
+6. PROGRESS.md nach jeder größeren Arbeitseinheit aktualisieren.
+
+## Umgebung
+- der Nutzer arbeitet in der **Claude Desktop App** (kein Terminal/CLI). Sprache: DE (Doku) / EN (Code). UTF-8.
+<!-- TODO: OS/Runtime, Python-/Node-Version, relevante Hardware/Pfade -->
+
+## Stack / Architektur
+<!-- TODO: Sprache, Framework, Haupt-Module + Rollen, Datenfluss — via Explore mappen -->
+
+## Run-Commands
+<!-- TODO: Tabelle Command → Zweck (Start/Test/Build/Deploy) -->
+
+## Kanonische Referenzen
+<!-- TODO: wichtigste Dateien/Ordner + Inhalt (Tabelle) -->
+
+## Konventionen / Gotchas
+<!-- TODO: projekt-spezifische Stolperfallen, Naming, State-Files, Hardcodes -->
+
+## Recovery
+<!-- TODO: was tun wenn was kaputt ist (Backups, Restart-Prozedur) -->
+
+## Pflicht-Anker
+Erst lesen dann ändern · Backup vor Edit · Atomic-State · Secrets→KeePass/ENV · context7 für Libs · PROGRESS aktuell.
