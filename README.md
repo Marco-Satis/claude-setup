@@ -60,8 +60,9 @@ Infrastruktur zugeschnitten. Die Muster sind übertragbar, die Konfiguration nic
 ## Was fehlt und warum
 
 `settings.json` ist nicht enthalten — sie verdrahtet die Hooks, enthält aber
-maschinenspezifische Pfade und Berechtigungen. Die Hook-Dateien dokumentieren im Kopf, an
-welchem Event sie hängen.
+maschinenspezifische Pfade und Berechtigungen. Als Ersatz dokumentiert
+[`hooks/README.md`](hooks/README.md) die vollständige Verdrahtung: welcher Hook an welchem
+Event hängt, mit Matcher, Timeout und Zweck — erzeugt aus der real laufenden Konfiguration.
 
 Secrets, Logs, Transcripts, Session-State und Backups fehlen ebenfalls. Pfade sind auf
 `$HOME` normalisiert, interne Adressen und Daten Dritter sind entfernt. Der Stand ist mit
