@@ -26,6 +26,13 @@ if [ -z "${SMTP_USER:-}" ] || [ -z "${SMTP_APP_PASSWORD:-}" ] || [ -z "${MAIL_TO
   log "mail.env unvollstaendig (SMTP_USER/SMTP_APP_PASSWORD/MAIL_TO) — '$SUBJECT' uebersprungen"
   exit 0
 fi
+# Relay-Kennung als Absender ist der Fall, der still scheitert: SMTP sagt 250,
+# der Relay verwirft danach. Laut melden statt hoffen (Befund 2026-08-17).
+case "${SMTP_USER}" in
+  *smtp-brevo.com|*sendgrid.net|apikey)
+    [ -z "${MAIL_FROM:-}" ] && log "WARNUNG: SMTP_USER ist eine Relay-Kennung und MAIL_FROM fehlt — '$SUBJECT' wird sehr wahrscheinlich still verworfen"
+    ;;
+esac
 
 SUBJ="$SUBJECT" BODY="$BODY" /usr/bin/python3 - <<'PY'
 import os, smtplib, ssl, sys
@@ -33,7 +40,12 @@ from email.message import EmailMessage
 from email.utils import formatdate
 
 msg = EmailMessage()
-msg["From"] = os.environ["SMTP_USER"]
+# From != SMTP_USER: bei Relays wie Brevo ist SMTP_USER eine Login-Kennung
+# (a2a...@smtp-brevo.com), keine Adresse. Der Relay nimmt die Transaktion an und
+# verwirft die Mail danach still, wenn der Absender kein verifizierter Sender des
+# Kontos ist — SMTP meldet Erfolg, es kommt nie etwas an (Befund 2026-08-17).
+# MAIL_FROM setzen; nur als Rueckfall SMTP_USER (korrekt bei Gmail & Co).
+msg["From"] = os.environ.get("MAIL_FROM") or os.environ["SMTP_USER"]
 msg["To"] = os.environ["MAIL_TO"]
 msg["Subject"] = "[netcup RC] " + os.environ.get("SUBJ", "RC-Alarm")
 msg["Date"] = formatdate(localtime=True)
