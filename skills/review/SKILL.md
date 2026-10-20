@@ -634,15 +634,18 @@ Code-Findings → projekt-lokal via `--root <projekt>`; Setup/Skills/Hooks/Agent
 
 ### D) Outcome-Ledger schreiben (v4.1 — die Lern-Labels für Phase 0)
 
-Schreibt die **verifizierten Verdikte** dieses Runs in den Lern-Ledger, damit der naechste Run sie via Phase-0-Recall nutzt. **GUARDRAIL: NUR verifizierte Outcomes** — die Verdikte aus Phase 5.5 (FP-Filter), Phase 5.6 (FN-Pass), Phase 7 (Fix-Verify). **NIE rohe Findings** (sonst Feedback-Loop-Vergiftung — der Skill lernt seine eigenen ungepruefen Hypothesen). Das Script erzwingt das per Provenance-Gate (`--source` muss `fp-filter|fn-pass|phase7-verify|real-fix` sein, sonst Reject).
+Schreibt nur Outcomes mit nachvollziehbarer lokaler Evidenz. `--source` ist ein Herkunftslabel, keine unabhängige Verifikation. `record` verlangt zusätzlich Finding-ID und einen passenden Evidenzbeleg; `rebuild`/`recall` berücksichtigen nur noch vorhandene, unveränderte Belege. Alte unbelegte Zeilen bleiben erhalten und werden als `excluded_outcomes` sichtbar, beeinflussen aber keine neuen Lernsignale. Keine Kern-Skill-Edits durch Lerndaten.
 
 ```bash
 python ~/.claude/scripts/review_learn.py record \
   --verdict <verified|false-positive|missed|regression> \
   --source <fp-filter|fn-pass|phase7-verify|real-fix> \
   --axis <achse> --category <cwe/kategorie> --file <basename> \
-  --severity <S> --review-ts <review-folder-ts>
+  --severity <S> --review-ts <review-folder-ts> \
+  --finding-id <finding-id> --evidence <review-id>/<finding-id>.json
 ```
+
+Evidenz unter `~/.claude/skills/review/evidence/<review-id>/<finding-id>.json`: bereinigtes JSON mit `finding_id`, `review_ts`, `source`, `verdict` (identisch zum Outcome), `code_sha256` (geprüfte Quellfassung), `basis` (Befehl oder konkrete Begründung) und `result` (Beobachtung). Keine Secrets/Rohlogs. Dies ist eine lokale Belegreferenz mit Inhalts-Hash, kein Wahrheits- oder Same-UID-Angriffsschutz. Dieselbe Finding-ID zählt pro Review nur einmal. Bei fehlendem Beleg keine Lernwirkung, kein stilles Ersatzlabel.
 
 | Verdikt | Wann | Lern-Effekt |
 |---|---|---|

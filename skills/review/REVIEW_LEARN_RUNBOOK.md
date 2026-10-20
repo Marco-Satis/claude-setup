@@ -69,8 +69,7 @@ hervorheben — das ist der wertvollste Lern-Output.
 
 ## Guardrails (warum das sicher ist)
 
-- `consolidate` liest nur den **verifizierten** Ledger (Provenance-Gate in
-  `review_learn.py` ließ rohe Findings gar nicht erst rein).
+- `consolidate` berücksichtigt nur Outcomes mit passendem, vorhandenem Evidenzartefakt und unverändertem Inhalts-Hash. `--source` bleibt Selbstauskunft. Fehlende, alte und doppelte Outcomes sind `excluded_outcomes`; Ledger-Zeilen werden nicht gelöscht. Ein Artefakt-Hash belegt die lokale Nachvollziehbarkeit, nicht automatisch die sachliche Richtigkeit.
 - Auto-Apply ausschließlich auf Daten (`review_learned.json`), nie auf Kern-Text.
 - Stufe-3-Schwellen sind strenger als Recall (`PROPOSE_*`) → nur belastbare
   Muster werden überhaupt Vorschlag.

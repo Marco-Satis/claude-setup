@@ -28,7 +28,7 @@ Zweck: einen **abgeschlossenen Änderungssatz** gegen harte Kriterien abnehmen, 
 
 1. **Loop-Guard** (siehe oben) — bei Treffer abbrechen.
 2. **Git-Repo:** `git rev-parse --git-dir` — vorhanden → Diff-Modus. Nicht vorhanden → **Pfad-Modus** (siehe Punkt 3), kein Abbruch.
-3. **Scope bestimmen:** Argument = Pfad → dieser Pfad. Kein Argument → `git diff --name-only` plus untracked, nicht ignoriert.
+3. **Scope bestimmen:** Argument = Pfad → dieser Pfad. Kein Argument → Vereinigung von `git diff --cached --name-only`, `git diff --name-only` und untracked, nicht ignoriert; NUL-getrennt verarbeiten.
    **Rauschen vorher abziehen** (sonst nimmt das Gate Backups ab — im ersten Testlauf 2026-07-29 genau so passiert):
    ```bash
    git status --porcelain | grep -vE '\.bak(\.|$)|sync-conflict|/__pycache__/|\.pyc$|^\?\? \.(venv|superpowers|claude/gate)/'
@@ -38,15 +38,21 @@ Zweck: einen **abgeschlossenen Änderungssatz** gegen harte Kriterien abnehmen, 
    **`sync-conflict` gehört zwingend in den Filter — und zusätzlich gemeldet.** Im Dry-Run lagen **37 Konfliktdateien vom 25.07. im aktiven Bot-Quellbaum**, darunter sechs `.py` neben ihren Originalen (`web/app.sync-conflict-….py`, `bots/recon_bot.sync-conflict-….py`, …). Syntaktisch gültig, importierbar, ältere Fassung — `web/app.sync-conflict-….py` fehlte der Channel-Router. Jede Konfliktkopie im Scope ist ein **eigener HIGH-Befund** („Konfliktkopie im Quellbaum"), nicht bloß Filterrauschen: sie wird nicht abgenommen, aber gemeldet.
 
    **Ohne Git-Repo** (des Nutzers gesyncte Projekt-Spiegel haben kein `.git` — Syncthing schließt es aus): kein Abbruch, sondern Pfad-Modus. Scope = das übergebene Verzeichnis, work-sha = sha256 über die sortierten Dateiinhalte des Scope, Diff-basierte Eingrenzung entfällt. Ein Gate, das an genau den Projekten scheitert, die synchronisiert werden, ist nutzlos.
-4. **work-sha berechnen** — Fingerabdruck aus `git rev-parse HEAD` + `git diff` + Inhalt der ungetrackten Dateien. `.claude/gate/` muss aus **jedem** Eingang raus, sonst ändert das Gate mit dem Schreiben seines eigenen Verdikts die sha und der Cache trifft nie (Testlauf 2026-07-29: genau so passiert — `porcelain` war ungefiltert):
+4. **work-sha berechnen** — Index und Arbeitsbaum getrennt erfassen. Der Fingerabdruck ist vorerst nur Diagnose; er bindet Prüfmodus, externe Prüfkonfiguration und Toolchain nicht vollständig. Ausgabe ausschließen. Bei fehlendem HEAD: kein Cache, Diagnose als nicht unterstützt kennzeichnen.
    ```bash
-   { git rev-parse HEAD; git diff; \
-     git status --porcelain | grep -v '\.claude/gate/'; \
-     git ls-files -o --exclude-standard | grep -v '^\.claude/gate/' | sort | xargs -r cat; } \
-     | sha256sum | cut -c1-16
+   set -euo pipefail
+   { git rev-parse --verify HEAD
+     git diff --no-ext-diff --no-textconv --cached --binary -- . ':(exclude).claude/gate/**'
+     git diff --no-ext-diff --no-textconv --binary -- . ':(exclude).claude/gate/**'
+     git status --porcelain --untracked-files=all -- . ':(exclude).claude/gate/**'
+     while IFS= read -r -d '' file; do
+       printf '%s\0' "$file"
+       sha256sum -- "$file"
+     done < <(git ls-files -o --exclude-standard -z -- . ':(exclude).claude/gate/**' | LC_ALL=C sort -z)
+   } | sha256sum | cut -c1-16
    ```
-   Verifiziert: stabil über Run-State-Schreibvorgänge, reagiert auf echte Änderungen, kehrt nach Rücknahme auf denselben Wert zurück.
-5. **Cache:** existiert `.claude/gate/verdict.json` mit gleicher `workSha` und `pass: true` → melden „unverändert, bereits grün", Ende. Bei `--force` überspringen.
+   Fingerabdruckfehler blockieren die Diagnose; daraus niemals PASS ableiten.
+5. **Cache vorerst deaktiviert:** Kein gespeichertes PASS wiederverwenden, auch nicht bei gleicher workSha. Jeden angeforderten Modus und Scope frisch prüfen. `--force` ist damit redundant. Alte Verdict-Dateien sind historische Berichte. Cache erst nach separatem Vertrag für Scope, Modus, Stufen, Konfigurations- und Toolchain-Versionen wieder aktivieren.
 6. **Toolchain auflösen** (einmal, Ergebnis in `.claude/gate/config.json` merken).
    **`command -v` allein reicht nicht** — Projekt-Tools liegen meist im venv, nicht auf `PATH`
    (Testlauf 2026-07-29: `pytest` fehlte auf `PATH`, lag aber in `.venv/bin/` und lief über
@@ -146,7 +152,7 @@ Idee aus ECC (`skills/santa-method/SKILL.md` + `commands/santa-loop.md`, MIT, ge
 
 **Wann:** nach Phase 3, sobald Phase 1 grün ist und Phase 3 keinen offenen Blocker mehr meldet.
 
-**Eingabe, für beide identisch und sonst nichts:** Auftrag wörtlich (des Nutzers Anweisung bzw. Plan-/Task-Text), Diff des Scope (`git diff > .claude/gate/dual_input.diff`; im Pfad-Modus die Dateiliste), das Raster unten. **Nicht** mitgeben: Befunde aus Phase 2/3, das Urteil des anderen Prüfers, den Session-Verlauf, sonst ankern beide auf denselben Stellen. Secret-Dateien (`.env*`, `secrets/`) vorher aus der Eingabe nehmen.
+**Eingabe, für beide identisch und sonst nichts:** Auftrag wörtlich (des Nutzers Anweisung bzw. Plan-/Task-Text), Diff des Scope (`{ git diff --no-ext-diff --no-textconv --cached --binary; git diff --no-ext-diff --no-textconv --binary; } > .claude/gate/dual_input.diff`; im Pfad-Modus die Dateiliste), das Raster unten. **Nicht** mitgeben: Befunde aus Phase 2/3, das Urteil des anderen Prüfers, den Session-Verlauf, sonst ankern beide auf denselben Stellen. Secret-Dateien (`.env*`, `secrets/`) vorher aus der Eingabe nehmen.
 
 **Raster** (jedes Kriterium PASS oder FAIL; FAIL nur mit `datei:zeile`, Auslöser und der Begründung, warum kein vorhandener Schutz es abfängt):
 

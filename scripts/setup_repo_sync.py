@@ -29,7 +29,7 @@ MIRROR_DIRS = ["skills", "agents", "hooks", "rules", "templates"]
 DENY = {
     "skills/bewerbung",  # Lebenslauf-Generator mit Adresse/Telefon (Fund 2026-08-15)
     "skills/synced",     # vom claude.ai-Konto synchronisierte Plugin-Kopien, nicht des Nutzers Werk
-    # Art. 9 DSGVO: das ADHS-Regelwerk erlaubt Rueckschluesse auf Gesundheit; draussen, bis der Nutzer entscheidet (2026-10-20)
+    # Art. 9 DSGVO: das ADHS-Regelwerk erlaubt Rueckschluesse auf Gesundheit; der Nutzer-Entscheid 2026-10-20: bleibt draussen
     "skills/i-have-adhd", "skills/knapp", "hooks/knapp_de.py",
 }
 EXCLUDE = ["*.bak", "*.bak.*", "*.sync-conflict-*", "__pycache__", ".pytest_cache", "*.pyc", "_archive*",
