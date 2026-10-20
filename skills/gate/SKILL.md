@@ -1,10 +1,10 @@
 ---
 name: gate
-version: 1.0.0
-last-reviewed: 2026-07-29
+version: 1.1.0
+last-reviewed: 2026-09-30
 description: Quality-Gate für abgeschlossene Änderungssätze — deterministische Orakel-Kette (lint/typecheck/test/build) vor jeder LLM-Bewertung, danach Slop-Pass gegen die 15 belegten AI-Fehlermodi, semantischer Review und Deployment-Preflight. Schreibt ein maschinenlesbares `verdict.json` mit work-sha-Caching und läuft eine gegatete Fix-Schleife bis grün oder Budget erschöpft. Erkennung über kostenlose Bridges, Fixes über das starke Modell. NICHT für einzelne Edits (dafür /quick-review) und NICHT in Loop-Sessions.
 when_to_use: gate, quality gate, änderungssatz abnehmen, ist das fertig, vor dem merge prüfen, ai-slop prüfen, code guard, gegatete abnahme, deterministische prüfung vor review
-argument-hint: 'Optional Pfad/Scope — Default: uncommitted Änderungen (`git diff`). `--quick` überspringt Build+Review, `--force` ignoriert den Cache.'
+argument-hint: 'Optional Pfad/Scope — Default: uncommitted Änderungen (`git diff`). `--quick` überspringt Build+Review, `--force` ignoriert den Cache, `--dual` = Zweifach-Abnahme Claude+Codex nur für kritische Lieferungen.'
 allowed-tools: Read Grep Glob Bash Edit Write Task
 userInvocable: true
 ---
@@ -37,7 +37,7 @@ Zweck: einen **abgeschlossenen Änderungssatz** gegen harte Kriterien abnehmen, 
 
    **`sync-conflict` gehört zwingend in den Filter — und zusätzlich gemeldet.** Im Dry-Run lagen **37 Konfliktdateien vom 25.07. im aktiven Bot-Quellbaum**, darunter sechs `.py` neben ihren Originalen (`web/app.sync-conflict-….py`, `bots/recon_bot.sync-conflict-….py`, …). Syntaktisch gültig, importierbar, ältere Fassung — `web/app.sync-conflict-….py` fehlte der Channel-Router. Jede Konfliktkopie im Scope ist ein **eigener HIGH-Befund** („Konfliktkopie im Quellbaum"), nicht bloß Filterrauschen: sie wird nicht abgenommen, aber gemeldet.
 
-   **Ohne Git-Repo** (der Nutzer gesyncte Projekt-Spiegel haben kein `.git` — Syncthing schließt es aus): kein Abbruch, sondern Pfad-Modus. Scope = das übergebene Verzeichnis, work-sha = sha256 über die sortierten Dateiinhalte des Scope, Diff-basierte Eingrenzung entfällt. Ein Gate, das an genau den Projekten scheitert, die synchronisiert werden, ist nutzlos.
+   **Ohne Git-Repo** (des Nutzers gesyncte Projekt-Spiegel haben kein `.git` — Syncthing schließt es aus): kein Abbruch, sondern Pfad-Modus. Scope = das übergebene Verzeichnis, work-sha = sha256 über die sortierten Dateiinhalte des Scope, Diff-basierte Eingrenzung entfällt. Ein Gate, das an genau den Projekten scheitert, die synchronisiert werden, ist nutzlos.
 4. **work-sha berechnen** — Fingerabdruck aus `git rev-parse HEAD` + `git diff` + Inhalt der ungetrackten Dateien. `.claude/gate/` muss aus **jedem** Eingang raus, sonst ändert das Gate mit dem Schreiben seines eigenen Verdikts die sha und der Cache trifft nie (Testlauf 2026-07-29: genau so passiert — `porcelain` war ungefiltert):
    ```bash
    { git rev-parse HEAD; git diff; \
@@ -138,6 +138,46 @@ Treffer aus 2a und 2b sind **Befunde, keine Blocker** — sie gehen in Phase 3 a
 
 Bei `--quick` entfällt diese Phase.
 
+## Phase 3b — Dual-Abnahme `--dual` (nur kritische Lieferungen)
+
+Idee aus ECC (`skills/santa-method/SKILL.md` + `commands/santa-loop.md`, MIT, gelesen 2026-09-30, nichts installiert): zwei unabhängige Prüfer mit **demselben PASS/FAIL-Raster**, grün nur wenn **beide** PASS geben. Ein einzelner Prüfer teilt die blinden Flecken des Modells, das den Code geschrieben hat. Was nur einer der beiden findet, ist trotzdem ein echter Befund.
+
+**Nur mit `--dual`, nur für kritische Lieferungen:** Deploy der Discord-Bots, Änderungen an `_botcore/` (wirkt auf alle drei Bots), an `~/.claude/hooks/` oder an Security-, Auth- oder Secret-Code. Kostet grob das 2–3-Fache einer Review-Runde plus Codex-Kontingent (Plus, knapp). Mit `--quick` nicht kombinierbar. Ohne `--dual` taucht die Stufe im Verdikt nicht auf.
+
+**Wann:** nach Phase 3, sobald Phase 1 grün ist und Phase 3 keinen offenen Blocker mehr meldet.
+
+**Eingabe, für beide identisch und sonst nichts:** Auftrag wörtlich (des Nutzers Anweisung bzw. Plan-/Task-Text), Diff des Scope (`git diff > .claude/gate/dual_input.diff`; im Pfad-Modus die Dateiliste), das Raster unten. **Nicht** mitgeben: Befunde aus Phase 2/3, das Urteil des anderen Prüfers, den Session-Verlauf, sonst ankern beide auf denselben Stellen. Secret-Dateien (`.env*`, `secrets/`) vorher aus der Eingabe nehmen.
+
+**Raster** (jedes Kriterium PASS oder FAIL; FAIL nur mit `datei:zeile`, Auslöser und der Begründung, warum kein vorhandener Schutz es abfängt):
+
+| # | Kriterium | PASS, wenn |
+|---|---|---|
+| R1 | Korrektheit | kein Pfad liefert mit einer konkreten Eingabe ein falsches Ergebnis |
+| R2 | Sicherheit | keine Secrets im Code, keine Injection, keine Aufweitung von Rechten, Auth oder Sandbox |
+| R3 | Fehlerbehandlung | kein stilles Verschlucken, kein Fehler als Erfolgsmeldung (Fehlermodus #1) |
+| R4 | Vollständigkeit | jede Anforderung aus dem Auftrag ist umgesetzt |
+| R5 | Regressionsfreiheit | bestehende Aufrufer und bestehendes Verhalten bleiben intakt |
+| R6 | Konsistenz | keine Widersprüche zwischen Code, Doku und Konfiguration |
+
+**Beide Prüfer in derselben Nachricht starten** (parallel, keiner sieht den anderen):
+- **Prüfer A, Claude:** frischer Subagent (Task-Tool, `general-purpose`), Auftrag „Nur prüfen, nichts ändern. Deine Aufgabe ist, Probleme zu finden, nicht freizugeben." Antwort als JSON nach `dual_verdict.schema.json` in diesem Ordner.
+- **Prüfer B, Codex:** über den vorhandenen Wrapper, read-only, mit Projektzugriff und demselben Schema:
+  ```bash
+  python3 ~/.claude/scripts/codex_call.py --mode second-opinion --sandbox read-only \
+    --repo <projekt-root> --schema "$HOME/.claude/skills/gate/dual_verdict.schema.json" \
+    --timeout 1800 --label gate-dual -- "<Auftrag + Raster + 'nur prüfen, nichts ändern'>" \
+    < .claude/gate/dual_input.diff
+  ```
+  `--timeout 1800` ist Pflicht: `second-opinion` hat im Wrapper nur 300 s (gedacht für kurze Zweitmeinungen), der Dual-Prüfer liest mit `--repo` und hohem Effort aber agentisch wie ein Review (dort 1800 s). Ein Timeout wäre sonst regelmäßig `INCOMPLETE`.
+
+**Urteil:** beide `PASS` → `stages.dual = "PASS"`. Mindestens ein `FAIL` → `critical_issues` beider zusammenführen und deduplizieren. Jede Stelle wie in Phase 2b gegen den Code prüfen: existiert sie nicht, wird der Punkt verworfen und im WORKLOG vermerkt. Der Rest geht als blockierender Befund in Phase 5. Nach dem Fix wie immer ab Phase 1 neu; die nächste Dual-Runde läuft mit **frischen** Prüfern ohne Wissen aus der Vorrunde.
+
+**Deckel:** höchstens 3 Dual-Runden. Danach Status `blocked`, `BLOCKER.md` mit den offenen Punkten beider Prüfer, der Nutzer entscheidet.
+
+**Codex fällt aus** (Exit 3 Login fehlt, 4 Kontingent, sonst Fehler): ein Ausfall ist keine Zustimmung. `stages.dual = "INCOMPLETE"`, Gate nicht grün, Grund im Verdikt. Kein stiller Ersatz durch einen zweiten Claude-Prüfer. Will der Nutzer das, steht im Verdikt „gleiche Modellfamilie".
+
+**Übereinstimmung messen:** im Verdikt `"dual": {"rounds": N, "claude": "PASS|FAIL", "codex": "PASS|FAIL|ERROR", "agreement": {"both": n, "claudeOnly": n, "codexOnly": n}}`. Bleibt die Übereinstimmung dauerhaft niedrig, ist das Raster zu vage; an einem der Prüfer liegt es selten.
+
 ## Phase 4 — Deployment-Preflight
 
 `/deploy-preflight` — Tests, Importierbarkeit, `.env`-Abgleich, `pip check`, Debug-Relikte (`print`, `breakpoint`, `pdb`, `TODO`/`FIXME` im Produktivpfad). Go/No-Go.
@@ -183,6 +223,7 @@ Ausgabe an der Nutzer **kurz**: Status, welche Stufen liefen, wie viele Runden, 
 | Phase 3 Review | `/review` (Standard-Dispatch) | eingespielte Pipeline |
 | Phase 5 Fixes | starkes Modell (Opus) | hier zählt Korrektheit |
 | Cross-Check bei Uneinigkeit | `codex-bridge` | andere Modell-DNA, läuft über das Plus-Abo |
+| Phase 3b `--dual` | frischer Claude-Subagent + Codex über `codex_call.py` (read-only) | gleiches Raster, zwei Modellfamilien |
 
 ## Constraints
 
@@ -199,6 +240,7 @@ Ausgabe an der Nutzer **kurz**: Status, welche Stufen liefen, wie viele Runden, 
 /gate src/bots/            # nur diesen Pfad
 /gate --quick              # nur Orakel + Slop-Pass, ohne Review/Preflight
 /gate --force              # Cache ignorieren, alles neu
+/gate --dual src/_botcore/ # kritische Lieferung: zusätzlich Claude + Codex, beide müssen PASS geben
 ```
 
 ## Roadmap (bewusst noch nicht gebaut)
@@ -209,3 +251,4 @@ Ausgabe an der Nutzer **kurz**: Status, welche Stufen liefen, wie viele Runden, 
 ## Versionen
 
 - 1.0.0 (2026-07-29): Erstfassung. Orakel-Kette + work-sha-Caching + Stuck-Signatur nach dem Muster von `ncoevoet/claude-loop` (MIT); Slop-Pass gegen `_shared/ai-failure-modes.md` aus `amElnagdy/guard-skills` (MIT). Stop-Hook und LOGIC-Ledger bewusst ausgeklammert.
+- 1.1.0 (2026-09-30): Phase 3b `--dual` (Santa-Method aus ECC, MIT, nur die Idee übernommen): Claude-Subagent und Codex prüfen mit demselben Raster R1–R6, grün nur bei zweimal PASS, höchstens 3 Runden, Codex-Ausfall = `INCOMPLETE`. Schema `dual_verdict.schema.json`. Quelle: TikTok-Auswertung A2 #6 (a).

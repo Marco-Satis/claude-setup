@@ -2,7 +2,7 @@
 name: ui-critique
 version: 1.3.0
 last-reviewed: 2026-06-03
-description: UX/Layout-Review für HTML/CSS-Komponenten — visuelle Hierarchie, Konsistenz, Spacing, Typografie-Skala, Interaktions-States, Empty/Loading/Error-States. Optimiert für FastAPI-Templates + style.css-Token-Systeme.
+description: UX/Layout-Review für HTML/CSS-Komponenten — visuelle Hierarchie, Konsistenz, Spacing, Typografie-Skala, Interaktions-States, Empty/Loading/Error-States. Optimiert für FastAPI-Templates + style.css-Token-Systeme. Nur eigener Code und eigene Templates; eine fremde öffentliche Website per URL analysieren → site-anatomy.
 when_to_use: ui review, design critique, dashboard kritik, html review, css review, ux feedback, visual hierarchy check, design konsistenz, spacing check, hover states review
 argument-hint: Optional File/Komponente ("web/templates/dashboard.html" | "navigation" | "stats-card") — Default scant gesamten templates-Ordner
 allowed-tools: Read Grep Glob Bash Write Edit

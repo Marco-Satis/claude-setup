@@ -3,7 +3,7 @@
 
 der Nutzer 2026-06-05: setzt die `rules/subagent-file-reads.md`-Doktrin aktiv durch
 (vorher rein passive Regel — entgegen der Active-Enforcement-Doktrin). Shell-Reads
-via `cat`/`head`/`tail`/`Get-Content`/`gc` auf eine Datei triggern der Nutzer
+via `cat`/`head`/`tail`/`Get-Content`/`gc` auf eine Datei triggern des Nutzers
 Read-Deny-Security-Flag (p-a52a0b0780). Read-Tool umgeht das + integriert sich in
 Permission-UI + File-State-Tracking.
 
@@ -132,7 +132,7 @@ def main() -> None:
 
     sys.stderr.write(
         f"BLOCKED: reiner Datei-Read via Shell (`{base}`) — bitte das Read-Tool nutzen "
-        f"(Get-Content/cat/head/tail/sed/awk-Reads triggern der Nutzer Read-Deny-Security-Flag). "
+        f"(Get-Content/cat/head/tail/sed/awk-Reads triggern des Nutzers Read-Deny-Security-Flag). "
         f"rules/subagent-file-reads.md. Befehl: {stripped[:120]}\n"
     )
     sys.exit(2)

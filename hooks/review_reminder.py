@@ -3,7 +3,7 @@
 kritischem Code (Harmonist-Idee abgespeckt, 2026-05-24).
 
 Harmonist gated Code-Changes hart (stop-hook REFUSED Turn ohne Review). Das wäre
-für der Nutzer Autonomous-Mode zu invasiv (bricht den Flow). Diese abgespeckte Variante:
+für des Nutzers Autonomous-Mode zu invasiv (bricht den Flow). Diese abgespeckte Variante:
 SOFT-Reminder NACH dem Edit (PostToolUse), kein hartes Gate. Bei Edit an
 security/auth/db/RCON/payment-Code wird eine SystemMessage injiziert die an /review
 oder /security-audit VOR Deploy erinnert.

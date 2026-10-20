@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """SubagentStop-Hook: tracet jeden Sub-Agent-Run in eine JSONL.
 
-der Nutzer 2026-06-05 (Inventar-Audit E1): der Nutzer 16 Sub-Agents liefen bisher "blind"
+der Nutzer 2026-06-05 (Inventar-Audit E1): des Nutzers 16 Sub-Agents liefen bisher "blind"
 — kein aggregiertes Tracing pro Run. Dieser Hook feuert bei jedem SubagentStop und
 schreibt einen Tracing-Datensatz nach `~/.claude/lessons/subagent_runs.jsonl`
 (Timestamp, Transcript-Stats, Tool-/Token-Schätzung aus dem Subagent-Transcript).

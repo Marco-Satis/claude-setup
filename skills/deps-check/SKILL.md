@@ -4,7 +4,7 @@ version: 2.0.0
 last-reviewed: 2026-05-17
 description: Dependency-Vulnerability-Audit — orchestriert dependency-auditor-Subagent für pip-audit (CVE-Scan), Slopsquatting-Detection, Lockfile-Pinning, Outdated-Pakete. Lokal + Server (via SSH). Nutze wöchentlich oder bei CVE-Alerts.
 when_to_use: dependency audit, pip-audit, CVE check, slopsquatting detection, lockfile hygiene, package vulnerability, requirements.txt review, npm audit, supply chain audit
-argument-hint: Optional requirements-Datei-Pfad oder "server" für Remote-Audit auf gameserver-netcup
+argument-hint: Optional requirements-Datei-Pfad oder "server" für Remote-Audit auf netcup-server
 allowed-tools: Read Grep Bash Glob Agent Write
 userInvocable: true
 model: sonnet
@@ -38,7 +38,7 @@ Agent({
      (z.B. 'requets' statt 'requests', 'crypotgraphy' statt 'cryptography')
   3. Lockfile-Pinning-Check: alle Pakete mit `==` gepinnt? (oder `~=` für Range)
   4. Outdated-Check: `pip list --outdated` oder Vergleich gegen PyPI
-  5. License-Compatibility-Check (Quick): GPL-Verträglichkeit mit der Nutzer MIT-Code
+  5. License-Compatibility-Check (Quick): GPL-Verträglichkeit mit des Nutzers MIT-Code
 
   Output: REVIEW_REPORT_DEPENDENCIES.md mit:
   - Findings-Tabelle (Severity, Paket, Version, CVE-ID, Fix-Version, Aufwand)
@@ -55,10 +55,10 @@ Agent({
 ## Phase 2 — Server-Audit (optional, bei Argument `server` oder `all`)
 
 ```bash
-ssh -p 4422 marco@159.195.72.217 \
+ssh -p <ssh-port> <user>@<server-ip> \
   "sudo /bin/su - botuser -c 'cd /home/botuser/Discord_Bots && \
    .venv/bin/pip-audit --format json --output /tmp/pip-audit.json'"
-scp -P 4422 marco@159.195.72.217:/tmp/pip-audit.json \
+scp -P <ssh-port> <user>@<server-ip>:/tmp/pip-audit.json \
   ~/.claude/reports/deps-check/<datum>/RAW_TOOL_OUTPUT/server_pip-audit.json
 ```
 
@@ -118,7 +118,7 @@ Update-Reihenfolge:
 ## Beispiel-Triggers
 
 - `/deps-check` — lokal, Default-requirements
-- `/deps-check server` — auf gameserver-netcup für alle Bot-venvs
+- `/deps-check server` — auf netcup-server für alle Bot-venvs
 - `/deps-check all` — lokal + Server kombiniert
 - `/deps-check requirements-dev.txt` — spezifisches File
 

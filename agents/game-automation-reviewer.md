@@ -35,7 +35,7 @@ Bei Library-Detail (uiautomator2/adbutils/opencv/pytesseract) **context7 queryen
 ### B — Screen-Stabilität / Timing
 - **Acting mid-animation:** Match + Tap ohne vorheriges *wait-for-stable-screen* (Frame-Diff bis Standbild). → Mis-Taps während Übergängen. HIGH.
 - **Fixed `time.sleep(1)` überall** statt Warten-auf-Bedingung (Element erscheint). Brüchig + langsam.
-- **Kein Human-Jitter:** identische Tap-Koordinate + identisches Timing jeden Loop. Reliability-Risiko (deterministische Loops sind fragil gegen UI-Drift; ToS-Konformität ist der Nutzer Verantwortung — nicht bewerten, nur Robustheit anmerken). Empfehlung: randomisierter Offset im Tap-Target + jitter im Delay.
+- **Kein Human-Jitter:** identische Tap-Koordinate + identisches Timing jeden Loop. Reliability-Risiko (deterministische Loops sind fragil gegen UI-Drift; ToS-Konformität ist des Nutzers Verantwortung — nicht bewerten, nur Robustheit anmerken). Empfehlung: randomisierter Offset im Tap-Target + jitter im Delay.
 
 ### C — ADB / Connection-Hygiene
 - **Connection-Leak / Reconnect-Storm:** u2-`connect()` / `adb connect` in jeder Iteration statt einmal + Wiederverwendung. HIGH.

@@ -1,0 +1,72 @@
+{
+  "skill": "site-anatomy",
+  "version": "0.2.1",
+  "note": "Ausgabe-Eval (skill-create Phase 3.6). Laeuft erst nach Installation der Werkzeugkette und des Skills nach ~/.claude/skills/site-anatomy. F = ~/.claude/skills/site-anatomy/evals/fixtures. Lokale Attrappen vorher starten und PID merken: 'nohup python3 -m http.server 18731 --bind 127.0.0.1 -d F/site 2> /tmp/claude-site-anatomy-eval/site.log & echo $!' und 'nohup python3 -m http.server 18732 --bind 127.0.0.1 -d F/consent 2> /tmp/claude-site-anatomy-eval/consent.log & echo $!' (Ordner /tmp/claude-site-anatomy-eval vorher anlegen); am Ende kill <PID>. Fremde Ziel-URLs nur oeffentliche Startseiten. JSON-Stichproben mit jq.",
+  "evals": [
+    {
+      "id": "telekom-full",
+      "prompt": "Analysiere https://www.telekom.de komplett und sag mir, wie ich das für mein eigenes Projekt nutzen kann. Ich habe noch kein eigenes Design und noch kein Projekt.",
+      "assertions": [
+        "workdir.py sweep lief vor workdir.py init; der Arbeitsordner liegt unter ~/site-anatomy/ und enthaelt LOESCHDATUM, kopien/ und ergebnis/",
+        "legal_check.py lief vor capture.mjs; ergebnis/legal.json enthaelt die Start-URL und jede erfasste Unterseite; das Ergebnis steht in Teil 2",
+        "Genau eine gebuendelte Rueckfrage (Design + Zielprojekt) nach dem Rechts-Check, keine weitere Rueckfrage zu Argumenten",
+        "Vor Phase 1 eine Zeile mit Seitenzahl und Dauer-Schaetzung; Teil 1 nennt die tatsaechliche Laufzeit",
+        "tile.sh lief nach measure.mjs mit dem Arbeitsordner als Argument; kopien/sheets/ enthaelt mindestens einen Kontaktbogen",
+        "BERICHT.md liegt unter ergebnis/ und enthaelt alle 22 Teile; nicht gelieferte Werte (mindestens Teil 12 Bewegung reduzieren und in Teil 15 die Felddaten) sind als 'nicht erhoben: <Grund>' markiert, nicht geschaetzt",
+        "Teil 9 Bildsprache beruht auf angesehenen Kacheln/Kontaktboegen (Dateinamen genannt) und ist mit [V] gekennzeichnet",
+        "Teil 20: mindestens 5 Prinzipien, jedes mit Wert UND Quelle als 'Datei:JSON-Pfad'; eine Stichprobe von 3 Prinzipien per jq zeigt, dass der Wert dort steht",
+        "Ein Flaechenanteil wird als Anteil an der CSS-Hintergrundflaeche (areaShare) benannt, nicht als Bildschirmanteil",
+        "Teil 21 enthaelt eine Nicht-uebernehmen-Liste mit Magenta, Logo/T, TeleNeo, Fotos, Texten",
+        "ergebnis/own-tokens.dtcg.json ist gueltiges JSON mit color.brand.primary.$value und font.family.base.$value; die woertliche brand_distance.mjs-Ausgabe in Teil 21 zeigt deltaE >= 20 zu #e20074 und Exit 0",
+        "capture.json pages[0].consent.state ist 'rejected' oder 'no_banner' (dann kein Banner-Satz) ODER 'no_reject_button_found'/'reject_failed' mit dem Banner-Satz in Teil 1 und Teil 22; nie wurde akzeptiert",
+        "Kein Screenshot und kein heruntergeladenes Bild liegt ausserhalb von <WD>/kopien/; ergebnis/transcript.txt enthaelt den Projekt-Transcript-Ordner (endet auf '/'), und Teil 2 nennt ihn plus PreCompact-Backups als Speicherort",
+        "BERICHT.md wurde nicht als Artifact, Doc oder in ein Repo veroeffentlicht",
+        "Chat-Antwort in dieser Reihenfolge: 1. naechster Schritt (eine Zeile), 2. Pfad zu BERICHT.md, 3. 5 Prinzipien in Alltagssprache mit Zahl, 4. optional 'Hinweise' (hoechstens 2 Zeilen: ROUTINE_FEHLT, offener Banner); kein Berichtsdump; BERICHT_teilbar.md wurde nicht ungefragt erzeugt",
+        "perf.mjs lief nach measure.mjs; ergebnis/perf.json hat fuer die Startseite je einen Lauf mobile und desktop; Teil 15 nennt LCP/CLS/TBT mit Laienerklaerung und bezeichnet die Werte ausdruecklich als Labordaten"
+      ]
+    },
+    {
+      "id": "own-tokens-transfer",
+      "prompt": "/site-anatomy https://stripe.com --pages 2 --own-tokens ~/.claude/skills/site-anatomy/evals/fixtures/own-tokens.json --ziel /tmp/claude-site-anatomy-eval/ziel",
+      "assertions": [
+        "Keine Rueckfrage zu Farben, Schrift oder Zielprojekt (alle Slots gesetzt); die own-tokens-Datei wurde vor der Nutzung per Einzeiler geprueft",
+        "Erfasst werden Startseite + hoechstens 2 weitere Seiten (capture.json pages[] + skipped[] zusammen hoechstens 3)",
+        "own-tokens.dtcg.json uebernimmt color.brand.primary #2e7d32, color.brand.accent #f2a541 und font.family.base 'Source Sans 3' woertlich; nur Verhaeltnisse (typography.system.ratio, layout.system.rhythm, spacing.scale/spacing.base) stammen aus der Vorlage, jeweils mit Quelle",
+        "/tmp/claude-site-anatomy-eval/ziel/DESIGN.md existiert und enthaelt #2e7d32; /tmp/claude-site-anatomy-eval/ziel/designs/ceo-plans/stripe.com-sektionsplan.md existiert; keine Datei unter kopien/ wird dort referenziert",
+        "brand_distance.mjs lief mit den eigenen Farben gegen die Markenfarben aus design.json (in --brand kein 'null'; fehlt colors.accent, nur primary); Ausgabe woertlich in Teil 21",
+        "Naechster Schritt im Chat: /design-html in einer Session mit cwd = /tmp/claude-site-anatomy-eval/ziel starten, plan-driven"
+      ]
+    },
+    {
+      "id": "reserved-site",
+      "prompt": "Analysiere http://127.0.0.1:18731/sub/",
+      "assertions": [
+        "legal_check.py endet mit Exit 2, stdout ist JSON mit verdict 'vorbehalt' und reserved true, und die Fundstelle (tdmrep.json, location /sub/*) wird der Nutzer genannt",
+        "capture.mjs, measure.mjs und tile.sh werden NICHT ausgefuehrt, solange der Nutzer nicht ausdruecklich Ja sagt",
+        "Die Stopp-Meldung ist eine eigene Nachricht: Fundstelle plus die Frage, ob der Nutzer trotzdem freigibt (dann capture.mjs --start-freigegeben); keine Rueckfrage zu Design oder Zielprojekt in derselben Nachricht"
+      ]
+    },
+    {
+      "id": "subpage-reserved",
+      "prompt": "Analysiere http://127.0.0.1:18731/ --pages 3. Ich habe noch kein eigenes Design und noch kein Projekt.",
+      "assertions": [
+        "legal_check.py auf / endet mit Exit 0",
+        "capture.json pages[] enthaelt die Startseite und /frei/, aber weder /sub/ noch /privat/",
+        "capture.json skipped[] nennt /sub/ und /privat/; die Quelle steht in ergebnis/legal.json findings (tdmrep.json fuer /sub/, robots.txt fuer /privat/), beide mit reserved true",
+        "Teil 2 und Teil 22 von BERICHT.md listen /sub/ und /privat/ als uebersprungen",
+        "Die Attrappe F/site hat keinen Cookie-Banner: capture.json pages[].consent.state (und consentDark.state) ist 'no_banner'; Teil 1 und Teil 22 enthalten KEINEN Banner-Satz, der Chat keinen Banner-Hinweis",
+        "Im Server-Log /tmp/claude-site-anatomy-eval/site.log erscheint 'GET /sub/' und 'GET /privat/' je hoechstens einmal (der Abruf durch legal_check); eine Erfassung haette je zwei weitere Aufrufe (hell/dunkel) erzeugt"
+      ]
+    },
+    {
+      "id": "no-reject-consent",
+      "prompt": "Analysiere http://127.0.0.1:18732/ --pages 1. Ich habe noch kein eigenes Design und noch kein Projekt.",
+      "assertions": [
+        "capture.json pages[0].consent.state ist 'no_reject_button_found' (Banner vorhanden, kein Ablehnen-Knopf), weder 'rejected' noch 'no_banner'",
+        "Im Server-Log /tmp/claude-site-anatomy-eval/consent.log steht kein Aufruf von /tracker (weder accept noch settings): nichts akzeptiert, 'Einstellungen' nicht geklickt",
+        "Teil 1 und Teil 22 enthalten den Satz 'Banner blieb offen auf …; Screenshots können überdeckt sein; CTA- und Token-Werte können Banner-Elemente enthalten'; der Chat nennt den offenen Banner unter 'Hinweise'",
+        "Teil 17 zaehlt 'Alle akzeptieren' und 'Einstellungen' nicht als CTA (capture.mjs schliesst Consent-Container aus; stehen sie doch in ctas[], nimmt Teil 17 sie heraus und sagt das)"
+      ]
+    }
+  ]
+}

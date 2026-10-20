@@ -49,7 +49,7 @@ find <root> \( $PRUNE \) -prune -o -name '.env*' -print | while read -r f; do
   git -C <root> check-ignore -q "$f" || echo "NICHT IGNORIERT: $f"; done
 ```
 
-Bei der Nutzer Syncthing-Setup sind Konflikt-Kopien **wiederkehrend real** — deshalb läuft die Achse immer mit, auch beim Einzel-File-Check. Trifft keiner der drei Befehle etwas: eine Zeile „Hygiene: sauber (3 Checks)". Kein Git-Repo → die `git`-Zeilen entfallen mit Notiz.
+Bei des Nutzers Syncthing-Setup sind Konflikt-Kopien **wiederkehrend real** — deshalb läuft die Achse immer mit, auch beim Einzel-File-Check. Trifft keiner der drei Befehle etwas: eine Zeile „Hygiene: sauber (3 Checks)". Kein Git-Repo → die `git`-Zeilen entfallen mit Notiz.
 
 ## Phase 2 — Severity-Klassifikation
 
@@ -74,7 +74,7 @@ Im Output **verboten** (analog zu `/review`):
 | Kraft-Adjektive ohne Beweis („sauber", „solide", „elegant") | konkretes File:Zeile + warum |
 | Score-Vergaben („9/10", „B+") | weglassen, ersetzen durch Severity-Counts |
 | Empfehlungs-Floskeln („sollte überdacht werden") | konkretes „Fix in <N> Min: <Befehl/Edit>" oder „kein Fix nötig WEIL ..." |
-| Production-Ready-Behauptung | weglassen — der Nutzer Entscheidung |
+| Production-Ready-Behauptung | weglassen — des Nutzers Entscheidung |
 | Findings ohne File:Zeile | Pflicht: Pfad + Zeilennummer |
 
 ## Phase 4 — Output-Draft

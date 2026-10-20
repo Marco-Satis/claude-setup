@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hook-Health-Check fuer der Nutzer Claude-Code-Setup — v2 (Wiring-treu).
+"""Hook-Health-Check fuer des Nutzers Claude-Code-Setup — v2 (Wiring-treu).
 
 Historie:
     2026-05-16  v1 (Review-Finding Q9) — testete hooks/*.py mit sys.executable

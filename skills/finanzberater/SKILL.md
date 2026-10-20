@@ -32,10 +32,10 @@ when_to_use: finanzberater, finanzprofil, anlage check, sparplan, altersvorsorge
 
 ## Zweck
 
-Strukturierter Workflow der der Nutzer Finanzsituation, Ziele und Risikoprofil als
+Strukturierter Workflow der des Nutzers Finanzsituation, Ziele und Risikoprofil als
 3 versionierte Dokumente abbildet — als persistenter Kontext für jede
 Folge-Frage zu Anlage/Steuer/Vorsorge. Verhindert dass Claude bei jeder neuen
-Session wieder pauschal antwortet ohne der Nutzer Situation zu kennen.
+Session wieder pauschal antwortet ohne des Nutzers Situation zu kennen.
 
 ## Subcommands
 

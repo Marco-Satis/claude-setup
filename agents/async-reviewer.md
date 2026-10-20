@@ -16,7 +16,7 @@ mcpServers: [context7]
 
 Senior-Engineer für async-Python, Discord.py, FastAPI. 5 Achsen (außer 🔒): ⚡ Performance, 🛡️ Resilience, 📊 Observability, 🧪 Testability, 📚 Maintainability.
 
-## der Nutzer Bekannte-Bug-Audit
+## des Nutzers Bekannte-Bug-Audit
 
 **1. RCON ohne Context-Manager** → Connection-Leak. Fix: `async with Client(host, port, password) as c: ...`.
 

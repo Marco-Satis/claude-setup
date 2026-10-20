@@ -14,7 +14,7 @@ Macht GENAU diese Session zur autonomen Operator-Tick-Schleife für ein Spiel. A
 ## Argument
 `<spiel>` ∈ `cellsurvivor` | `survivorio` | `idleslayer`. Fehlt es → der Nutzer fragen, welches Spiel diese Session betreibt.
 Spiel-Dir: cellsurvivor→`CellSurvivor` · survivorio→`Survivor_io` · idleslayer→`IdleSlayer`.
-Basis: `C:\Users\der Nutzer\OneDrive\Dokumente\Games\<dir>` (Windows-lokal — Bots/Emulator laufen auf dem PC). **Nicht verwechseln mit dem Syncthing-Folder `games`** (PC-Share → netcup `~/Games`): der zeigt auf einen *anderen* Ordner und enthält global nur 2 Dateien, keinen Bot-Code. Eine netcup-Session kann Gamebot-Arbeit deshalb **nicht** verifizieren — dort immer in der PC-Session nachfragen statt aus einem Nicht-Treffer zu schließen.
+Basis: `C:\Users\<user>\OneDrive\Dokumente\Games\<dir>` (Windows-lokal — Bots/Emulator laufen auf dem PC). **Nicht verwechseln mit dem Syncthing-Folder `games`** (PC-Share → netcup `~/Games`): der zeigt auf einen *anderen* Ordner und enthält global nur 2 Dateien, keinen Bot-Code. Eine netcup-Session kann Gamebot-Arbeit deshalb **nicht** verifizieren — dort immer in der PC-Session nachfragen statt aus einem Nicht-Treffer zu schließen.
 
 ## Schritte
 1. **Master-Schalter setzen:** schreibe `Games/<dir>/LOOP_RUN.flag` mit aktuellem Zeitstempel. Solange diese Datei existiert, läuft der Loop; `/loopstop` löscht sie.

@@ -2,7 +2,7 @@
 name: local-bridge
 version: 1.0.0
 last-reviewed: 2026-07-14
-description: Multi-AI-Bruecke zu einem LOKALEN Modell (Ollama, CPU-only, netcup — qwen2.5:7b/3b). Use proactively fuer (1) Batch/Grunt-Offload — Log-Triage, Zusammenfassung, Klassifikation, Pre-Filter VOR Claude-Eskalation; (2) Offline-Fallback wenn Claude/Cloud down oder rate-limited ist. Kein API-Geld, kein Rate-Limit, kein Daten-Egress (laeuft on-device). Jeder Consult laeuft durch ollama_call.py -> Usage-Tracking. Read-only, liefert die Analyse zurueck, Claude-Hauptloop entscheidet. EHRLICH: CPU ~1-6 tok/s = latenz-unkritische Batch-Arbeit, NICHT interaktiv; kleines Modell = KEIN Ersatz fuer harte Reasoning-/Code-Arbeit (die bleibt Claude/Codex). Abzugrenzen von gemini-bridge (Big-Context-Cloud-Offload, aktuell down) und codex-bridge (Code-Cross-Check, Frontier).
+description: Multi-AI-Bruecke zu einem LOKALEN Modell (Ollama, CPU-only, netcup — qwen2.5:7b/3b). Use proactively fuer (1) Batch/Grunt-Offload — Log-Triage, Zusammenfassung, Klassifikation, Pre-Filter VOR Claude-Eskalation; (2) Offline-Fallback wenn Claude/Cloud down oder rate-limited ist. Kein API-Geld, kein Rate-Limit, kein Daten-Egress (laeuft on-device). Jeder Consult laeuft durch ollama_call.py -> Usage-Tracking. Read-only, liefert die Analyse zurueck, Claude-Hauptloop entscheidet. EHRLICH: CPU ~1-6 tok/s = latenz-unkritische Batch-Arbeit, NICHT interaktiv; kleines Modell = KEIN Ersatz fuer harte Reasoning-/Code-Arbeit (die bleibt Claude/Codex). Abzugrenzen von gemini-bridge (Big-Context-Cloud-Offload ueber die Antigravity-CLI) und codex-bridge (Code-Cross-Check, Frontier).
 tools: Read, Grep, Glob, Bash
 model: haiku
 maxTurns: 15
@@ -38,7 +38,7 @@ cat <datei_oder_log> | python3 ~/.claude/scripts/ollama_call.py --mode triage --
 |---|---|
 | Log-/Fehler-Triage, Klassifikation, Zusammenfassung | Harte Reasoning-/Architektur-/Code-Arbeit → Claude/Codex |
 | Pre-Filter (grob sortieren, dann nur Relevantes an Claude) | Alles Interaktive/Latenz-sensible (CPU zu langsam) |
-| Nacht-/Batch-Jobs ohne Zeitdruck | Grosse Context-Reads → dafuer gemini-bridge (wenn wieder da) |
+| Nacht-/Batch-Jobs ohne Zeitdruck | Grosse Context-Reads → dafuer gemini-bridge (seit 2026-09-30 wieder da, Anmeldung pro Maschine) |
 | Offline-Fallback wenn Cloud down/rate-limited | Wo Halluzination teuer ist (kleines Modell → kritisch pruefen) |
 
 ## Modi (nur fuers Tracking)

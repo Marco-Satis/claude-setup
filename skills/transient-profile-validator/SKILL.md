@@ -15,7 +15,7 @@ Pruefst alle FootstepPro TRANSIENT_PROFILES auf interne Konsistenz und Inter-Pro
 
 ## Datenbasis
 
-`C:\Users\der Nutzer\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\constants.py` **(Windows-lokal** — FootstepPro liegt nur auf dem PC, kein Syncthing-Sync, auf netcup nicht vorhanden**)** — Symbol `TRANSIENT_PROFILES` (Dict). Zeilennummern driften beim Editieren; Position per `grep -n "TRANSIENT_PROFILES" constants.py` bestimmen.
+`C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\constants.py` **(Windows-lokal** — FootstepPro liegt nur auf dem PC, kein Syncthing-Sync, auf netcup nicht vorhanden**)** — Symbol `TRANSIENT_PROFILES` (Dict). Zeilennummern driften beim Editieren; Position per `grep -n "TRANSIENT_PROFILES" constants.py` bestimmen.
 
 12 BANDS-Definition (zur Centroid-Range-Validation):
 - B1 20-80, B2 80-200, B3 200-500, B4 500-800, B5 800-1100, B6 1100-1800

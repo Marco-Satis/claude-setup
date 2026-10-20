@@ -2,7 +2,7 @@
 name: agent-create
 version: 2.0.2
 last-reviewed: 2026-06-01
-description: Erstellt einen neuen Sub-Agent nach der Nutzer Standard-Pattern — vollständiges Frontmatter (name, version, tools, model, maxTurns), klare Rolle, 5–8 Wichtigste-Regeln, Rules-Cross-References. Verifiziert YAML-Validität nach Write.
+description: Erstellt einen neuen Sub-Agent nach des Nutzers Standard-Pattern — vollständiges Frontmatter (name, version, tools, model, maxTurns), klare Rolle, 5–8 Wichtigste-Regeln, Rules-Cross-References. Verifiziert YAML-Validität nach Write.
 when_to_use: neuen sub-agent erstellen, agent anlegen, agent scaffold, neuen .claude/agents/-file erstellen, subagent template, sub-agent bauen
 argument-hint: Optional Agent-Name + Domain — bei fehlend interaktive Fragen
 allowed-tools: Read Write Edit Bash Glob

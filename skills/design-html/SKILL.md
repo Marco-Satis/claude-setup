@@ -11,6 +11,8 @@ description: |
   design", or after any planning skill. Proactively suggest when user has
   approved a design or has a plan ready. (gstack-Port, standalone)
   Voice triggers (speech-to-text aliases): "build the design", "code the mockup", "make it real".
+  Soll eine fremde Website als Vorlage dienen und liegt noch keine site-anatomy-Analyse vor:
+  zuerst site-anatomy (liefert DESIGN.md und designs/ceo-plans/<domain>-sektionsplan.md).
 triggers:
   - build the design
   - code the mockup

@@ -1,6 +1,6 @@
 # Native Skills & UI-Kommandos — Erkennung statt Abstreiten (Global Rule)
 
-> Anlass 2026-08-14: Auf der Nutzer Frage nach `/goal` behauptete eine Session „existiert auf
+> Anlass 2026-08-14: Auf des Nutzers Frage nach `/goal` behauptete eine Session „existiert auf
 > dieser Installation nicht" — geprüft wurden aber nur Skill-Ordner, `~/.claude/commands/`
 > und CLI-Flags. Native UI-Kommandos sind von dort aus unsichtbar. Die Behauptung war falsch;
 > der Nutzer nutzt `/goal` regelmäßig.
@@ -55,8 +55,12 @@ nach Situation:
 | Qualität/Tempo steuern | `/effort <level>` · `/fast on\|off` · `/model` · `/advisor` (Zweitmodell-Beratung) |
 | PR-/Review-Automation | `/autofix-pr` (Web-Session wacht über den PR) · `/code-review [ultra]` · `/security-review` · `/verify` |
 | Groß-Refactor über viele Dateien | `/batch <auftrag>` (parallele Orchestrierung) |
+| Großes Repo, Worktree soll nur Teile auschecken | `claude -w [name]` / `--worktree` plus in `.claude/settings.json` `{"worktree": {"sparsePaths": ["src"]}}` (git sparse-checkout, cone mode; belegt im Binary 2.1.302) |
+| Kostendeckel für Headless-Läufe | `--max-budget-usd <betrag>` — **nur mit `--print`**. Ein `--max-budget-tokens` gibt es **nicht** (Binary 2.1.302, Stand 18.10.; TikTok-Behauptung falsch) |
+| Sprachsteuerung | `/voice [hold\|tap\|off]` — UI-Kommando, nur mit claude.ai-Login und nur, wenn das Feature fürs Konto freigeschaltet ist (sonst ausgeblendet) |
 | Selbstdiagnose | `/doctor` · `/insights` (HTML-Report über Sessions) · `/usage` · `/status` · `/tasks` |
 | Session-Mobilität | `/remote-control` · `/teleport` (Web-Session ins Terminal) · `/desktop` · `/cd <pfad>` · `/add-dir` |
+| Mehrere Hintergrund-Sessions parallel führen | **`claude agents`** (Agent View, Research Preview seit 2.1.139: laufend / „Needs input" / fertig auf einen Blick) · Start per `claude --bg "<auftrag>"` oder `/bg` — jede Session zieht eigenes Kontingent (10 parallel ≈ 10× Verbrauch); dasselbe Repo nur über Worktrees (`.claude/worktrees/`, legt Claude selbst an); „Needs input" geht nach Discord (`hooks/bg_needs_input_notify.py`), aber nur solange die Agent View offen ist |
 
 Rest (Verwaltung, selbsterklärend): `/help /clear /resume /export /copy /diff /config /settings
 /permissions /hooks /memory /mcp /plugin /reload-plugins /reload-skills /keybindings /login
@@ -68,4 +72,4 @@ Rest (Verwaltung, selbsterklärend): `/help /clear /resume /export /copy /diff /
 Bundled Skills (`/loop`, `/code-review`, `/deep-research`, `/plan`, `/verify`, `/batch`,
 `/debug`, `/effort`, …) kann die Session via Skill-Tool selbst aufrufen; alles andere ist
 UI-Ebene → der Nutzer tippen lassen. Dispatch-Kollisionen (`review`, `loop`, …) regelt weiterhin
-`rules/skill-dispatch.md` — der Nutzer eigene Skills gewinnen dort, wo die Tabelle es sagt.
+`rules/skill-dispatch.md` — des Nutzers eigene Skills gewinnen dort, wo die Tabelle es sagt.

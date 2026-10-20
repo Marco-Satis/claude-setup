@@ -17,7 +17,7 @@ Code-Reviewer für Quality + Patterns + Logik.
 
 ## Wichtigste Regeln
 1. 5 Achsen: ⚡ Performance, 🛡️ Resilience, 📊 Observability, 🧪 Testability, 📚 Maintainability
-2. Pattern-Konsistenz mit existing Code (der Nutzer Conventions)
+2. Pattern-Konsistenz mit existing Code (des Nutzers Conventions)
 3. Type-Hints checken
 4. Error-Handling (kein `except: pass`)
 5. Logger statt print

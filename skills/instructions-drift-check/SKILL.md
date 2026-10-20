@@ -1,18 +1,18 @@
 ---
 name: instructions-drift-check
-description: Prüft der Nutzer kanonische Standard-Anweisungen (~/.claude/CUSTOM_INSTRUCTIONS.md) wöchentlich auf Fakten-Drift (Versionen, Endpoints, Memory-Tool-Namen, Server, Modelle, Source-URLs) und patcht NUR die verifizierbaren Fakten-Regionen automatisch (mit Backup), der Verhaltens-/Stil-Teil bleibt unangetastet. Schreibt einen Drift-Report. Use when "instructions drift", "anweisungen aktualisieren", "custom-instructions check", "/instructions-drift-check", oder wöchentlich per Routine.
-version: 1.1.0
+description: Prüft des Nutzers kanonische Standard-Anweisungen (~/.claude/CUSTOM_INSTRUCTIONS.md) wöchentlich auf Fakten-Drift (Versionen, Endpoints, Memory-Tool-Namen, Server, Modelle, Source-URLs) und patcht NUR die verifizierbaren Fakten-Regionen automatisch (mit Backup), der Verhaltens-/Stil-Teil bleibt unangetastet. Schreibt einen Drift-Report. Use when "instructions drift", "anweisungen aktualisieren", "custom-instructions check", "/instructions-drift-check", oder wöchentlich per Routine.
+version: 1.2.0
 model: inherit
 ---
 
 # instructions-drift-check — Fakten-Drift in den Standard-Anweisungen
 
-Hält `~/.claude/CUSTOM_INSTRUCTIONS.md` faktisch aktuell (Datei liegt aktuell nur PC-seitig — root-Files von `~/.claude` sind vom Syncthing-Sync ausgenommen, auf netcup nicht vorhanden → Skill dort ggf. mit klarer Meldung abbrechen). **Nur** die verifizierbaren Fakten zwischen `<!-- AUTO-FACTS:START … -->` / `<!-- AUTO-FACTS:END … -->`-Markern werden auto-gepatcht. Verhalten/Stil/Regeln = der Nutzer Präferenzen → NIE automatisch ändern.
+Hält `~/.claude/CUSTOM_INSTRUCTIONS.md` faktisch aktuell (Datei liegt aktuell nur PC-seitig — root-Files von `~/.claude` sind vom Syncthing-Sync ausgenommen, auf netcup nicht vorhanden → Skill dort ggf. mit klarer Meldung abbrechen). **Nur** die verifizierbaren Fakten zwischen `<!-- AUTO-FACTS:START … -->` / `<!-- AUTO-FACTS:END … -->`-Markern werden auto-gepatcht. Verhalten/Stil/Regeln = des Nutzers Präferenzen → NIE automatisch ändern.
 
 ## Harte Grenzen (zuerst lesen)
 - **Backup vor jedem Edit** (Universelle Regel 2): `cp -a CUSTOM_INSTRUCTIONS.md CUSTOM_INSTRUCTIONS.md.bak.$(date +%s)`.
 - Edits **ausschließlich** innerhalb der `AUTO-FACTS`-Regionen. Steht außerhalb ein Fakt falsch → nur im Report flaggen, NICHT patchen.
-- **Read-Then-Verify**: Datei lesen → Edit → nochmal lesen → Match prüfen.
+- **Read-Then-Verify**: Datei erst lesen, dann per Edit ändern — **kein Re-Read zur Kontrolle**. Der Harness lässt einen Edit fehlschlagen, wenn der Anker nicht passt; ein Nachlesen belegt also nichts, was nicht schon feststeht (globale `CLAUDE.md` Regel 2: verifizieren via Verhalten, nicht via Re-Read). Verhalten heißt hier: der Report nennt dokumentierten und Live-Wert nebeneinander.
 - Datei-Inhalte NUR via Read-Tool lesen (nie Get-Content/cat/head/tail via Bash/PowerShell) — sonst Security-Flag.
 - Bei Unsicherheit über einen Live-Wert: NICHT patchen, im Report als „unklar/manuell prüfen" listen (ehrlich-vor-bequem).
 - Kein `sudo`. Kein schreibender Remote-Befehl.
@@ -44,7 +44,7 @@ Hält `~/.claude/CUSTOM_INSTRUCTIONS.md` faktisch aktuell (Datei liegt aktuell n
 4. **Modelle** (Region `stack`): dokumentierte Modell-Namen gegen den aktuell bekannten Stand prüfen (Default-Opus-Generation, Long-horizon-Modell). Bei Rename/Deprecation → Drift. Unsicher → Report, nicht patchen.
 5. **Server-Fakten** (Region `stack`): dokumentierte SSH-IP/Port gegen `~/.ssh/config` prüfen, Distro via Banner-Grab (Stufe 2) plausibilisieren, bei Bedarf per read-only-Login exakt bestätigen (`lsb_release -ds`, `uname -r`). Point-Release (`22.04.5`) NICHT ins Doc schreiben — bumpt bei jedem Update und läuft nächste Woche als Fake-Drift auf; nur die Major-Version (`22.04`) zählt.
 6. **Drift-Tabelle** bauen: je Fakt `Region | dokumentiert | live | Urteil(ok/drift/unklar)`.
-7. **Auto-Patch**: für jedes `drift` mit eindeutigem Live-Wert die Stelle INNERHALB der zugehörigen `AUTO-FACTS`-Region per Edit korrigieren. `unklar` → nicht patchen. Nach Edits Datei erneut lesen + Match prüfen.
+7. **Auto-Patch**: für jedes `drift` mit eindeutigem Live-Wert die Stelle INNERHALB der zugehörigen `AUTO-FACTS`-Region per Edit korrigieren. `unklar` → nicht patchen. Kein Re-Read nach dem Edit (s. Harte Grenzen) — der Beleg steht in der Drift-Tabelle des Reports.
 8. **Report** schreiben nach `~/projects/Skills_&_Co/INSTRUCTIONS_DRIFT/DRIFT_<YYYY-MM-DD>.md` (Syncthing-synct; PC-seitig = entsprechender `projekte`-Sync-Ordner): geprüfte Fakten, was gepatcht wurde, was offen blieb (mit Grund), Backup-Pfad. Bei 0 Drift: knappe „all green"-Zeile.
 9. **Verhaltens-Findings** (falls dir auffällt, dass ein Stil-/Regel-Punkt veraltet wirkt): NICHT ändern — nur unten im Report unter „Manueller Review-Vorschlag" notieren.
 

@@ -15,9 +15,9 @@ Du pruefst die Spatial-Pipeline-Komponenten von FootstepPro auf bekannte Drift-M
 
 ## Vor dem Start
 Datenbasis ist **(Windows-lokal)** — FootstepPro/FootstepAnalyzer liegt nur auf dem PC (EqualizerAPO-Setup, kein Syncthing-Sync, auf netcup nicht vorhanden). In netcup-Sessions nur mit explizit bereitgestellten Dateien arbeiten:
-- Aktuelles File: `C:\Users\der Nutzer\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\spatial_analyzer.py` (Windows-lokal)
-- Score-Logik: `C:\Users\der Nutzer\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\metrics.py` (Windows-lokal; Funktionen `spatial_health` + `compute_psychoacoustic_metrics`)
-- Profile: `C:\Users\der Nutzer\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\constants.py` (Windows-lokal; TRANSIENT_PROFILES)
+- Aktuelles File: `C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\spatial_analyzer.py` (Windows-lokal)
+- Score-Logik: `C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\metrics.py` (Windows-lokal; Funktionen `spatial_health` + `compute_psychoacoustic_metrics`)
+- Profile: `C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\constants.py` (Windows-lokal; TRANSIENT_PROFILES)
 
 ## Checks
 

@@ -25,7 +25,7 @@ def test_secret_gated(tmp_path, monkeypatch):
     # \bsk-ant-api\d{2}-[A-Za-z0-9_-]{40,}\b NICHT (braucht >=40) -> auf 44
     # Zeichen gepolstert, damit der Secret-Gate-Test die reale Regel testet.
     turn = {"intent": "key setzen",
-            "stand": "ANTHROPIC_API_KEY=sk-ant-api03-AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKK",  # pragma: allowlist secret (Fixture fuer den Leak-Detector-Test)
+            "stand": "ANTHROPIC_API_KEY=sk-ant-api03-AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKK",  # pragma: allowlist secret (Testattrappe, kein echter Schluessel)
             "files": [], "commits": [], "tools": []}
     sl.write_last_session(cwd, "x", turn, "2026-07-19T16:40:00+00:00")
     out = (tmp_path / "rc-state" / _slug(cwd) / "last.md")

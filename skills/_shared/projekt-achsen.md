@@ -55,7 +55,7 @@ grep -rhoE "(os\.environ(\.get)?[\[\(][[:space:]]*['\"]|getenv\([[:space:]]*['\"
 # die 9 unsichtbaren waeren als "deklariert aber nirgends gelesen" (LOW) gemeldet worden.
 # Ein Vorlauf-Fehler erzeugt hier also FALSCHE FINDINGS, nicht nur fehlende.
 #
-# Liest das Projekt ENV ueber einen Helper (der Nutzer Standard laut rules/secret-handling.md:
+# Liest das Projekt ENV ueber einen Helper (des Nutzers Standard laut rules/secret-handling.md:
 # `from utils.config import get_env`), findet dieser grep NICHTS. Dann zusaetzlich nach dem
 # Helper-Namen greppen und dessen Aufrufe auswerten — vorher pruefen, ob es ihn gibt:
 #   grep -rn "def get_env\|BaseSettings\|pydantic_settings" <root> --include='*.py'
@@ -103,7 +103,7 @@ Aus dem ENV-Vorlauf **beide Richtungen** pruefen: im Code gelesen aber nirgends 
 
 ### Achse H — Repo-/Datei-Hygiene (mechanisch, laeuft immer)
 
-Direkt aus dem Vorlauf, kaum Urteil noetig: **Konflikt-Kopien im aktiven Quellbaum** (bei der Nutzer Syncthing-Setup real und wiederkehrend — 37 Stueck im Bot-Baum, gefunden 2026-07-29; importierbar neben dem Original = HIGH). Getrackte Secrets (CRITICAL) / Build-Artefakte (LOW). `.gitignore`-Luecken. `.bak`-Halde. Grosse Binaries. **Tote Einstiegspunkte:** Script/Hook den nichts referenziert — `grep -rl "<basename>"` gegen Repo, Hooks zusaetzlich gegen `settings.json`; laeuft er noch per Cron/Timer, ist er nicht tot sondern unsichtbar (MEDIUM).
+Direkt aus dem Vorlauf, kaum Urteil noetig: **Konflikt-Kopien im aktiven Quellbaum** (bei des Nutzers Syncthing-Setup real und wiederkehrend — 37 Stueck im Bot-Baum, gefunden 2026-07-29; importierbar neben dem Original = HIGH). Getrackte Secrets (CRITICAL) / Build-Artefakte (LOW). `.gitignore`-Luecken. `.bak`-Halde. Grosse Binaries. **Tote Einstiegspunkte:** Script/Hook den nichts referenziert — `grep -rl "<basename>"` gegen Repo, Hooks zusaetzlich gegen `settings.json`; laeuft er noch per Cron/Timer, ist er nicht tot sondern unsichtbar (MEDIUM).
 
 ### Achse I — Betrieb & Beobachtbarkeit
 

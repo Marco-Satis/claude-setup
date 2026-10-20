@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """PreToolUse Hook (Edit/Write): Backup-Reminder bei wichtigen Files.
 
-der Nutzer Universal Rule 2: 'Backup vor Edit persistenter/wichtiger Files:
+des Nutzers Universal Rule 2: 'Backup vor Edit persistenter/wichtiger Files:
 cp -a <file> <file>.bak.$(date +%s)'.
 
 Bisher passive Regel in CLAUDE.md — wurde im Flow oft vergessen. Dieser Hook

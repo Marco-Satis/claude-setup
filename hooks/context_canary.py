@@ -12,13 +12,13 @@ der Nutzer-Entscheid 2026-08-12: zwei Canaries, Reaktion = warnen UND Checkpoint
    zusaetzliches Rauschen in den Antworten auskommt. Gemessen wird Artikel- + Fuellwort-Dichte
    der Prosa (Code, Tabellen, URLs raus). Kippt der Stil still auf normale Prosa, steigt die Dichte.
 
-   Kalibriert auf der Nutzer echten Transcripts (2026-08-12, 1457 Fenster-Vergleiche ueber alle
+   Kalibriert auf des Nutzers echten Transcripts (2026-08-12, 1457 Fenster-Vergleiche ueber alle
    Sessions): natuerliche Schwankung INNERHALB einer Session p95=+6.3, p99=+8.2, max=+9.6.
    Ein globaler Schwellwert taugt nicht — Caveman-Median 5.9 und Nicht-Caveman-Median 9.1
    ueberlappen im Band 4.5-13.5. Deshalb Vergleich gegen die SESSIONEIGENE Baseline.
 
 2. NAMENS-CANARY (nur Loop-Sessions, gated auf Games/<dir>/LOOP_RUN.flag)
-   Steinbergers Original, binaer statt heuristisch: die Antwort beginnt mit der Nutzer Namen. Kostet
+   Steinbergers Original, binaer statt heuristisch: die Antwort beginnt mit des Nutzers Namen. Kostet
    sichtbares Rauschen, deshalb nur dort, wo Drift real weh tut — autonome Bot-Operator-Schleifen,
    in denen niemand mitliest. Voraussetzung: die Regel steht in der CLAUDE.md/dem TICK_PROMPT des
    jeweiligen Spiels. Fehlt sie dort, meldet der Hook nichts (kein Alarm ohne Sensor).

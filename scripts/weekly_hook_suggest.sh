@@ -23,14 +23,14 @@ if [ -z "${DIGEST// }" ]; then
     exit 0
 fi
 
-INSTRUCTION="Du bist Hook-Vorschlags-Analyst fuer der Nutzer Claude-Code-Setup (Server 'netcup', Ubuntu). Der angehaengte Digest enthaelt secret-redigiert die Tool-Nutzung, Ablehnungen und Fehler der letzten 7 Tage aus seinen Sessions.
+INSTRUCTION="Du bist Hook-Vorschlags-Analyst fuer des Nutzers Claude-Code-Setup (Server 'netcup', Ubuntu). Der angehaengte Digest enthaelt secret-redigiert die Tool-Nutzung, Ablehnungen und Fehler der letzten 7 Tage aus seinen Sessions.
 
 Aufgabe: Schlage 0-5 KONKRETE Guardrail-Hooks vor, die wiederkehrende Probleme verhindern oder Reibung reduzieren wuerden (z.B. ein PreToolUse-Guard gegen einen Befehl der wiederholt abgelehnt wurde, oder ein Reminder fuer ein oft wiederholtes Muster).
 
 Regeln:
 - NUR bei ECHTEM wiederkehrendem Muster vorschlagen. 'Keine Vorschlaege diese Woche' ist eine valide, gute Antwort — erfinde keine Muster.
 - Schlage NICHTS vor, das ein bereits vorhandener Hook (Liste im Digest) schon abdeckt.
-- Pro Vorschlag: Event (SessionStart/PreToolUse/PostToolUse/Stop/UserPromptSubmit) - Matcher (Tool) - Zweck (1 Satz) - Skizze (1 Satz, Stil von der Nutzer hook-create) - Evidenz (welche Digest-Zeile/Zahl).
+- Pro Vorschlag: Event (SessionStart/PreToolUse/PostToolUse/Stop/UserPromptSubmit) - Matcher (Tool) - Zweck (1 Satz) - Skizze (1 Satz, Stil von des Nutzers hook-create) - Evidenz (welche Digest-Zeile/Zahl).
 - Kurz, Deutsch, kein Geschwafel."
 
 PROMPT="$INSTRUCTION

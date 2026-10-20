@@ -1,0 +1,13 @@
+{
+  "color": {
+    "brand": {
+      "primary": { "$type": "color", "$value": "#2e7d32" },
+      "accent": { "$type": "color", "$value": "#f2a541" }
+    },
+    "text": { "default": { "$type": "color", "$value": "#1d2327" } },
+    "surface": { "default": { "$type": "color", "$value": "#fbfaf7" } }
+  },
+  "font": {
+    "family": { "base": { "$type": "fontFamily", "$value": "Source Sans 3" } }
+  }
+}

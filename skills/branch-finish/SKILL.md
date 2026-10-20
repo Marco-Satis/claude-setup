@@ -106,4 +106,4 @@ Sonderfall **Detached HEAD** (kein Branch ausgecheckt, z.B. nach Worktree-Sessio
 
 ## Changelog
 
-- **v1.0.0** (2026-07-21): Neuanlage — geerntet aus superpowers:finishing-a-development-branch v6.1.1 (Test-Gate, exaktes Optionen-Menü, Merge-vor-Delete-Reihenfolge, `-d`-als-Verifikation, Typed-Discard-Confirmation, Worktree-Cleanup als Zukunfts-Absatz), adaptiert an der Nutzer Realität: Solo-Dev, meist kein Remote/PR, Syncthing-Sync mit git pro Seite.
+- **v1.0.0** (2026-07-21): Neuanlage — geerntet aus superpowers:finishing-a-development-branch v6.1.1 (Test-Gate, exaktes Optionen-Menü, Merge-vor-Delete-Reihenfolge, `-d`-als-Verifikation, Typed-Discard-Confirmation, Worktree-Cleanup als Zukunfts-Absatz), adaptiert an des Nutzers Realität: Solo-Dev, meist kein Remote/PR, Syncthing-Sync mit git pro Seite.

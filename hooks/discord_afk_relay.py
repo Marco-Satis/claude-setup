@@ -4,7 +4,7 @@
 Discord-AFK-Relay Hook (2026-06-13)
 ===================================
 Bei Stop/Notification eine Nachricht in einen privaten Discord-Kanal posten; beim
-Stop blockierend auf der Nutzer Antwort pollen und die Antwort via decision:block ->
+Stop blockierend auf des Nutzers Antwort pollen und die Antwort via decision:block ->
 reason zurueck in die Session geben (echter Round-Trip / Fernsteuerung wenn AFK).
 
 Aktiviert NUR wenn Flag-File existiert -> sonst sofort exit 0 (null Effekt).

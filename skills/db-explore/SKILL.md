@@ -21,7 +21,7 @@ Zweck: Schnelle Übersicht einer SQLite-DB ohne Daten zu verändern. Pflicht Rea
 
 ```bash
 # Prüfung ob Service läuft (Linux):
-ssh -p 4422 marco@159.195.72.217 "sudo systemctl is-active monitor-bot gameserver-bot admin-bot web-dashboard"
+ssh -p <ssh-port> <user>@<server-ip> "sudo systemctl is-active monitor-bot gameserver-bot admin-bot web-dashboard"
 ```
 
 ## Phase 1 — Schema-Inventar
@@ -149,11 +149,11 @@ Basierend auf Phase 1–5:
 - Integrity-Status
 - 3 wichtigste Wartungs-Empfehlungen
 
-## der Nutzer häufige DBs
+## des Nutzers häufige DBs
 
 | DB-Pfad | Service | Hinweise |
 |---|---|---|
-| `C:\Users\der Nutzer\AppData\Local\mcp-memory\sqlite_vec.db` (Windows, real) bzw. `~/.local/share/mcp-memory/sqlite_vec.db` (Linux) | mcp-memory-service | Port 8000 — Health-Check vor Inspect. WAL-Mode: `wal_checkpoint` vor Backup. Backup-Script: `~/.claude/scripts/backup_memory_db.py` |
+| `C:\Users\<user>\AppData\Local\mcp-memory\sqlite_vec.db` (Windows, real) bzw. `~/.local/share/mcp-memory/sqlite_vec.db` (Linux) | mcp-memory-service | Port 8000 — Health-Check vor Inspect. WAL-Mode: `wal_checkpoint` vor Backup. Backup-Script: `~/.claude/scripts/backup_memory_db.py` |
 | `/home/botuser/Discord_Bots/data/bot.db` | monitor-bot, gameserver-bot, admin-bot | shared DB — Inspect lieber bei niedriger Last |
 | `$HOME/n8n_stack/state/pipeline_state.sqlite` (geplant) | n8n-Workflow | erst nach Phase-2-Setup der Pipeline |
 | `$HOME/n8n_data/database.sqlite` (geplant) | n8n selbst | Workflow-Storage |
@@ -174,5 +174,5 @@ Basierend auf Phase 1–5:
 
 ## Changelog
 
-- **v1.0.1** (2026-05-28): Lyra-Audit-Fix — Memory-DB-Pfad korrigiert auf realen `C:\Users\der Nutzer\AppData\Local\mcp-memory\sqlite_vec.db` (Windows-lokal; alter Pfad `managed_agent_venv/.../memory.db` existierte nicht); Backup-Script-Referenz ergänzt.
+- **v1.0.1** (2026-05-28): Lyra-Audit-Fix — Memory-DB-Pfad korrigiert auf realen `C:\Users\<user>\AppData\Local\mcp-memory\sqlite_vec.db` (Windows-lokal; alter Pfad `managed_agent_venv/.../memory.db` existierte nicht); Backup-Script-Referenz ergänzt.
 - **v1.0.0** (2026-05-17): Erste Version.

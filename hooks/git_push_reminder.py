@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """PreToolUse Hook (Bash): Reminder bei git push wegen Token-Push-Verbot.
 
-der Nutzer Universal Rule 4: 'Token-Push-Verbot bis Token-Rotation manuell
+des Nutzers Universal Rule 4: 'Token-Push-Verbot bis Token-Rotation manuell
 durchgefuehrt (siehe Discord_Bots PLAN)'.
 
 Bisher passive Regel — Claude wurde dadurch nicht aktiv gestoppt. Dieser

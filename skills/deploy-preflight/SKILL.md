@@ -11,7 +11,7 @@ Eine kompakte Checkliste vor jedem Push, die alle bekannten Stolperfallen abklap
 
 ## Wofuer
 
-der Nutzer Discord-Bot-System wird via `deploy.sh` auf einen Netcup-Server gepusht, der FritzBox-Monitor via `deploy.ps1` per SCP. Wenn dabei ein Test rot ist, eine ENV fehlt, oder ein `print("DEBUG", token)` im Code haengt, kommt das oft erst auf der Produktion auf — und dann nervt es richtig. Der Skill macht das billig vorher sichtbar.
+des Nutzers Discord-Bot-System wird via `deploy.sh` auf einen Netcup-Server gepusht, der FritzBox-Monitor via `deploy.ps1` per SCP. Wenn dabei ein Test rot ist, eine ENV fehlt, oder ein `print("DEBUG", token)` im Code haengt, kommt das oft erst auf der Produktion auf — und dann nervt es richtig. Der Skill macht das billig vorher sichtbar.
 
 ## Trigger
 

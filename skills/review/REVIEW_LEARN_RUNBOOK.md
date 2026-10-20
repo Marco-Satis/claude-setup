@@ -8,7 +8,7 @@
 
 Konsolidiert den verifizierten Outcome-Ledger des `/review`-Skills zu
 Verbesserungs-Vorschlägen. **Auto-Apply nur auf die gelernte Daten-Schicht;
-Kern-SKILL.md-Änderungen gehen als Idee an der Nutzer Problem-Tracker** — nie
+Kern-SKILL.md-Änderungen gehen als Idee an des Nutzers Problem-Tracker** — nie
 automatisch editiert (Drift- + Bloat-Schutz für den frisch verschlankten Kern).
 
 ## Schritte
@@ -58,7 +58,7 @@ ID ist content-stabil → wöchentliches Re-Loggen dupliziert nicht, aktualisier
 
 Den `SKILL.md`-Kern NICHT automatisch ändern. Die gelernte Schicht
 (`review_learned.json`) wirkt bereits über Phase-0-Recall ohne Kern-Edit — das ist
-das „selbstständig besser werden" ohne Drift-Risiko. Kern-Regeln bleiben der Nutzer
+das „selbstständig besser werden" ohne Drift-Risiko. Kern-Regeln bleiben des Nutzers
 Entscheidung.
 
 ### 5. Kurz-Report

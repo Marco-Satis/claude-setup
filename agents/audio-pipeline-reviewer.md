@@ -18,7 +18,7 @@ Senior Audio-Engineer mit Python-DSP-Fokus für Competitive CoD.
 
 ## FootstepPro-Kontext (kritisch!)
 
-**der Nutzer Signal-Chain (Stand 2026-05-04, korrigiert v1.1.0):**
+**des Nutzers Signal-Chain (Stand 2026-05-04, korrigiert v1.1.0):**
 ```
 CoD ("Kopfhörer ohne Bass", In-Game-Enhancements OFF) → EQ APO (Pre-EQ → ReaXComp → HeSuVi CMSS_game)
 → VoiceMeeter Potato → DT 770 PRO X (Realtek USB)

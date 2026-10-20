@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """UserPromptSubmit Hook: aktiv-erzwingt /compact bei steigender Context-Auslastung.
 
-Universal Rule 7 (der Nutzer globale CLAUDE.md): "/compact proaktiv" — VERSCHAERFT
+Universal Rule 7 (des Nutzers globale CLAUDE.md): "/compact proaktiv" — VERSCHAERFT
 2026-06-04 (der Nutzer: "muss deutlich strenger werden damit sie mehr umgesetzt wird").
 Vorher: Aktion erst bei 60%, rein advisorische Messages -> im Flow uebergangen.
 Jetzt: frueher (Aktion ab 50%), stateful Nag-Eskalation (erkennt wenn Claude
@@ -79,8 +79,9 @@ def measure_context(transcript_path: Path) -> tuple[int, int]:
 
     Jede Assistant-Message traegt ein `usage`-Objekt mit echten Token-Zahlen.
     Der LETZTE solche Eintrag = aktueller Context (input + cache_read +
-    cache_creation). Resettet korrekt nach /compact (Datei-Groesse waechst
-    weiter, usage nicht). Returns (context_tokens, limit); (0, limit) wenn nichts.
+    cache_creation). Eintraege VOR der juengsten Compact-Grenze zaehlen nicht:
+    direkt nach /compact gibt es bis zur naechsten Antwort keine Messung.
+    Returns (context_tokens, limit); (0, limit) wenn nichts.
     """
     import re as _re
     last_usage = None
@@ -113,6 +114,22 @@ def measure_context(transcript_path: Path) -> tuple[int, int]:
                 + int(u.get("cache_creation_input_tokens", 0) or 0))
 
     for ln in tail.splitlines():
+        # 2026-09-30: Eine Compact-Grenze macht alle frueheren usage-Eintraege ungueltig.
+        # Der neue Stand entsteht erst mit der naechsten Assistant-Antwort; bis dahin gibt
+        # es KEINE Messung (-> 0, main() bleibt still). Vorher mass der erste Prompt nach
+        # /compact den alten Stand und warnte erneut: gemessen WARN 73 % direkt nach dem
+        # Compact, bei 950K waere es ein HARDSTOP gewesen. Die Vorwert-Logik in main()
+        # konnte das nicht abfangen, sie sieht dort denselben Wert wie im Turn davor.
+        # `max_tokens` bleibt stehen: es belegt nur die Fenstergroesse. Der Marker zaehlt
+        # nur als Feld der Zeile selbst; zitiert in einer Nachricht steht er escaped da.
+        if '"compact_boundary"' in ln:
+            try:
+                ev = json.loads(ln)
+            except Exception:
+                ev = None
+            if isinstance(ev, dict) and ev.get("subtype") == "compact_boundary":
+                last_usage = None
+                continue
         if '"usage"' not in ln or '"input_tokens"' not in ln:
             continue
         try:
@@ -443,6 +460,12 @@ def main():
     #     -> State sofort zuruecksetzen, in diesem Turn NICHT nagen.
     #   - Unveraenderter Wert = dieselbe Messung wie beim letzten Turn
     #     -> Zaehler NICHT erhoehen (sonst eskaliert er ohne neue Information).
+    #
+    # Nachtrag 2026-09-30: Ursache (a) blieb damit halb offen — der erste Prompt nach
+    # dem Compact zeigte den unveraenderten alten Wert, die Meldung kam also weiter
+    # (nur der Zaehler stieg nicht). measure_context() verwirft jetzt usage-Eintraege
+    # vor der Compact-Grenze im Transcript; dieser Turn endet dann schon oben mit 0.
+    # Die Vorwert-Logik hier bleibt als zweite Sicherung fuer den Turn danach.
     ent0 = nag.get(sid) or {}
     prev_tokens = int(ent0.get("last_tokens", 0) or 0)
     same_measurement = prev_tokens == context_tokens

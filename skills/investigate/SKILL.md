@@ -10,7 +10,7 @@ description: |
   errors, 500 errors, stack traces, unexpected behavior, "it was working
   yesterday", or is troubleshooting why something stopped working. (gstack-Port, standalone)
   Abgrenzung zu superpowers:systematic-debugging (Plugin, ueberlappender Trigger-Raum):
-  /investigate ist der Nutzer kanonischer Debugging-Einstieg (standalone gstack-Port mit
+  /investigate ist des Nutzers kanonischer Debugging-Einstieg (standalone gstack-Port mit
   AskUserQuestion-Decision-Briefs + Plan-Mode-Integration). Bei /investigate-Aufruf
   oder Debugging-Intent NICHT zusaetzlich das superpowers-Pendant laden.
 allowed-tools:

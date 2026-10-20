@@ -11,7 +11,7 @@ Bringt CHANGELOG.md auf den Stand der Commits seit dem letzten Tag — ohne dass
 
 ## Wofuer
 
-der Nutzer Projekte haben aktive Versionierung (Discord v4.1.0, FootstepPro v1.2.0). Releases ohne aktualisierten Changelog sind aergerlich — und der Changelog dann nachzutragen ist nervig, weil der User die Commits aus dem Kopf rekonstruieren muss. Der Skill macht das in 30 Sekunden.
+des Nutzers Projekte haben aktive Versionierung (Discord v4.1.0, FootstepPro v1.2.0). Releases ohne aktualisierten Changelog sind aergerlich — und der Changelog dann nachzutragen ist nervig, weil der User die Commits aus dem Kopf rekonstruieren muss. Der Skill macht das in 30 Sekunden.
 
 ## Trigger
 
@@ -34,7 +34,7 @@ Lies `CHANGELOG.md`. Statt fest verdrahteter Section-Namen zu raten: parse die l
 # Diese gefundenen Section-Namen sind die Wahrheit. Verwende sie 1:1 fuer den neuen Eintrag.
 ```
 
-der Nutzer Projekte verwenden teils deutsche Sektionen ("Hinzugefuegt"/"Geaendert"/"Behoben"), teils englische (Keep-a-Changelog-Style "Added"/"Changed"/"Fixed"), teils Custom-Sections wie "Documentation Updates", "Validierung", "Fixes (Code Review)" mit Prio-Markern wie `[KRITISCH]`. Diese Vielfalt ist absichtlich — kopiere das Muster der letzten Eintraege exakt, statt zu standardisieren.
+des Nutzers Projekte verwenden teils deutsche Sektionen ("Hinzugefuegt"/"Geaendert"/"Behoben"), teils englische (Keep-a-Changelog-Style "Added"/"Changed"/"Fixed"), teils Custom-Sections wie "Documentation Updates", "Validierung", "Fixes (Code Review)" mit Prio-Markern wie `[KRITISCH]`. Diese Vielfalt ist absichtlich — kopiere das Muster der letzten Eintraege exakt, statt zu standardisieren.
 
 Wenn Datei leer/fehlt: nach Keep-a-Changelog-Default fragen, sonst initial anlegen mit explizitem Hinweis ("kein bisheriges Format gefunden — schlage Keep-a-Changelog vor, OK?").
 

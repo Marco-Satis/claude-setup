@@ -2,8 +2,8 @@
 # Woechentlicher Tool-Scout-Lauf (Cron-Antrieb fuer den Skill `tool-scout`).
 #
 # Zwei getrennte Laeufe mit verschiedenen Profilen:
-#   1. ALL      -> der Nutzer eigener Stack   -> ~/.claude/audit/tool_scout_<datum>.md
-#   2. CONTENT  -> zwei externe Nutzer          -> ~/.claude/audit/tool_scout_content_<datum>.md
+#   1. ALL      -> des Nutzers eigener Stack   -> ~/.claude/audit/tool_scout_<datum>.md
+#   2. CONTENT  -> Nutzerin A & Nutzer B          -> ~/.claude/audit/tool_scout_content_<datum>.md
 #
 # Der Skill selbst haelt Quellen, Filter und Report-Format (SKILL.md v1.4.0) — dieses
 # Script ist nur der Antrieb. Best-effort: bricht die Cron nie hart ab, installiert nie
@@ -110,8 +110,8 @@ rc_content=$?
 status="OK"; [ "$rc_all" -ne 0 ] || [ "$rc_content" -ne 0 ] && status="WARN"
 {
   echo "## Was lief"
-  echo "- Lauf ALL (der Nutzer Stack): $([ "$rc_all" -eq 0 ] && echo 'durch' || echo 'ohne Ergebnis')"
-  echo "- Lauf CONTENT (zwei externe Nutzer): $([ "$rc_content" -eq 0 ] && echo 'durch' || echo 'ohne Ergebnis')"
+  echo "- Lauf ALL (des Nutzers Stack): $([ "$rc_all" -eq 0 ] && echo 'durch' || echo 'ohne Ergebnis')"
+  echo "- Lauf CONTENT (Nutzerin A & Nutzer B): $([ "$rc_content" -eq 0 ] && echo 'durch' || echo 'ohne Ergebnis')"
   for f in "$AUDIT/tool_scout_${DATE}.md" "$AUDIT/tool_scout_content_${DATE}.md"; do
     [ -f "$f" ] && echo "- Report: \`${f/$HOME/\~}\` ($(grep -c '^### REC-' "$f" 2>/dev/null || echo 0) Empfehlungen)"
   done

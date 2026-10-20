@@ -17,7 +17,7 @@ import sys
 import time
 from pathlib import Path
 
-BACKUP_DIR = Path(r"C:\Users\der Nutzer\OneDrive\Backups\mcp-memory")
+BACKUP_DIR = Path(r"C:\Users\<user>\OneDrive\Backups\mcp-memory")
 PREFIX = "sqlite_vec_"
 STALE_HOURS = 48
 

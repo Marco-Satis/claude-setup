@@ -17,6 +17,34 @@ BODY="${2:-}"
 
 log() { echo "[$(date -Is)] rc-mail: $*" >> "$LOG"; }
 
+# ntfy-Push (der Nutzer-Entscheid 2026-10-01): erster Eskalationsweg, aufs Handy per ntfy-App.
+# Kein Konto, kein Schluessel — das zufaellige Topic in ~/.claude/secrets/ntfy.env (600)
+# ist das Geheimnis. Brevo-SMTP unten bleibt nur Rueckfall, bis mail.env entfernt ist.
+NTFY_ENV="$HOME/.claude/secrets/ntfy.env"
+if [ -r "$NTFY_ENV" ]; then
+  NTFY_TOPIC=$(sed -n 's/^NTFY_TOPIC=//p' "$NTFY_ENV" | head -1)
+  NTFY_SERVER=$(sed -n 's/^NTFY_SERVER=//p' "$NTFY_ENV" | head -1)
+  if [ -n "$NTFY_TOPIC" ] && SUBJ="$SUBJECT" BODY="$BODY" TOPIC="$NTFY_TOPIC" \
+       SERVER="${NTFY_SERVER:-https://ntfy.sh}" /usr/bin/python3 - <<'PY'
+import json, os, sys, urllib.request
+d = {"topic": os.environ["TOPIC"], "title": "[netcup] " + os.environ.get("SUBJ", "RC-Alarm"),
+     "message": (os.environ.get("BODY") or "-")[:3500], "priority": 4, "tags": ["rotating_light"]}
+req = urllib.request.Request(os.environ["SERVER"], data=json.dumps(d).encode(),
+                             headers={"Content-Type": "application/json"}, method="POST")
+try:
+    with urllib.request.urlopen(req, timeout=15) as r:
+        sys.exit(0 if r.status == 200 else 1)
+except Exception as e:
+    print(f"ntfy failed: {type(e).__name__}", file=sys.stderr)
+    sys.exit(1)
+PY
+  then
+    log "ntfy gesendet: '$SUBJECT'"
+    exit 0
+  fi
+  log "ntfy FEHLGESCHLAGEN: '$SUBJECT' — Rueckfall SMTP"
+fi
+
 if [ ! -r "$ENV_FILE" ]; then
   log "keine $ENV_FILE — Mail '$SUBJECT' uebersprungen (no-op)"
   exit 0
@@ -41,7 +69,7 @@ from email.utils import formatdate
 
 msg = EmailMessage()
 # From != SMTP_USER: bei Relays wie Brevo ist SMTP_USER eine Login-Kennung
-# (a2a...@smtp-brevo.com), keine Adresse. Der Relay nimmt die Transaktion an und
+# (<relay-login>@smtp-brevo.com), keine Adresse. Der Relay nimmt die Transaktion an und
 # verwirft die Mail danach still, wenn der Absender kein verifizierter Sender des
 # Kontos ist — SMTP meldet Erfolg, es kommt nie etwas an (Befund 2026-08-17).
 # MAIL_FROM setzen; nur als Rueckfall SMTP_USER (korrekt bei Gmail & Co).
@@ -49,7 +77,7 @@ msg["From"] = os.environ.get("MAIL_FROM") or os.environ["SMTP_USER"]
 msg["To"] = os.environ["MAIL_TO"]
 msg["Subject"] = "[netcup RC] " + os.environ.get("SUBJ", "RC-Alarm")
 msg["Date"] = formatdate(localtime=True)
-msg.set_content(os.environ.get("BODY", "") + "\n\n-- rc-mail.sh, gameserver-netcup")
+msg.set_content(os.environ.get("BODY", "") + "\n\n-- rc-mail.sh, netcup-server")
 
 host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 port = int(os.environ.get("SMTP_PORT", "587"))

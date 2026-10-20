@@ -11,7 +11,7 @@ Findet die Stellen, an denen die Markdown-Doku schon laenger nicht mehr zum Code
 
 ## Wofuer
 
-der Nutzer Projekte haben grosse handgepflegte Doku-Files (CODE_DOKUMENTATION_FOOTSTEP.md, CODE_DOKUMENTATION fuer Discord, etc.) mit Modul-Listen, Zeilenzahl-Angaben und Architektur-Beschreibungen. Bei Refactorings ueberlebt die Code-Aenderung, aber die Doku driftet stumm weg. Bei 29 Modulen (FootstepPro), 175+ Modulen (Discord), 9 Modulen (FritzBox) ist manuelles Abgleichen nicht realistisch. Der Skill macht den Diff sichtbar.
+des Nutzers Projekte haben grosse handgepflegte Doku-Files (CODE_DOKUMENTATION_FOOTSTEP.md, CODE_DOKUMENTATION fuer Discord, etc.) mit Modul-Listen, Zeilenzahl-Angaben und Architektur-Beschreibungen. Bei Refactorings ueberlebt die Code-Aenderung, aber die Doku driftet stumm weg. Bei 29 Modulen (FootstepPro), 175+ Modulen (Discord), 9 Modulen (FritzBox) ist manuelles Abgleichen nicht realistisch. Der Skill macht den Diff sichtbar.
 
 ## Trigger
 

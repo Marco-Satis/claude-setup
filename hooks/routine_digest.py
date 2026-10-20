@@ -66,6 +66,17 @@ def main() -> int:
             "additionalContext": context,
         }
     }))
+
+    # Erst jetzt als gesehen vermerken — nach der Ausgabe, nie davor. `--mark-seen`
+    # existierte seit dem 14.08. im Audit, hatte aber keinen Aufrufer: jede Session
+    # bekam dieselben 25 "neuen" Reports gemeldet, bis der Hinweis nur noch Rauschen
+    # war. Der Fehlschlag hier ist folgenlos (naechste Session meldet nochmal),
+    # deshalb best-effort ohne Abbruch.
+    try:
+        subprocess.run(["/usr/bin/python3", str(AUDIT), "--mark-seen-only"],
+                       capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        pass
     return 0
 
 

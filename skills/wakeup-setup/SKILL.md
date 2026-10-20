@@ -2,7 +2,7 @@
 name: wakeup-setup
 version: 2.0.1
 last-reviewed: 2026-05-28
-description: "Richtet Wake-Up-Polling fuer Long-Run/Nacht-Sessions ein — Multi-Session-Registry. Jede registrierte Session setzt eigenen ScheduleWakeup auf Max-5x-Plan-5h-Zyklus, mit shared Window-Reset-Cache und Sub-Commands (register/list/remove/status). Endziel: der Nutzer aktiviert in jedem relevanten Chat einmal, ab dann triggert sich jede Session beim Window-Reset selbst."
+description: "Richtet Wake-Up-Polling fuer Long-Run/Nacht-Sessions ein — Multi-Session-Registry. Jede registrierte Session setzt eigenen ScheduleWakeup auf den 5h-Nutzungszyklus (gilt für alle Pro-/Max-Stufen), mit shared Window-Reset-Cache und Sub-Commands (register/list/remove/status). Endziel: der Nutzer aktiviert in jedem relevanten Chat einmal, ab dann triggert sich jede Session beim Window-Reset selbst."
 when_to_use: wakeup einrichten, long run setup, nacht session, session ueber nacht, autonom ueber stunden, rate-limit-resume, ScheduleWakeup einrichten, wake-up polling, window-reset wake-up, multi-session wakeup, mehrere chats wakeup, wakeup liste, wakeup status
 argument-hint: Sub-Command (register | list | remove | status) optional + Task-Name. Default ohne Argument = "register" mit der Nutzer-Frage nach Task-Name.
 allowed-tools: Read Write Bash
@@ -86,7 +86,7 @@ Konsequenz: pro Worktree/CWD genau **eine** Wake-Up-Registrierung. Bei mehreren 
 }
 ```
 
-Pfad-Werte im Beispiel plattformneutral (`~` = Home der jeweiligen Seite); im realen Registry-File steht der absolute CWD der jeweiligen Plattform (Windows: `C:\Users\der Nutzer\...`, netcup: `$HOME/...`).
+Pfad-Werte im Beispiel plattformneutral (`~` = Home der jeweiligen Seite); im realen Registry-File steht der absolute CWD der jeweiligen Plattform (Windows: `C:\Users\<user>\...`, netcup: `$HOME/...`).
 
 Status-Werte: `active` (Wake-Up aktiv) / `paused` (manuell pausiert, kein Schedule) / `done` (alle Phasen done, auto-deregistriert).
 
@@ -301,6 +301,8 @@ Andere aktive Sessions: <count>. Liste: `/wakeup-setup list`.
 ```
 
 ## Token-Cost-Bilanz
+
+> Window-Burn-Prozente wurden 05/2026 für Max 5x geschätzt; seit 07/2026 läuft Max 20x, dort ist der Anteil etwa ein Viertel davon. Die Token-Zahlen gelten unverändert.
 
 | Pattern | Wake-Ups/Nacht | Tokens | Window-Burn |
 |---|---|---|---|

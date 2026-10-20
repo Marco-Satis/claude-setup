@@ -58,11 +58,16 @@ def main():
     except Exception:
         pass  # Debounce-Fehler darf Test-Lauf nicht verhindern
 
-    # venv-Umstellung (2026-08-03, P9-03-Folgeschritt): Suite laeuft im Projekt-venv
-    # (FootstepAnalyzer/.venv, Python 3.11.9, Paritaet verifiziert 521==521);
-    # Fallback global-python wenn venv fehlt (z.B. frisch geklont).
-    venv_python = os.path.join(fp_root, ".venv", "Scripts", "python.exe")
-    python_exe = venv_python if os.path.isfile(venv_python) else "python"
+    # venv-Umstellung (2026-08-03, P9-03-Folgeschritt): Suite laeuft im Projekt-venv.
+    # Seit 2026-10-07 (Audit M-037, der Nutzer-Go) liegt das kanonische venv AUSSERHALB von
+    # OneDrive unter %USERPROFILE%\.venvs\FootstepAnalyzer (Files-On-Demand hatte das alte
+    # FootstepAnalyzer/.venv dehydriert -> Errno 22). Reihenfolge: .venvs > altes .venv >
+    # global-python (Fallback, z.B. frisch geklont oder auf netcup ohne venv).
+    candidates = [
+        os.path.join(os.path.expanduser("~"), ".venvs", "FootstepAnalyzer", "Scripts", "python.exe"),
+        os.path.join(fp_root, ".venv", "Scripts", "python.exe"),
+    ]
+    python_exe = next((p for p in candidates if os.path.isfile(p)), "python")
 
     try:
         result = subprocess.run(

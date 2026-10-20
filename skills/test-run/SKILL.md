@@ -65,7 +65,7 @@ Generierte wie bestehende Tests dagegen prüfen — Treffer = Finding im Ergebni
 
 ## Constraints
 - Test-Generierung NICHT überengineeren — Behavior + Edges + Error-Pfade, keine trivialen Getter-Tests.
-- Runner verifizieren (standalone vs pytest) bevor „ausführen" — der Nutzer Projekte nutzen teils standalone.
+- Runner verifizieren (standalone vs pytest) bevor „ausführen" — des Nutzers Projekte nutzen teils standalone.
 - MEDIUM+-Coverage-Lücken (Security/Auth/Persistence ohne ★★★) → optional Problem-Tracker.
 
 ## Beispiel-Triggers

@@ -14,11 +14,11 @@ Verhalten:
     + Append-Log nach ~/.claude/lessons/leaks.jsonl (Pattern-Name + SHA256-
     Hash-Prefix — NIEMALS der Wert selbst)
   - Ausnahmen: Ziel-Pfade unter ~/.claude/lessons/ sowie *.bak-Backups
-    (der Nutzer Backup-Konvention <file>.bak.pre-<tag>.<ts>) werden nicht gescannt
+    (des Nutzers Backup-Konvention <file>.bak.pre-<tag>.<ts>) werden nicht gescannt
   - Scannt bei Edit bewusst NUR new_string (nicht old_string) — Redaktions-Edits
     die ein Secret AUS einer Datei entfernen bleiben erlaubt.
 
-Best-effort nach der Nutzer Hook-Standard: kaputtes/fehlendes stdin-JSON, Pattern-
+Best-effort nach des Nutzers Hook-Standard: kaputtes/fehlendes stdin-JSON, Pattern-
 Load-Fehler oder Log-Fehler duerfen den Tool-Call niemals crashen -> exit 0.
 """
 from __future__ import annotations
@@ -81,7 +81,7 @@ def _is_exempt_path(file_path: str) -> bool:
         if str(resolved).startswith(str(lessons_dir) + "/") or resolved == lessons_dir:
             return True
         name = p.name
-        # der Nutzer Backup-Konvention: <file>.bak ODER <file>.bak.pre-<tag>.<ts>
+        # des Nutzers Backup-Konvention: <file>.bak ODER <file>.bak.pre-<tag>.<ts>
         if name.endswith(".bak") or ".bak." in name:
             return True
     except (ValueError, OSError):

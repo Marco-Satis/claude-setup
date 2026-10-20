@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdict", "checks", "critical_issues", "suggestions"],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"],
+      "description": "PASS nur, wenn JEDES Kriterium R1-R6 PASS ist. Ein einziges FAIL macht das Gesamturteil FAIL."
+    },
+    "checks": {
+      "type": "array",
+      "description": "Genau ein Eintrag je Kriterium R1-R6, in dieser Reihenfolge.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "result", "detail"],
+        "properties": {
+          "criterion": { "type": "string", "enum": ["R1", "R2", "R3", "R4", "R5", "R6"] },
+          "result": { "type": "string", "enum": ["PASS", "FAIL"] },
+          "detail": { "type": "string", "description": "Bei PASS: was konkret geprueft wurde (datei:zeile). Bei FAIL: das Problem in einem Satz." }
+        }
+      }
+    },
+    "critical_issues": {
+      "type": "array",
+      "description": "Blocker. Leeres Array bei PASS. Jeder Eintrag braucht eine existierende Stelle und einen konkreten Ausloeser, sonst wird er verworfen.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "location", "trigger", "why_not_caught"],
+        "properties": {
+          "criterion": { "type": "string", "enum": ["R1", "R2", "R3", "R4", "R5", "R6"] },
+          "location": { "type": "string", "description": "datei:zeile relativ zum Repo-Root" },
+          "trigger": { "type": "string", "description": "Eingabe oder Zustand -> falsches Ergebnis" },
+          "why_not_caught": { "type": "string", "description": "Warum kein vorhandener Schutz (Validierung, Auth, Typen, Sandbox, Aufrufer, Tests) das abfaengt" }
+        }
+      }
+    },
+    "suggestions": {
+      "type": "array",
+      "description": "Nicht blockierende Hinweise. Leeres Array ist erlaubt.",
+      "items": { "type": "string" }
+    }
+  }
+}

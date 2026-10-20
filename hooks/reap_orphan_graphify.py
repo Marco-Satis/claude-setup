@@ -35,13 +35,28 @@ def main() -> None:
     for p in psutil.process_iter(["name"]):
         try:
             name = (p.info.get("name") or "").lower()
-            if "python" not in name:                 # python.exe ODER pythonw.exe
+            # der Nutzer-Fix 2026-08-19, zweiter Teil: der Prozessname ist auf dieser Box
+            # `graphify-mcp` (das Startskript setzt comm), NICHT `python3`. Der alte
+            # Filter hat die Treffer damit schon vor der Kommandozeilen-Pruefung
+            # ausgeworfen — deshalb war der Hook selbst mit richtigem Muster wirkungslos.
+            if "python" not in name and "graphify" not in name:
                 continue
             try:
                 cmd = " ".join(p.cmdline() or [])     # lazy, nur fuer python-Procs
             except psutil.Error:
                 continue
-            if "graphify.serve" not in cmd:
+            # der Nutzer-Fix 2026-08-19: Das Muster `graphify.serve` traf auf dieser Box
+            # NIEMALS zu — die MCP-Server laufen als
+            # `/usr/bin/python3 ~/.local/bin/graphify-mcp --graph ...`.
+            # Beleg: ~/.claude/state/graphify_reaper.log existierte nicht, der Hook
+            # hat also seit seiner Einfuehrung (2026-06-13) nichts aufgeraeumt.
+            if "graphify.serve" not in cmd and "graphify-mcp" not in cmd:
+                continue
+            # Der HTTP-Dienst (systemd-user-Unit graphify-mcp.service, seit
+            # 2026-08-19) hat systemd als Parent und waere damit formal ein
+            # "Orphan". Er ist aber genau das Gegenteil: der EINE gewollte Server,
+            # den sich alle Sessions teilen. Nie anfassen.
+            if "--transport http" in cmd:
                 continue
             # Parent lebt UND ist eine claude.exe? -> aktive Session, NICHT killen.
             # ppid lazy NUR fuer graphify.serve-Treffer (bulk-ppid = 8s, s.o.).

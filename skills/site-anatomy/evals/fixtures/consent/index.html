@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attrappe Consent ohne Ablehnen</title>
+<style>
+  body { margin: 0; font-family: sans-serif; color: #1d2327; background: #fff; }
+  header { padding: 16px 32px; border-bottom: 1px solid #ddd; }
+  main { max-width: 960px; margin: 0 auto; padding: 64px 32px; }
+  #cookie-banner { position: fixed; left: 0; right: 0; bottom: 0; padding: 24px 32px; background: #222; color: #fff; }
+  #cookie-banner button { margin-right: 12px; padding: 10px 16px; border: 0; border-radius: 4px; }
+  #accept { background: #ff0; color: #000; }
+</style>
+</head>
+<body>
+<header>
+  <nav aria-label="Hauptnavigation"><a href="/info/">Info</a></nav>
+</header>
+<main>
+  <h1>Seite mit Cookie-Banner ohne Ablehnen-Knopf</h1>
+  <p>Der Banner bietet nur „Alle akzeptieren“ und „Einstellungen“. Jeder Klick darauf erzeugt im
+     Server-Log einen Aufruf von /tracker. Erwartet: kein einziger solcher Aufruf.</p>
+</main>
+<div id="cookie-banner" role="dialog" aria-label="Cookie-Hinweis">
+  <p>Wir verwenden Cookies, um die Seite zu verbessern.</p>
+  <button id="accept" type="button" onclick="fetch('/tracker?accept=1');this.parentElement.remove()">Alle akzeptieren</button>
+  <button id="settings" type="button" onclick="fetch('/tracker?settings=1')">Einstellungen</button>
+</div>
+</body>
+</html>

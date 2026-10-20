@@ -79,7 +79,7 @@ def main() -> None:
     print(
         "BLOCKED gamebot-console-guard: dieser Start ({weg}) benutzt blankes `python.exe` "
         "fuer {bot} -> der Prozess bekommt eine SICHTBARE Konsole, Windows Terminal startet "
-        "kalt = Terminal-Blitz auf der Nutzer Desktop (gemessen 2026-08-11).\n"
+        "kalt = Terminal-Blitz auf des Nutzers Desktop (gemessen 2026-08-11).\n"
         "\n"
         "FIX — eines davon:\n"
         "  1. `python.exe` durch `pythonw.exe` ersetzen (GUI-Subsystem = gar keine Konsole).\n"

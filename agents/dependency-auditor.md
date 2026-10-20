@@ -16,7 +16,7 @@ Dependency-Security-Spezialist. Prüft auf CVEs, Slopsquatting, Lockfile-Hygiene
 
 ## Tools
 
-**pip-audit:** `pip-audit -r requirements.txt --format=json`. Server: SSH zu `/home/botuser/Discord_Bots/venv/bin/pip-audit`.
+**pip-audit:** Standard ist das bereits installierte venv: `<venv>/bin/pip-audit --format=json` (auditiert installierte Pakete, installiert nichts). Nur fuer eine nicht installierte Requirements-Datei: `pip-audit -r requirements.txt --no-deps --disable-pip --format=json`, das setzt vollstaendig gepinnte Versionen (idealerweise mit Hashes) voraus. **Nie `pip-audit -r` ohne `--disable-pip`:** Sonst loest pip-audit die Datei ueber pip in einem Temp-venv auf und fuehrt dabei Build-Code (setup.py) jedes Pakets aus. Ein gesquattetes Paket, genau das, wonach wir suchen, liefe damit auf dem Host (Befund Codex-Port-Pruefung 2026-09-30). Server: SSH zu `/home/botuser/Discord_Bots/venv/bin/pip-audit` (installiertes venv, ohne `-r`).
 
 **Slopsquatting via curl** (nicht WebFetch):
 ```bash
@@ -50,5 +50,5 @@ Dependency-Health-Matrix mit Severity-Counts + Lockfile-Health (Pin-Style: stric
 - Keine Auto-Installs
 - Bei Slopsquatting-Verdacht: 🔴🔒 markieren
 
-## der Nutzer Stack
+## des Nutzers Stack
 Discord.py 2.x, FastAPI, fritzconnection, ts3 (Slopsquatting-relevant), Server-pip mit `--break-system-packages`.

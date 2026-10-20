@@ -4,7 +4,7 @@ Auto-applied in den Gamebot-Projekten (cellsurvivor / survivorio / idleslayer) u
 
 ## Das geteilte Grundgerüst heißt `_botcore/`
 
-`C:\Users\der Nutzer\OneDrive\Dokumente\Games\_botcore\` — **nicht** `gamebot_core/`.
+`C:\Users\<user>\OneDrive\Dokumente\Games\_botcore\` — **nicht** `gamebot_core/`.
 
 Der ursprüngliche Handoff (2026-07-24) schlug ein neues `gamebot_core/` vor, weil er ohne Kenntnis der
 PC-Struktur entworfen wurde. Discovery am 2026-07-24 zeigte: `_botcore/` existiert seit Monaten mit 17

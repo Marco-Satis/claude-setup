@@ -1,0 +1,98 @@
+[
+ {
+  "query": "kannst du mal die telekom.de komplett analysieren? will verstehen wie die ihr design machen und das dann für mein projekt nutzen",
+  "should_trigger": true
+ },
+ {
+  "query": "Schau dir https://stripe.com an und zerleg mir, warum die Seite so hochwertig wirkt – Farben, Schriften, Bilder, alles",
+  "should_trigger": true
+ },
+ {
+  "query": "ich hab gesehen wie leute in 30 sekunden ne firmenwebseite scannen und nachbauen. mach das für vodafone.de aber in meinem eigenen design",
+  "should_trigger": true
+ },
+ {
+  "query": "Lies bitte das Design-System von linear.app aus (Tokens, Abstände, Typo) und übertrag das auf meine Farben",
+  "should_trigger": true
+ },
+ {
+  "query": "wie ist die apple produktseite aufgebaut? bildsprache, texte, struktur – ich brauch das als vorlage für meine landingpage",
+  "should_trigger": true
+ },
+ {
+  "query": "Mach mir eine komplette Analyse von otto.de: Aufbau, Navigation, Bildstil, Tonalität, was ich davon übernehmen kann",
+  "should_trigger": true
+ },
+ {
+  "query": "Konkurrenzseite https://www.check24.de auslesen – wie machen die das mit Vertrauen und Preisen, und wie bau ich das ohne zu kopieren?",
+  "should_trigger": true
+ },
+ {
+  "query": "website teardown von airbnb.de bitte, ich will das layout und die bildsprache verstehen",
+  "should_trigger": true
+ },
+ {
+  "query": "Analysiere die Seite von Mercedes-Benz: Design Tokens, Bilder, Inhalte, und gib mir eigene Tokens für mein Projekt",
+  "should_trigger": true
+ },
+ {
+  "query": "bau mir aus meinem plan eine fertige html landingpage mit dem gewählten design",
+  "should_trigger": false
+ },
+ {
+  "query": "review mal mein dashboard template hier in templates/index.html – spacing und hover states passen nicht",
+  "should_trigger": false
+ },
+ {
+  "query": "wie funktioniert technisch die suche auf otto.de – welche api-calls und js-bundles laufen da?",
+  "should_trigger": false
+ },
+ {
+  "query": "Prüf meine Website filedrop auf Sicherheitslücken, XSS und offene Endpunkte",
+  "should_trigger": false
+ },
+ {
+  "query": "such im web nach den besten landingpage design trends 2026",
+  "should_trigger": false
+ },
+ {
+  "query": "zeig mir 4 verschiedene design-richtungen für meine app als mockups zum vergleichen",
+  "should_trigger": false
+ },
+ {
+  "query": "prüf meine templates/index.html auf kontrast und tastaturbedienung",
+  "should_trigger": false
+ },
+ {
+  "query": "zieh aus meinem frontend-code die wiederkehrenden farben und abstände als design tokens raus",
+  "should_trigger": false
+ },
+ {
+  "query": "Warum lädt meine eigene Seite so langsam? Mach einen Performance-Check",
+  "should_trigger": false
+ },
+ {
+  "query": "hier ein screenshot von meiner neuen startseite – was hältst du vom design?",
+  "should_trigger": false
+ },
+ {
+  "query": "kannst du dir mal zalando.de anschauen und mir sagen wie die ihre startseite aufbauen, ich will was ähnliches",
+  "should_trigger": true,
+  "held_out": true
+ },
+ {
+  "query": "die seite von porsche sieht krass aus – zieh mir raus welche farben, schriften und abstände die nutzen",
+  "should_trigger": true,
+  "held_out": true
+ },
+ {
+  "query": "nimm vodafone.de auseinander: bilder, texte, aufbau. was davon kann ich für mich übernehmen?",
+  "should_trigger": true,
+  "held_out": true
+ },
+ {
+  "query": "ich will meine landingpage so hochwertig wie die von notion.so – analysier die mal gründlich",
+  "should_trigger": true,
+  "held_out": true
+ }
+]

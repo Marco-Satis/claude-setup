@@ -125,9 +125,9 @@ TEST_CASES = [
         "expect_match": "Anthropic API Key",
     },
     {
-        "name": "secret_leak / AWS-AKIA-FAKE -> Match",  # pragma: allowlist secret (AWS-Doku-Beispiel, kein echter Key)
+        "name": "secret_leak / AWS-AKIA-FAKE -> Match",  # pragma: allowlist secret (Testattrappe, kein echter Schluessel)
         "hook": "secret_leak_detector.py",
-        "stdin": {"prompt": "AWS Key: AKIAIOSFODNN7EXAMPLE aus Doku-Beispiel."},  # pragma: allowlist secret (AWS-Doku-Beispiel, kein echter Key)
+        "stdin": {"prompt": "AWS Key: AKIAIOSFODNN7EXAMPLE aus Doku-Beispiel."},  # pragma: allowlist secret (Testattrappe, kein echter Schluessel)
         "expect_match": "AWS Access Key ID",
     },
     {

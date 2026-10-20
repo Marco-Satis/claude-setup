@@ -1,8 +1,8 @@
 # claude-setup
 
-Ein gewachsenes Claude-Code-Setup: 43 Skills, 18 Agents, 43 Hooks, 9 Regel-Dateien und die
-Betriebs-Skripte drumherum. Kein Framework und keine Sammlung fremder Schnipsel — das hier
-läuft täglich produktiv auf einem Linux-Server und einem Windows-PC.
+Ein gewachsenes Claude-Code-Setup: 46 Skills, 19 Agents, 47 Hooks, 15 Regel-Dateien und die
+Betriebs-Skripte drumherum. Kein Framework — das hier läuft täglich produktiv auf einem
+Linux-Server und einem Windows-PC. Übernommene Fremdanteile stehen in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 Veröffentlicht, weil die interessanten Teile nicht die einzelnen Skills sind, sondern die
 Muster dahinter: wie man Regeln durchsetzt, die sonst nach zwanzig Turns vergessen werden,
@@ -11,14 +11,15 @@ und wie man merkt, dass eine Automatisierung seit zwei Wochen still nichts tut.
 ## Was hier drin steckt
 
 ```
-skills/      43 Skills — Review-Orchestrierung, Prompt-Optimierung, Security-Audits,
-             Debugging, Doku-Drift, Tool-Discovery
-agents/      18 Sub-Agents — spezialisierte Reviewer (async, Security, Performance,
+skills/      46 Skills — Review-Orchestrierung, Prompt-Optimierung, Security-Audits,
+             Debugging, Doku-Drift, Tool-Discovery, Website-Analyse
+agents/      19 Sub-Agents — spezialisierte Reviewer (async, Security, Performance,
              Dependencies) und Brücken zu anderen Modellen
-hooks/       43 Hooks — Lifecycle-Automatisierung: Kontext-Überwachung, Secret-Guards,
+hooks/       47 Hooks — Lifecycle-Automatisierung: Kontext-Überwachung, Secret-Guards,
              Session-Logging, Compact-Sicherung
-rules/        9 globale Regeln, die in jeder Session geladen werden
-scripts/     Betriebs-Skripte: Routine-Reporting, Watchdogs, Trust-Guard
+rules/       15 globale Regeln, die in jeder Session geladen werden
+scripts/     Betriebs-Skripte: Routine-Reporting, Watchdogs, Trust-Guard, Modell-Brücken,
+             Repo-Sync
 templates/   Projekt-Scaffolding
 ```
 
@@ -64,9 +65,14 @@ maschinenspezifische Pfade und Berechtigungen. Als Ersatz dokumentiert
 [`hooks/README.md`](hooks/README.md) die vollständige Verdrahtung: welcher Hook an welchem
 Event hängt, mit Matcher, Timeout und Zweck — erzeugt aus der real laufenden Konfiguration.
 
-Secrets, Logs, Transcripts, Session-State und Backups fehlen ebenfalls. Pfade sind auf
-`$HOME` normalisiert, interne Adressen und Daten Dritter sind entfernt. Der Stand ist mit
-`detect-secrets` geprüft.
+Secrets, Logs, Transcripts, Session-State und Backups fehlen ebenfalls, ebenso einige
+persönliche Skills. Pfade sind auf `$HOME` normalisiert, Server- und interne Adressen durch
+Platzhalter ersetzt, Daten Dritter entfernt.
+
+Das Repo wird mit [`scripts/setup_repo_sync.py`](scripts/setup_repo_sync.py) aus der laufenden
+Installation nachgezogen: kopieren, bereinigen (die Ersetzungsliste ist privat), prüfen
+(Secret-Werte aus den env-Dateien, Personendaten, `gitleaks`). Committet wird nur bei null
+Befunden; der Pre-Commit-Hook mit `detect-secrets` läuft zusätzlich.
 
 Die Doku ist überwiegend deutsch, weil das Setup deutsch betrieben wird. Code und
 Bezeichner sind englisch.

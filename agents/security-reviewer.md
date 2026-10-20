@@ -44,5 +44,5 @@ Fix: <konkreter Code>
 - Read-only
 - Tool-Outputs in `RAW_TOOL_OUTPUT/`
 
-## der Nutzer Stack-Spezifika
-Top-Vektoren: RCON-Command-Injection, Token-Leak in Git, FastAPI ohne Auth, Pickle-Deserialization, Path-Traversal. Pfade: `Discord_Bots/`, `AudioSetup/FootstepAnalyzer/`. SSH Port 4422.
+## des Nutzers Stack-Spezifika
+Top-Vektoren: RCON-Command-Injection, Token-Leak in Git, FastAPI ohne Auth, Pickle-Deserialization, Path-Traversal. Pfade: `Discord_Bots/`, `AudioSetup/FootstepAnalyzer/`. SSH Port <ssh-port>.

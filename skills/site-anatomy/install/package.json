@@ -1,0 +1,18 @@
+{
+  "name": "site-anatomy-toolchain",
+  "private": true,
+  "description": "Gepinnte Werkzeugkette fuer den Skill site-anatomy. Installation nur mit des Nutzers Freigabe (install.sh).",
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.61.1",
+    "@axe-core/playwright": "4.14.0",
+    "designlang": "13.3.2",
+    "colorthief": "3.5.0",
+    "sharp": "0.35.5",
+    "lighthouse": "13.5.0"
+  },
+  "overrides": {
+    "playwright": "1.61.1",
+    "playwright-core": "1.61.1"
+  }
+}

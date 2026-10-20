@@ -97,7 +97,7 @@ Kalibrier-Pflicht wie oben: jedes HIGH/CRITICAL dagegen pruefen.
 | Implizite Generalisierung ("im akzeptablen Rahmen") | "akzeptabel WEIL ..." oder "nicht WEIL ..." |
 | Findings ohne File:Zeile | "_health.py:139 bare-except — robust gegen Y, brittle gegen Z" |
 | Empfehlungs-Floskeln ("sollte ggf. ueberdacht werden") | "Fix in X Min: ..." oder "kein Fix WEIL ..." |
-| Production-Ready-Behauptung | weglassen — ist der Nutzer Entscheidung |
+| Production-Ready-Behauptung | weglassen — ist des Nutzers Entscheidung |
 
 ---
 *Erstellt 2026-06-03 (Audit-Fund M1). Bei Aenderung: nur hier — alle Review-Skills ziehen daraus.*

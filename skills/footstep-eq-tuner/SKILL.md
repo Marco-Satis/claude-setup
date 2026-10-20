@@ -15,8 +15,8 @@ Du hilfst der Nutzer bei der iterativen EQ-Tuning-Schleife: Aufnahme analysieren
 
 ## Vor dem Start
 Datenbasis ist **(Windows-lokal)** — FootstepPro/FootstepAnalyzer liegt nur auf dem PC (EqualizerAPO-Setup, kein Syncthing-Sync, auf netcup nicht vorhanden):
-- Aktuelle EQ-Config: `C:\Users\der Nutzer\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\output\configs\AIW_BO7_v9.*.txt` (Windows-lokal)
-- ReaXComp-Config: `C:\Users\der Nutzer\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\output\configs\REAXCOMP_v9.*.txt` (Windows-lokal)
+- Aktuelle EQ-Config: `C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\output\configs\AIW_BO7_v9.*.txt` (Windows-lokal)
+- ReaXComp-Config: `C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer\output\configs\REAXCOMP_v9.*.txt` (Windows-lokal)
 - Plan-Complete-Targets aus Plan v1.5:
   - foot_wins ≥ 50%
   - competitive_score ≥ 60

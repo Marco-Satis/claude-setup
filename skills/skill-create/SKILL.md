@@ -1,8 +1,8 @@
 ---
 name: skill-create
-version: 2.2.0
-last-reviewed: 2026-07-21
-description: Erstellt einen neuen Skill nach der Nutzer Standard-Pattern — vollständiges Frontmatter, Phasen-Struktur, Constraints, Beispiel-Triggers, Versions-Header. Verifiziert YAML-Validität + Schema-Konformität nach Write.
+version: 2.3.0
+last-reviewed: 2026-10-18
+description: Erstellt einen neuen Skill nach des Nutzers Standard-Pattern — vollständiges Frontmatter, Phasen-Struktur, Constraints, Beispiel-Triggers, Versions-Header. Verifiziert YAML-Validität + Schema-Konformität nach Write.
 when_to_use: neuen skill erstellen, claude code skill anlegen, skill scaffold, neuen slash-command bauen, SKILL.md erstellen, skill template, command erstellen
 argument-hint: Optional Skill-Name + kurze Beschreibung — bei fehlend interaktive Fragen
 allowed-tools: Read Write Edit Bash Glob
@@ -136,6 +136,34 @@ Kernprinzip: Ein Skill, den nie ein frischer Agent benutzt hat, ist ungetesteter
 
 Zukunft: Micro-Wording-Tests — einzelne Formulierungs-Varianten mit 5+ Wiederholungen pro Variante gegen eine No-Guidance-Kontrolle fahren (zeigt die Kontrolle den Fehler gar nicht erst → Guidance unnötig; Varianz als Metrik: konvergieren die Reps nicht auf dieselbe Form, bindet die Formulierung nicht; automatische Treffer immer manuell nachlesen). Heute für Solo-Betrieb Overkill; wird relevant sobald Disziplin-Skills systematisch gehärtet werden — billig umsetzbar über die vorhandene `claude -p`-Batch-Infrastruktur (mit `--no-session-persistence`). (geerntet aus superpowers:writing-skills v6.1.1, 2026-07-21)
 
+### Phase 3.6 — Eval: messen statt anschauen (A3.7, nach Anthropics skill-creator, 2026-10-18)
+
+Phase 3.5 zeigt, OB ein frischer Agent den Skill nutzt. Phase 3.6 misst, ob der Skill das Ergebnis
+**besser** macht und ob die Description **richtig** auslöst. Pflicht bei Workflow- und Disziplin-Skills,
+bei reinen Referenz-Skills optional.
+
+1. **Ausgabe-Eval (mit vs. ohne Skill):** 2–3 realistische Aufträge, so formuliert wie der Nutzer sie tippt.
+   Je Auftrag **im selben Turn** zwei frische Subagenten starten: einer mit Skill, einer ohne
+   (bei Überarbeitung: gegen eine Kopie der alten Version, vorher `cp -r <skill> <skill>-workspace/snapshot/`).
+   Während sie laufen, prüfbare Assertions formulieren („Bericht nennt File:Line", „fragt erst nach X").
+   Ergebnis: Assertions je Lauf bestanden/nicht bestanden. Gewinnt der Skill nicht klar → Body
+   überarbeiten oder Anti-Bloat-Gate: Skill unnötig. Geschmacksfragen (Stil, Design) nicht in
+   Assertions zwingen, sondern der Nutzer die beiden Ausgaben nebeneinander zeigen.
+2. **Trigger-Eval (Description):** 8–10 Anfragen, die auslösen sollen, und 8–10 Beinahe-Treffer,
+   die es nicht sollen (gleiche Stichwörter, aber anderer Skill zuständig — die Kollisionen aus dem
+   Feuert-NICHT-Check sind die besten Kandidaten). Realistisch, mit Kontext, auch Tippfehler/Umgangssprache.
+   der Nutzer kurz zeigen, dann:
+   ```bash
+   ~/.claude/scripts/skill_trigger_eval.sh evals/trigger.json <skill-dir> --runs-per-query 3
+   ```
+   Das Skript nutzt `run_eval.py` aus dem installierten skill-creator-Marketplace, schaltet für die
+   `claude -p`-Läufe Hooks und Session-Persistenz ab und räumt danach auf. **Vor der Installation
+   testen** — ein bereits installierter gleichnamiger Skill stiehlt sonst Treffer.
+   Zu einfache Anfragen („lies Datei X") lösen nie aus, egal wie gut die Description ist.
+   Ziel: alle Soll-Treffer ≥ 2/3, alle Beinahe-Treffer ≤ 1/3. Sonst Description schärfen, erneut messen.
+3. **Ablage:** `<skill-dir>/evals/evals.json` (Aufträge + Assertions) und `evals/trigger.json` bleiben
+   beim Skill. Bei jedem späteren MINOR/MAJOR-Edit dieselben Evals erneut fahren (Regressionstest).
+
 ### Phase 4 — Integration
 
 1. Skill in globaler CLAUDE.md unter „Globale Slash-Commands" eintragen (falls global)
@@ -198,6 +226,7 @@ Bei jedem späteren Edit an einem existierenden Skill:
 
 ## Changelog
 
+- **v2.3.0** (2026-10-18): Phase 3.6 Eval (TikTok-Auswertung A3.7, der Nutzer-Ja): Ausgabe-Eval mit/ohne Skill per parallelen Subagenten + Assertions; Trigger-Eval der Description über `scripts/skill_trigger_eval.sh` (Anthropics `run_eval.py`, abgeschirmt: keine Hooks, keine Transkripte, Aufräumen); Evals bleiben als Regressionstest beim Skill.
 - **v2.2.0** (2026-07-21): Fidelity-Nachernte (Verifier-Befund): Gestaltungs-Prinzipien-Sektion — Degrees of Freedom, Feedback-Loop/Plan-Validate-Execute, Script-Guidance (solve-don't-punt, Voodoo-Konstanten, Execute-vs-Read-Intent), @-Link-Verbot, Persuasions-Prinzipien (Negativ-Regeln Liking/Reciprocity).
 - **v2.1.0** (2026-07-21): Superpowers-Harvest (geerntet aus superpowers:writing-skills v6.1.1): Anti-Bloat-Gate im Pre-Flight (ein Skill = ein Job, mechanische Regeln → Hook, Baseline-Frage), Description-Trigger-Optimierung (nie Workflow-Summary — Agent folgt sonst der Kurzfassung statt dem Body, Feuert-NICHT-Check mit Kollisions-Grep, Keyword-Coverage), Body-Formulierungs-Tabelle (Form an Fehlertyp: Verbot vs. Positiv-Rezept vs. Struktur-Slot vs. Konditional; keine Nuance-Klauseln; <500 Zeilen + references/-Regeln), neue Phase 3.5 Skill-Test an frischem Subagent (Baseline/Verify/Typ-Tabelle/Meta-Test/Rationalisierungs-Tabelle; Zukunft: Micro-Wording-Tests via claude -p-Batch), Re-Test-Pflicht bei MINOR/MAJOR-Edits, 2 neue Anti-Pattern-Zeilen (Narrativ-Beispiel, verschachtelte Referenzen).
 - **v2.0.0** (2026-05-17): Major-Rewrite nach Cowork-Skill-Vergleich (anthropic-skills:skill-creator). Vollständiges Frontmatter (version, last-reviewed, allowed-tools). 4-Phasen-Workflow (Scaffold / Body-Struktur / Write+Verify / Integration). YAML-Validierung als Pflicht-Step. Versions-Pflege-Pattern für Updates. Anti-Patterns-Tabelle. Beispiel-Triggers.

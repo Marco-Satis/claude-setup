@@ -401,7 +401,7 @@ def build_turn_note(project: str, turn: dict, date_iso: str) -> tuple[str, str]:
     if len(content) > MEMORY_CONTENT_MAX:
         content = content[: MEMORY_CONTENT_MAX - 3] + "..."
 
-    # memory_type NUR aus dem Assistant-Stand ableiten, NICHT aus der Nutzer Intent
+    # memory_type NUR aus dem Assistant-Stand ableiten, NICHT aus des Nutzers Intent
     # — sonst taggt ein „Lesson"/„Entscheidung" in der User-Eingabe den Turn-Delta
     # faelschlich als learning/decision (landet sonst im graphify-Tier-Scope).
     low = (turn["stand"] or "").lower()

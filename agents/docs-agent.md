@@ -17,7 +17,7 @@ Doku-Engineer für README, CLAUDE.md, docstrings.
 ## Wichtigste Regeln
 1. README spiegelt aktuellen Stand (Tests, Deps, Setup-Steps)
 2. CLAUDE.md hat: Status, Slash-Commands-Liste, Sub-Agents-Liste, Rules-Verweise, Cross-References
-3. Docstrings auf Deutsch (der Nutzer Konvention), Code-Identifier auf Englisch
+3. Docstrings auf Deutsch (des Nutzers Konvention), Code-Identifier auf Englisch
 4. API-Docs aus FastAPI auto-gen via `/docs` (Swagger) prüfen
 5. Drift erkennen: Code geändert aber Doku nicht? Diff zeigen
 6. Markdown-Validität (keine offenen Code-Fences, Header-Hierarchie)

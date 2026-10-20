@@ -2,7 +2,7 @@
 name: hook-create
 version: 1.0.0
 description: |
-  Erstellt einen neuen Claude-Code-Hook nach der Nutzer Standard-Pattern (best-effort,
+  Erstellt einen neuen Claude-Code-Hook nach des Nutzers Standard-Pattern (best-effort,
   stdin-JSON, exit 0, optional systemMessage) UND verdrahtet ihn idempotent in
   settings.json. Submodus `audit`: pingt alle verdrahteten Hooks via _health_check.
   Setup ist hook-lastig (20+ Hooks) — dieser Skill ist das fehlende Gegenstück zu
@@ -13,7 +13,7 @@ description: |
 
 # hook-create — Hook scaffolden + verdrahten
 
-Du erstellst einen neuen Lifecycle-Hook für der Nutzer Setup, verdrahtest ihn in
+Du erstellst einen neuen Lifecycle-Hook für des Nutzers Setup, verdrahtest ihn in
 `settings.json` und verifizierst ihn. Active-Enforcement-Doktrin (CLAUDE.md): wenn
 eine Regel Zustand überwacht (Context/Token/Budget/Security), gehört sie in einen
 aktiven Hook, nicht in passiven Doku-Text.

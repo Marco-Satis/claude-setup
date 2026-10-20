@@ -38,4 +38,4 @@ Beides gehört zusammen gelesen. Die Prüfung läuft zusätzlich als mechanische
 
 Nicht den Publish öffnen, sondern nginx als Reverse-Proxy davor und den Container weiter lokal
 binden — dann greifen TLS, Auth und die UFW-Regeln für 80/443 wie erwartet. Für Zugriff nur von
-der Nutzer Geräten reicht Tailscale (`tailscale serve`), siehe Memory `tailscale-serve-portmap`.
+des Nutzers Geräten reicht Tailscale (`tailscale serve`), siehe Memory `tailscale-serve-portmap`.
