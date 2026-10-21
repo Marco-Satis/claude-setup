@@ -100,10 +100,10 @@ Alle gehören in **KeePass** (`Vault.kdbx`), nie in git/Chat/Repo.
 | Provider | Credential | Ort | Typ |
 |---|---|---|---|
 | Gemini-CLI | OAuth Code-Assist | `~/.gemini/oauth_creds.json` + `google_accounts.json` | OAuth (Free-Tier, kein Key) |
-| Gemini-API / Nano Banana | `GEMINI_API_KEY` | User-ENV (Registry HKCU\Environment) | API-Key `AIza...` (Prepay=echtes Geld) |
+| Gemini-API / Nano Banana | `GEMINI_API_KEY` | PC: User-ENV (Registry HKCU\Environment) · netcup: `~/.claude/secrets/gemini.env` (600, seit 2026-10-21) | API-Key `AIza...` (Prepay=echtes Geld) |
 | Codex-CLI | ChatGPT-Plus-OAuth | `~/.codex/auth.json` | OAuth (nutzt Plus-Sub) |
 
 **Regeln:**
-- `GEMINI_API_KEY` NUR als User-ENV (via `Read-Host`-Workflow gesetzt, Wert nie im Chat) + **KeePass-Backup**. Bei Leak: in [AI Studio](https://aistudio.google.com) revoken + neu. `secret_leak_detector` kennt das `AIza`-Pattern.
+- `GEMINI_API_KEY` NUR als User-ENV am PC (via `Read-Host`-Workflow gesetzt) bzw. auf netcup in `~/.claude/secrets/gemini.env` (Rechte 600, von der Nutzer selbst geschrieben; `gemini_call.py` liest sie, wenn die ENV fehlt) — Wert nie im Chat — + **KeePass-Backup**. Bei Leak: in [AI Studio](https://aistudio.google.com) revoken + neu. `secret_leak_detector` kennt das `AIza`-Pattern.
 - OAuth-Creds (`~/.gemini/`, `~/.codex/`) nicht committen, nicht syncen (lokale User-Dirs). Bei Kompromittierung: `gemini`/`codex login` neu.
 - Usage/Spend via `ai_usage.py`. Nano verbrennt echtes Prepay-Geld → Spend-Guard `NANO_DAILY_USD_CAP` in `nano_banana.py`.

@@ -180,7 +180,7 @@ Quelle für den Workload-Snapshot, anderen Feeds und eigenem Report — Ergebnis
 des Nutzers Empfehlungen laufen und umgekehrt.
 
 **Profil statt Phase-1-Inventur:**
-- Projekt `~/projects/setup-extern/` (Anleitungen, Brand-Voice-Dateien, bestehende Skills)
+- Projekt `~/projects/uym-setup/` (Anleitungen, Brand-Voice-Dateien, bestehende Skills)
 - Arbeitsumgebung ist **Claude Desktop auf Mac**, nicht Claude Code auf einem Server. Alles, was
   eine CLI, einen Cron oder einen Server braucht, ist für sie **kein** Kandidat — das ist der
   härteste Filter und der, den ein der Nutzer-Profil falsch beantworten würde.
