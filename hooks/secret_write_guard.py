@@ -51,12 +51,52 @@ _FALLBACK_PATTERNS: list[tuple[str, str, str]] = [
     ("Google API Key", r"\bAIza[0-9A-Za-z_\-]{35}\b", "AIza..."),
 ]
 
+# S12 / E1 (2026-10-21): zusaetzliche Klassen aus secret_patterns.json:patterns_neu.
+# Wirken NUR mit lokalem Flag (synct nicht); ohne Flag bytegleiches Verhalten.
+_FLAG_NEU = Path.home() / ".claude" / "flags" / "secret_patterns_neu.on"
+_FALLBACK_PATTERNS_NEU: list[tuple[str, str, str]] = [
+    ("Discord Webhook", r"https?://(?:ptb\.|canary\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/\d{15,22}/[A-Za-z0-9_\-]{40,}", "discord.com/api/webhooks/..."),
+    ("Anthropic OAuth Token", r"\bsk-ant-o[ar]t\d{2}-[A-Za-z0-9_\-]{40,}", "sk-ant-o?t..."),
+    ("PEM Private Key", r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY(?: BLOCK)?-----(?:\\[rn]|\s)+(?:[A-Za-z][A-Za-z0-9\-]*: [^\\\r\n]{1,200}(?:\\[rn]|\s)+){0,4}[A-Za-z0-9+/=]{40,}", "-----BEGIN ... PRIVATE KEY-----"),
+    ("Tailscale Key", r"\btskey-[A-Za-z0-9][A-Za-z0-9_\-]{19,}", "tskey-..."),
+    ("JWT", r"\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{16,}", "eyJ..."),
+    ("Hugging Face Token", r"\bhf_[A-Za-z0-9]{30,}\b", "hf_..."),
+]
+
 # Tool-Namen die dieser Hook bewacht (alles andere -> sofort allow)
 _GUARDED_TOOLS = {"Write", "Edit", "MultiEdit", "Bash"}
 
 
+def _neu_aktiv() -> bool:
+    """Flag fuer patterns_neu (S12) gesetzt? Fehler -> aus (altes Verhalten)."""
+    try:
+        return _FLAG_NEU.exists()
+    except OSError:
+        return False
+
+
+def _load_patterns_neu() -> list[tuple[str, str, str]]:
+    """patterns_neu aus JSON; bei Fehler oder leer: hartcodierte Ersatzliste."""
+    try:
+        data = json.loads(_PATTERNS_JSON.read_text(encoding="utf-8"))
+        neu = data.get("patterns_neu", []) if isinstance(data, dict) else []
+        if neu:
+            return [(p["name"], p["regex"], p["display"]) for p in neu]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+        pass
+    return _FALLBACK_PATTERNS_NEU
+
+
 def _load_patterns() -> list[tuple[str, str, str]]:
     """Lade Patterns aus JSON; bei Fehler Fallback auf hartcodierte Liste."""
+    base = _load_patterns_basis()
+    if _neu_aktiv():
+        return base + _load_patterns_neu()
+    return base
+
+
+def _load_patterns_basis() -> list[tuple[str, str, str]]:
+    """Bestandsklassen ('patterns'), unveraendert seit 2026-07-21."""
     try:
         data = json.loads(_PATTERNS_JSON.read_text(encoding="utf-8"))
         patterns = data.get("patterns", [])
@@ -179,13 +219,24 @@ def main() -> None:
 
     names = ", ".join(sorted({n for n, _ in findings}))
     hashes = ", ".join(h for _, h in findings)
-    reason = (
-        f"Secret-Pattern {names} erkannt (hash {hashes}) — Wert nicht in "
-        "Files/Commands schreiben (rules/secret-handling.md). Stattdessen: "
-        "ENV-Variable via Read-Host-Workflow / get_env() referenzieren, nie den "
-        "Klartext-Wert persistieren. Geloggt in ~/.claude/lessons/leaks.jsonl "
-        "(nur Pattern-Name + Hash)."
-    )
+    if _neu_aktiv():
+        # S12: Deny-Grund nach BAUPLAN_v4_anhang A12 (nur mit Flag)
+        reason = (
+            f"Secret-Muster {names} erkannt (Hash {hashes}); nichts geschrieben. "
+            "Echter Wert (aus Datei, Ausgabe oder Nachricht uebernommen): Ort statt Wert referenzieren, z. B. ENV-Variable "
+            "oder ~/.claude/secrets/<datei>.env (rules/secret-handling.md). "
+            "Selbst erfundener Testwert: zur Laufzeit zusammensetzen, z. B. 'sk-ant-' + 'oat01-' + 'A'*95. "
+            "Unklar, ob echt: Text so lassen und der Nutzer mit Hash und Zielpfad fragen. "
+            "Protokoll: ~/.claude/lessons/leaks.jsonl (nur Muster + Hash)."
+        )
+    else:
+        reason = (
+            f"Secret-Pattern {names} erkannt (hash {hashes}) — Wert nicht in "
+            "Files/Commands schreiben (rules/secret-handling.md). Stattdessen: "
+            "ENV-Variable via Read-Host-Workflow / get_env() referenzieren, nie den "
+            "Klartext-Wert persistieren. Geloggt in ~/.claude/lessons/leaks.jsonl "
+            "(nur Pattern-Name + Hash)."
+        )
     print(
         json.dumps(
             {

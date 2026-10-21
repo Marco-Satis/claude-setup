@@ -16,6 +16,13 @@ RC_STATE_DIR = Path.home() / ".cache" / "claude-rc-state"
 
 MEMORY_FETCH_TIMEOUT = 2  # Sekunden — best-effort, darf den SessionStart-Hook nie blockieren
 
+# 2026-10-21 E1/S8 (BAUPLAN_v4 Teil 4): Der by-tag-Abruf holte je Start bis zu 1.605 Treffer
+# (10,4 MB), um einen einzigen Eintrag zu zeigen. Mit diesem lokalen Flag (synct nicht, W1 b)
+# fragt der Hook mcp nur noch, wenn last.md fehlt oder aelter als 24 h ist. Ohne Flag: alter Weg.
+# Rueckweg: Flag loeschen (oder .bak.pre-e1.*).
+LOCAL_FIRST_FLAG = Path.home() / ".claude" / "flags" / "rc_resume_lokal_zuerst.on"
+LOCAL_FRESH_MAX_H = 24
+
 
 def slug_for(cwd: str) -> str:
     """MUSS byte-identisch zu session_logger.write_last_session's Slug-Formel sein,
@@ -32,6 +39,20 @@ def load_local(cwd: str) -> str:
     except Exception:
         pass
     return ""
+
+
+def should_fetch_memory(cwd: str) -> bool:
+    """True = mcp abfragen. Ohne Flag immer True (bytegleiches Verhalten wie vor E1/S8).
+    Mit Flag nur, wenn last.md fehlt oder aelter als LOCAL_FRESH_MAX_H ist."""
+    import time
+    if not LOCAL_FIRST_FLAG.exists():
+        return True
+    try:
+        p = RC_STATE_DIR / slug_for(cwd) / "last.md"
+        age_h = (time.time() - p.stat().st_mtime) / 3600
+    except OSError:
+        return True          # last.md fehlt -> mcp als einzige Quelle
+    return age_h > LOCAL_FRESH_MAX_H
 
 
 def fetch_latest_memory(project_slug: str) -> str:

@@ -52,8 +52,40 @@ _FALLBACK_PATTERNS: list[tuple[str, str, str]] = [
     ("Google API Key", r"\bAIza[0-9A-Za-z_\-]{35}\b", "AIza..."),
 ]
 
+# S12 / E1 (2026-10-21): zusaetzliche Klassen aus secret_patterns.json:patterns_neu.
+# Wirken NUR mit lokalem Flag (synct nicht); ohne Flag bytegleiches Verhalten.
+_FLAG_NEU = Path.home() / ".claude" / "flags" / "secret_patterns_neu.on"
+_FALLBACK_PATTERNS_NEU: list[tuple[str, str, str]] = [
+    ("Discord Webhook", r"https?://(?:ptb\.|canary\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/\d{15,22}/[A-Za-z0-9_\-]{40,}", "discord.com/api/webhooks/..."),
+    ("Anthropic OAuth Token", r"\bsk-ant-o[ar]t\d{2}-[A-Za-z0-9_\-]{40,}", "sk-ant-o?t..."),
+    ("PEM Private Key", r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY(?: BLOCK)?-----(?:\\[rn]|\s)+(?:[A-Za-z][A-Za-z0-9\-]*: [^\\\r\n]{1,200}(?:\\[rn]|\s)+){0,4}[A-Za-z0-9+/=]{40,}", "-----BEGIN ... PRIVATE KEY-----"),
+    ("Tailscale Key", r"\btskey-[A-Za-z0-9][A-Za-z0-9_\-]{19,}", "tskey-..."),
+    ("JWT", r"\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{16,}", "eyJ..."),
+    ("Hugging Face Token", r"\bhf_[A-Za-z0-9]{30,}\b", "hf_..."),
+]
 
-def _load_patterns() -> list[tuple[str, str, str]]:
+
+def _neu_aktiv() -> bool:
+    """Flag fuer patterns_neu (S12) gesetzt? Fehler -> aus (altes Verhalten)."""
+    try:
+        return _FLAG_NEU.exists()
+    except OSError:
+        return False
+
+
+def _load_patterns_neu() -> list[tuple[str, str, str]]:
+    """patterns_neu aus JSON; bei Fehler oder leer: hartcodierte Ersatzliste."""
+    try:
+        data = json.loads(_PATTERNS_JSON.read_text(encoding="utf-8"))
+        neu = data.get("patterns_neu", []) if isinstance(data, dict) else []
+        if neu:
+            return [(p["name"], p["regex"], p["display"]) for p in neu]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+        pass
+    return _FALLBACK_PATTERNS_NEU
+
+
+def _load_patterns_basis() -> list[tuple[str, str, str]]:
     """Lade Patterns aus JSON; bei Fehler Fallback auf hartcodierte Liste."""
     try:
         data = json.loads(_PATTERNS_JSON.read_text(encoding="utf-8"))
@@ -63,6 +95,14 @@ def _load_patterns() -> list[tuple[str, str, str]]:
     except (OSError, json.JSONDecodeError, KeyError):
         pass
     return _FALLBACK_PATTERNS
+
+
+def _load_patterns() -> list[tuple[str, str, str]]:
+    """Bestandsklassen; mit Flag secret_patterns_neu.on plus patterns_neu (S12)."""
+    base = _load_patterns_basis()
+    if _neu_aktiv():
+        return base + _load_patterns_neu()
+    return base
 
 
 PATTERNS: list[tuple[str, str, str]] = _load_patterns()

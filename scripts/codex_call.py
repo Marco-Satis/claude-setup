@@ -107,6 +107,46 @@ def _profile_for(mode: str, explicit: str) -> str:
         return name
     return ""
 
+
+# S11 (BAUPLAN_v4 Teil 4, E1 2026-10-21): workspace-write darf im ganzen cwd-Baum
+# schreiben und damit am Memory-Adapter und an Claudes Setup vorbei. Gesperrt ist jedes
+# cwd, das in einem dieser Ordner liegt ODER einen davon enthaelt — so fallen auch
+# /, /home, ~, ~/.local und ~/.local/share darunter. Einzige Quelle der Liste:
+# agent_msg.py importiert s11_write_block() von hier (fail-closed, falls der Import scheitert).
+S11_PROTECTED = (".claude", ".codex", "wissen", ".local/share/wissen")
+S11_WEITER = "Weiter: --cwd ~/projects/<projekt>   bzw. bei codex_call.py --repo ~/projects/<projekt>"
+
+
+def _s11_under(a: str, b: str) -> bool:
+    return a == b or a.startswith(b.rstrip(os.sep) + os.sep)
+
+
+def s11_write_block(cwd: str) -> str:
+    """Leer, wenn schreibender Codex-Modus in `cwd` erlaubt ist; sonst Ablehnungstext (Anh. A6)."""
+    raw = os.path.expanduser(cwd)
+    cands = {os.path.normcase(os.path.abspath(raw)), os.path.normcase(os.path.realpath(raw))}
+    home = str(Path.home())
+    prot = set()
+    for rel in S11_PROTECTED:
+        p = os.path.join(home, *rel.split("/"))
+        prot |= {os.path.normcase(os.path.abspath(p)), os.path.normcase(os.path.realpath(p))}
+    if any(_s11_under(c, p) or _s11_under(p, c) for c in cands for p in prot):
+        return (f"ABGELEHNT (2) S11: workspace-write mit Arbeitsverzeichnis {os.path.abspath(raw)} "
+                f"ist gesperrt (Home, ~/wissen, ~/.claude, ~/.codex und Elternordner).\n{S11_WEITER}")
+    return ""
+
+
+def _profile_writes(profile: str) -> bool:
+    """Profil verlangt selbst Schreibrechte (z. B. `tests`). Die CLI-Option --sandbox
+    ueberstimmt es zwar; geprueft wird trotzdem, damit S11 nicht an der Rangfolge haengt."""
+    if not profile:
+        return False
+    try:
+        txt = (CODEX_HOME / f"{profile}.config.toml").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    return bool(re.search(r'^\s*sandbox_mode\s*=\s*"(?:workspace-write|danger-full-access)"', txt, re.M))
+
 _QUOTA_MARKERS = ("rate limit", "rate-limit", "usage limit", "quota", "429",
                   "too many requests", "resource_exhausted", "limit reached")
 _AUTH_MARKERS = ("sign in", "signin", "log in", "login", "not authenticated",
@@ -306,6 +346,19 @@ def main() -> int:
     p.add_argument("--timeout", type=int, default=0, help="Sekunden; 0 = Modus-Default")
     p.add_argument("prompt", nargs=argparse.REMAINDER, help="Prompt (alles nach --)")
     args = p.parse_args()
+
+    # S11: schreibend nur mit --repo und nie in der Sperrliste. Vor stdin/codex, damit
+    # eine Ablehnung weder wartet noch Kontingent kostet.
+    if args.sandbox != "read-only" or _profile_writes(_profile_for(args.mode, args.profile)):
+        if not args.repo:
+            print(f"ABGELEHNT (2) S11: workspace-write ohne --repo ist gesperrt (Codex schriebe "
+                  f"sonst im Prozess-Arbeitsverzeichnis {os.getcwd()}).\n"
+                  f"Weiter: --repo ~/projects/<projekt>", file=sys.stderr)
+            return 2
+        why = s11_write_block(args.repo)
+        if why:
+            print(why, file=sys.stderr)
+            return 2
 
     prompt = " ".join(a for a in args.prompt if a != "--").strip()
     if not prompt and args.mode != "review":

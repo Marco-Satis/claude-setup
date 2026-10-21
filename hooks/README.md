@@ -13,16 +13,16 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 
 | Hook | Matcher | Timeout | Zweck |
 |---|---|---|---|
-| `backup_health_check.py` | `—` | 10 | SessionStart Hook: warnt wenn das Memory-DB-Backup veraltet oder fehlgeschlagen ist. |
-| `memory_start_probe.py` | `—` | 10 | SessionStart Hook: merkt sich ob der Memory-Service beim Session-Start erreichbar war. |
-| `reap_orphan_graphify.py` | `—` | 5 | SessionStart-Hook: raeumt verwaiste graphify.serve-MCP-Prozesse weg. |
-| `context_bundle_loader.py` | `—` | 5 | SessionStart-Hook: injiziert einen Index der Projekt-Wissens-Bundles. |
-| `problems_banner.py` | `—` | 5 | SessionStart Hook: zeigt offene Probleme aus dem Problem-Tracker. |
-| `project_scaffold.py` | `—` | 10 | SessionStart-Hook: richtet fehlende Projektstruktur automatisch ein. |
-| `syncthing_project_notice.py` | `—` | 10 | SessionStart-Hook: Sync-Status-Hinweis fuer Sessions in Syncthing-gesyncten Ordnern. |
-| `routine_digest.py` | `—` | — | routine_digest.py — SessionStart-Hook: Routine-Lage in die Session injizieren. |
-| `handoff_inject.py` | `—` | 10 | SessionStart-Hook: ungelesene Handoffs im Arbeitsverzeichnis melden. |
-| `rc-session-resume.py` | `—` | 10 | SessionStart (resume/startup): aktiv den letzten Stand injizieren, damit eine |
+| `context_bundle_loader.py` | `startup|resume|clear|compact|fork` | 5 | SessionStart-Hook: injiziert einen Index der Projekt-Wissens-Bundles. |
+| `backup_health_check.py` | `startup|resume|clear|fork` | 10 | SessionStart Hook: warnt wenn das Memory-DB-Backup veraltet oder fehlgeschlagen ist. |
+| `memory_start_probe.py` | `startup|resume|clear|fork` | 10 | SessionStart Hook: merkt sich ob der Memory-Service beim Session-Start erreichbar war. |
+| `reap_orphan_graphify.py` | `startup|resume|clear|fork` | 5 | SessionStart-Hook: raeumt verwaiste graphify.serve-MCP-Prozesse weg. |
+| `problems_banner.py` | `startup|resume|clear|fork` | 5 | SessionStart Hook: zeigt offene Probleme aus dem Problem-Tracker. |
+| `project_scaffold.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: richtet fehlende Projektstruktur automatisch ein. |
+| `syncthing_project_notice.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: Sync-Status-Hinweis fuer Sessions in Syncthing-gesyncten Ordnern. |
+| `routine_digest.py` | `startup|resume|clear|fork` | — | routine_digest.py — SessionStart-Hook: Routine-Lage in die Session injizieren. |
+| `handoff_inject.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: ungelesene Handoffs im Arbeitsverzeichnis melden. |
+| `rc-session-resume.py` | `startup|resume|clear|fork` | 10 | SessionStart (resume/startup): aktiv den letzten Stand injizieren, damit eine |
 
 ## UserPromptSubmit
 
@@ -30,7 +30,6 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 |---|---|---|---|
 | `context_threshold_warning.py` | `—` | 5 | UserPromptSubmit Hook: aktiv-erzwingt /compact bei steigender Context-Auslastung. |
 | `secret_leak_detector.py` | `—` | 5 | UserPromptSubmit Hook: erkennt API-Keys / Tokens / Secrets im User-Prompt. |
-| `memory_lazy_inject.py` | `—` | 15 | UserPromptSubmit Hook: laedt Memory-Kontext NACH wenn SessionStart ihn verpasst hat. |
 | `memory_delta_watch.py` | `—` | 10 | UserPromptSubmit Hook: erkennt Setup-Aenderungen anderer Sessions mid-session. |
 | `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse Hook: stellt Nachrichten von Codex (und anderen Agents) zu. |
 | `ultracode_advisor.py` | `—` | 10 | UserPromptSubmit-Hook: erinnert an ultracode/Multi-Agent-Schwarm wenn ein Task |

@@ -119,8 +119,12 @@ def main() -> None:
     slug = re.sub(r"[^a-z0-9-]", "-", project.lower())[:40]
     tags = ["session-summary", "precompact-checkpoint", f"project-{slug}"] + sl.extract_topic_tags(records)
 
+    # 2026-10-21 E1/S5: conversation_id auf OBERSTER Ebene (wie session_logger.py:675). Ohne sie
+    # verwarf die Semantik-Dedupe des Dienstes 7/7 Checkpoints, und der Hook meldete "ok".
+    # Mit ihr greift nur noch die exakte Hash-Dublette. Rueckweg: .bak.pre-e1.*
     ok, info = sl.post_memory({
         "content": summary,
+        "conversation_id": session_id,
         "tags": tags,
         "memory_type": "observation",
         "metadata": {
@@ -132,8 +136,13 @@ def main() -> None:
             "timestamp": date_iso,
         },
     })
-    print(json.dumps({"systemMessage": f"[precompact_memory] Checkpoint vor Compact: "
-                                       f"{'ok ' + info if ok else 'fail ' + info}"}))
+    # Ehrliche Meldung: eine Dublette ist kein neuer Checkpoint. post_memory meldet sie als
+    # (True, "duplicate-existing"); mit conversation_id kann das nur noch die exakte sein.
+    if ok and info.startswith("duplicate-existing"):
+        status = "nicht neu gespeichert: duplicate-existing (exact), identischer Stand liegt schon vor"
+    else:
+        status = ("ok " + info) if ok else ("fail " + info)
+    print(json.dumps({"systemMessage": f"[precompact_memory] Checkpoint vor Compact: {status}"}))
 
 
 if __name__ == "__main__":

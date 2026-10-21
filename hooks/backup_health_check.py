@@ -13,6 +13,7 @@ Non-blocking (nur systemMessage, exit 0).
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -27,6 +28,11 @@ def main() -> None:
         json.load(sys.stdin)
     except Exception:
         pass  # SessionStart-stdin egal
+
+    # S9 (E1, 2026-10-21): Backup und Pruefpfad gibt es nur am PC. Auf netcup lief der
+    # Check gegen den Windows-Pfad ins Leere und meldete bei jedem Start Fehlalarm.
+    if os.name != "nt":
+        return
 
     msgs: list[str] = []
 

@@ -36,8 +36,13 @@ try:
     local_txt = impl.load_local(cwd)
 except Exception:
     local_txt = ""
+# E1/S8: mcp nur, wenn last.md fehlt oder > 24 h (nur mit Flag, sonst wie bisher).
 try:
-    mem_txt = impl.fetch_latest_memory(project_slug)
+    want_mem = impl.should_fetch_memory(cwd)
+except Exception:
+    want_mem = True
+try:
+    mem_txt = impl.fetch_latest_memory(project_slug) if want_mem else ""
 except Exception:
     mem_txt = ""
 try:

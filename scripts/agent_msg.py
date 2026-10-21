@@ -335,11 +335,20 @@ def main() -> int:
     sub.add_parser("notify-pending")
     args = ap.parse_args()
     if args.cmd == "to-codex":
-        cwd = os.path.realpath(args.cwd)
-        if args.sandbox == "workspace-write" and cwd.startswith(str(Path.home() / ".claude")):
-            print("workspace-write im ~/.claude verweigert - Claude-Setup bleibt unangetastet",
-                  file=sys.stderr)
-            return 2
+        cwd = os.path.realpath(os.path.expanduser(args.cwd))
+        if args.sandbox != "read-only":
+            # S11 (E1 2026-10-21): Sperrliste lebt in codex_call.py. Scheitert der Import,
+            # bleibt schreibend gesperrt (fail-closed).
+            try:
+                from codex_call import s11_write_block
+                why = s11_write_block(args.cwd)
+            except Exception as e:
+                why = (f"ABGELEHNT (2) S11: Sperrlisten-Pruefung nicht ladbar ({type(e).__name__}), "
+                       f"deshalb kein workspace-write.\nWeiter: --sandbox read-only, oder "
+                       f"~/.claude/scripts/codex_call.py reparieren lassen (Skills-Session).")
+            if why:
+                print(why, file=sys.stderr)
+                return 2
         return to_codex(args.message, args.thread, cwd, args.timeout, args.sandbox)
     if args.cmd == "to-claude":
         return to_claude(args.message, args.to, args.sender)

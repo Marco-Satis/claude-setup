@@ -18,6 +18,20 @@ Nicht jede Routine schreibt bei jedem Lauf ins Log. Zwei Sorten:
 Systemd-Timer liefern `LastTriggerUSec` direkt — das ist der harte Beleg, dort
 braucht es keine Heuristik.
 
+Seit 2026-10-21 (E1/S6, BAUPLAN_v4 Teil 4) zwei weitere Arten, weil mtime allein
+Ausfaelle fuer gesund hielt (ein Lauf mit ERR haelt die Log-mtime frisch; die Outbox
+war `event_only` und lag 56 Tage voll, ohne dass es auffiel):
+
+  * "report_status" — Beleg ist der juengste eigene Report `<name>_<YYYY-MM-DD>.md`
+                    in ROUTINE_REPORTS. Status WARN/FAIL = Problem, auch wenn er frisch
+                    ist; zu alt = ueberfaellig. Vorgesehen fuer alle `wissen_*`.
+  * "dir_age"       — Beleg ist das Alter der aeltesten Datei in einem Verzeichnis
+                    (Muster `glob`). Aelter als `max_h` = Problem (Puffer laeuft nicht ab).
+
+Stillgelegte Routinen stehen in RETIRED (nicht in CRON_ROUTINES/TIMERS), damit weder
+der Audit sie als ueberfaellig meldet noch routine_selbstpruefung als "registriert, aber
+nicht geplant". Sie erscheinen nur im MD-Digest unter "Stillgelegt".
+
 Ausgabe: kompakter Text auf stdout (fuer SessionStart-Hook + Claude) und, mit
 --write-md, ein Digest nach ~/projects/Skills_&_Co/ROUTINE_REPORTS/.
 """
@@ -25,6 +39,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -89,12 +104,7 @@ CRON_ROUTINES = [
              "OpenAI/Codex) und wendet Edits ab Konfidenz MITTEL auf den Lyra-Skill "
              "an; Bericht in LYRA_WEEKLY/. Als Desktop-Aufgabe fiel sie zweimal "
              "unbemerkt aus, weil eine solche Routine ihren Ausfall nicht meldet"},
-    {"name": "memory_consolidate", "plan": "taeglich 02:30", "kind": "append",
-     "path": HOME / ".claude/state/mcp-memory/consolidation_runner.log", "max_h": 30,
-     "since": "2026-08-25",
-     "note": "vom PC uebernommen (Desktop-Aufgabe dort abgeschaltet). Loggt jede "
-             "faellige Stufe; daily ist taeglich faellig, deshalb append. Zwei "
-             "Ausloeser wuerden die Kadenz-Sperre gegenseitig aushebeln"},
+    # memory_consolidate: seit 2026-10-21 in RETIRED (E1/S3).
     {"name": "routine_selbstpruefung", "plan": "So 07:50", "kind": "event_only",
      "path": HOME / ".claude/logs/routine_selbstpruefung.log",
      "note": "prueft die Verdrahtung aller Routinen inklusive der eigenen; Stille = "
@@ -111,9 +121,12 @@ CRON_ROUTINES = [
      "note": "echter HTTP-Request gegen /api/health statt is-active; Stille = Dienst "
              "antwortet. Zwei Fehlschlaege in Folge loesen einen py-spy-Stack-Dump aus "
              "(Anlass: 74-min-Blockade am 18.08., Unit meldete durchgehend active)"},
-    {"name": "memory_outbox_flush", "plan": "taeglich 07:23", "kind": "event_only",
-     "path": HOME / ".claude/logs/memory_outbox_flush.log",
-     "note": "reicht gepufferte Memory-Payloads nach; Stille = Puffer war leer. "
+    # 2026-10-21 E1/S6: event_only -> dir_age. Die Zeile lief vom 25.08. bis 20.10. nie
+    # (`%` in der crontab), die Stille sah gesund aus, 33 Payloads lagen bis zu 56 Tage.
+    {"name": "memory_outbox_flush", "plan": "taeglich 07:23", "kind": "dir_age",
+     "path": HOME / ".claude/state/memory_outbox", "glob": "*.json", "max_h": 48,
+     "note": "reicht gepufferte Memory-Payloads nach; Beleg ist das Alter der aeltesten "
+             "Puffer-Datei (> 48 h = Flush laeuft nicht oder scheitert). "
              "Angelegt 2026-08-20, weil der Flusher auf netcup keinen Aufrufer hatte "
              "(die Routine dazu laeuft nur auf dem PC, ~/.claude/state synct nicht) "
              "und 67 Payloads seit dem 14.07. mit attempts=0 liegenblieben"},
@@ -147,12 +160,25 @@ TIMERS = [
     ("host-memory-watch.timer", "alle 10 min", 1),
     ("mcp-memory-watch.timer", "alle 10 min", 1),
     ("claude-autoupdate.timer", "taeglich 04:30", 30),
-    ("mcp-memory-purge.timer", "taeglich 03:40", 30),
+    # mcp-memory-purge.timer: seit 2026-10-21 in RETIRED (E1/S4).
     ("routine-report.timer", "taeglich 08:15", 30),
     # 2026-10-01 auf Meldung der Discord_Bots-Session (der Nutzer-Entscheid 29.09.): System-Timer,
     # nicht --user. Skript /usr/local/sbin/weekly-apt-upgrade schreibt den Report selbst.
     ("weekly-apt-upgrade.timer", "Mo 05:00", 8 * 24, "system"),
 ]
+
+# Stillgelegt: keine Faelligkeitspruefung, nur Nachweis im MD-Digest.
+# Rueckweg je Eintrag: Zeile in CRON_ROUTINES bzw. TIMERS zurueck (Fassung im .bak.pre-e1.*).
+RETIRED = [
+    {"name": "memory_consolidate", "plan": "taeglich 02:30", "since": "2026-10-21",
+     "note": "E1/S3 (der Nutzer-Freigabe Sofort-Paket): MCP_CONSOLIDATION_ENABLED=false, "
+             "crontab Z. 46 auskommentiert. Grund: 27x Timeout, +605k Kanten im Oktober"},
+    {"name": "mcp-memory-purge.timer", "plan": "taeglich 03:40", "since": "2026-10-21",
+     "note": "E1/S4: Timer disable --now, mcp_memory_purge.py bleibt. Grund: Purge loeschte "
+             "jede Nacht endgueltig (19./20.10.: 2 und 5). Rueckweg: enable --now"},
+]
+
+REPORT_STATUS_RE = re.compile(r"\*\*Status:\*\*\s*([A-Za-z]+)")
 
 
 def mtime(p: Path):
@@ -206,12 +232,74 @@ def timer_last(unit: str, scope: str = "user"):
     return _parse_ts(_show(service, "ExecMainStartTimestamp", scope))
 
 
+def latest_report(name: str):
+    """Juengster eigener Report `<name>_<YYYY-MM-DD>.md` -> (Pfad, mtime, Status) oder None.
+
+    Exakter Namensabgleich, damit `foo` nicht die Reports von `foo_bar` erbt.
+    """
+    pat = re.compile(re.escape(name) + r"_\d{4}-\d{2}-\d{2}\.md$")
+    hits = []
+    for p in REPORTS.glob(f"{name}_*.md"):
+        if pat.fullmatch(p.name):
+            m = mtime(p)
+            if m:
+                hits.append((m, p))
+    if not hits:
+        return None
+    m, p = max(hits)
+    status = "?"
+    try:
+        found = REPORT_STATUS_RE.search(p.read_text(encoding="utf-8", errors="replace")[:2000])
+        if found:
+            status = found.group(1).upper()
+    except OSError:
+        pass
+    return p, m, status
+
+
+def dir_oldest(path: Path, pattern: str):
+    """(Anzahl, aelteste mtime) der Dateien im Verzeichnis; None, wenn es fehlt."""
+    if not path.is_dir():
+        return None
+    times = [m for m in (mtime(q) for q in path.glob(pattern) if q.is_file()) if m]
+    return len(times), (min(times) if times else None)
+
+
 def audit() -> dict:
     ok, overdue, pending, event_only, problems = [], [], [], [], []
+    failed = []   # report_status WARN/FAIL, dir_age zu alt (E1/S6)
 
     for r in CRON_ROUTINES:
         # Befristete Routine nach Ablauf nicht mehr pruefen (Cron-Zeile dann entfernen).
         if r.get("until") and NOW.date().isoformat() > r["until"]:
+            continue
+        if r["kind"] == "report_status":
+            rep = latest_report(r["name"])
+            if rep is None:
+                since = r.get("since")
+                pending.append((r["name"], r["plan"],
+                                f"eingerichtet {since}, erster Report steht aus" if since
+                                else "kein Report — nie gelaufen?"))
+            elif rep[2] != "OK":
+                failed.append((r["name"], r["plan"],
+                               f"letzter Report {rep[2]} ({rep[0].name}, vor {age_str(rep[1])})"))
+            elif (NOW - rep[1]) > timedelta(hours=r["max_h"]):
+                overdue.append((r["name"], r["plan"], age_str(rep[1])))
+            else:
+                ok.append((r["name"], r["plan"], age_str(rep[1])))
+            continue
+        if r["kind"] == "dir_age":
+            res = dir_oldest(r["path"], r.get("glob", "*"))
+            if res is None:
+                ok.append((r["name"], r["plan"], "Verzeichnis fehlt (nichts gepuffert)"))
+            elif res[1] is None:
+                ok.append((r["name"], r["plan"], "leer"))
+            elif (NOW - res[1]) > timedelta(hours=r["max_h"]):
+                failed.append((r["name"], r["plan"],
+                               f"{res[0]} Datei(en) in {r['path'].name}/, aelteste {age_str(res[1])} "
+                               f"(Grenze {r['max_h']}h)"))
+            else:
+                ok.append((r["name"], r["plan"], f"{res[0]} Datei(en), aelteste {age_str(res[1])}"))
             continue
         last = mtime(r["path"])
         if r["kind"] == "event_only":
@@ -240,7 +328,8 @@ def audit() -> dict:
             ok.append((unit, plan, age_str(last)))
 
     return {"ok": ok, "overdue": overdue, "pending": pending,
-            "event_only": event_only, "problems": problems}
+            "event_only": event_only, "problems": problems, "failed": failed,
+            "retired": [(r["name"], r["plan"], f"seit {r['since']} — {r['note']}") for r in RETIRED]}
 
 
 def new_reports() -> list[Path]:
@@ -323,10 +412,13 @@ def main() -> int:
         lines.append("SICHERHEITSNETZ:")
         lines += [f"  ! {f}" for f in flags]
     bad = res["overdue"] + res["problems"]
-    if bad:
-        lines.append(f"ROUTINEN: {len(bad)} auffaellig")
+    if bad or res["failed"]:
+        lines.append(f"ROUTINEN: {len(bad) + len(res['failed'])} auffaellig")
         for n, plan, info in bad:
             lines.append(f"  UEBERFAELLIG {n} ({plan}) — letzter Lauf {info}")
+        # Wortlaut "Problem" haelt routine_digest.py fuer meldenswert (Schluesselwortliste dort).
+        for n, plan, info in res["failed"]:
+            lines.append(f"  Problem    {n} ({plan}) — {info}")
     else:
         lines.append(f"ROUTINEN: alle planmaessig ({len(res['ok'])} geprueft)")
     for n, plan, info in res["pending"]:
@@ -344,8 +436,10 @@ def main() -> int:
         md = REPORTS / f"AUDIT_{NOW.astimezone().strftime('%Y-%m-%d')}.md"
         body = [f"# Routine-Audit — {NOW.astimezone().strftime('%Y-%m-%d %H:%M')}", ""]
         for title, rows in (("Planmaessig", res["ok"]), ("Ueberfaellig", res["overdue"]),
+                            ("Fehlschlag laut Beleg (Report-Status/Verzeichnisalter)", res["failed"]),
                             ("Wartet auf ersten Lauf", res["pending"]),
-                            ("Problem", res["problems"])):
+                            ("Problem", res["problems"]),
+                            ("Stillgelegt (retired)", res["retired"])):
             if rows:
                 body.append(f"## {title}")
                 body += [f"- **{a}** ({b}) — {c}" for a, b, c in rows]
