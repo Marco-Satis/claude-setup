@@ -146,6 +146,12 @@ CRON_ROUTINES = [
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
+    # 2026-10-21 (der Nutzer-Auftrag, Anlass netcup-PHP-Advisory): installierte Versionen gegen OSV.
+    # Schreibt seinen Report selbst (routine_wrap mit --quiet-ok nur als Absturznetz) -> Beleg = Report.
+    {"name": "cve_watch", "plan": "taeglich 06:40", "kind": "append",
+     "path": REPORTS / "cve_watch_*.md", "max_h": 30, "since": "2026-10-22",
+     "note": "dpkg/npm/PyPI/Go gegen api.osv.dev; Discord nur bei neuem HIGH/CRITICAL "
+             "oder gescheitertem Scan; Zustand ~/.local/share/cve_watch/state.json"},
     {"name": "codex_rc_watch", "plan": "taeglich 08:40", "kind": "append",
      "path": HOME / ".claude/logs/codex_rc_watch.log", "max_h": 30, "since": "2026-09-29"},
     # 2026-10-18 auf Meldung der Trading-Session: Paper-Trading-Bot (~/projects/Trading).
