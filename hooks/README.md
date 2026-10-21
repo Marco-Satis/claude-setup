@@ -23,6 +23,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `routine_digest.py` | `startup|resume|clear|fork` | — | routine_digest.py — SessionStart-Hook: Routine-Lage in die Session injizieren. |
 | `handoff_inject.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: ungelesene Handoffs im Arbeitsverzeichnis melden. |
 | `rc-session-resume.py` | `startup|resume|clear|fork` | 10 | SessionStart (resume/startup): aktiv den letzten Stand injizieren, damit eine |
+| `wissen_hook.py` | `startup|resume|clear|compact|fork` | 5 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
 
 ## UserPromptSubmit
 
@@ -34,6 +35,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse Hook: stellt Nachrichten von Codex (und anderen Agents) zu. |
 | `ultracode_advisor.py` | `—` | 10 | UserPromptSubmit-Hook: erinnert an ultracode/Multi-Agent-Schwarm wenn ein Task |
 | `fastmode_hint.py` | `—` | 10 | UserPromptSubmit-Hook: weist auf Fast Mode (/fast) hin wenn sinnvoll. |
+| `wissen_hook.py` | `—` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
 
 ## PreToolUse
 
@@ -45,6 +47,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `secret_write_guard.py` | `Write|Edit|MultiEdit|Bash` | 5 | PreToolUse Hook: blockt Secrets die CLAUDE in Dateien/Commands schreiben will. |
 | `git_push_reminder.py` | `Bash` | 5 | PreToolUse Hook (Bash): Reminder bei git push wegen Token-Push-Verbot. |
 | `enforce_read_tool.py` | `Bash` | 5 | PreToolUse-Hook (Bash): blockt REINE Datei-Reads via Shell und erzwingt das Read-Tool. |
+| `wissen_hook.py` | `Bash|Edit|Write|MultiEdit|NotebookEdit` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
 
 ## PostToolUse
 

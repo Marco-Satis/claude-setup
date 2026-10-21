@@ -54,6 +54,16 @@ NOW = datetime.now(timezone.utc)
 # name -> Plan, Evidenz-Art, Pfad, Toleranz (Stunden), Notiz
 # Toleranz = Plan-Intervall + Puffer; woechentlich => 8 Tage.
 CRON_ROUTINES = [
+    # 2026-10-21 Wissenssystem Phase 0a-5 (der Nutzer-Ja): stuendlicher Zaehler fuer Abloesung + Korpus,
+    # befristet bis Stichtag A (dann aus der crontab und hierher nach RETIRED).
+    {"name": "wissen_zaehler", "plan": "stuendlich :07", "kind": "append",
+     "path": HOME / ".local/share/wissen/abloesung.tsv", "max_h": 2,
+     "since": "2026-10-21"},
+    # Wissenssystem Phase 1 (BAUPLAN_v4 Anh. F): Eigenbericht ueber routine_md.sh, nicht routine_wrap
+    {"name": "wissen_commit", "plan": "stuendlich :17", "kind": "append",
+     "path": HOME / ".claude/logs/wissen_commit.log", "max_h": 3, "since": "2026-10-21"},
+    {"name": "wissen_pflege", "plan": "taeglich 03:15", "kind": "append",
+     "path": HOME / ".claude/logs/wissen_pflege.log", "max_h": 30, "since": "2026-10-21"},
     {"name": "n8n_autoupdate", "plan": "taeglich 04:00", "kind": "append",
      "path": HOME / "n8n_stack/logs/autoupdate.log", "max_h": 30},
     {"name": "exposure_watch", "plan": "taeglich 07:25", "kind": "append",
