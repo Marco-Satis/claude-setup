@@ -46,8 +46,8 @@ def main() -> None:
         sys.exit(0)
 
     # Ordner `projekte` ist auf netcup sendonly (Stand 2026-10-22): netcup sendet zum PC,
-    # Aenderungen vom PC kommen auf netcup NICHT an.
-    if root.name.lower() != "projects":
+    # Aenderungen vom PC kommen auf netcup NICHT an. Am PC heisst der Ordner projects-sync.
+    if root.name.lower() not in ("projects", "projects-sync"):
         richtung = ("synct bidirektional PC<->Server via Syncthing (near-realtime) - "
                     "Datei-Aenderungen tauschen automatisch aus")
     elif os.name == "nt":

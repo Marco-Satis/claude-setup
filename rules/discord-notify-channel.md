@@ -45,8 +45,11 @@ set -a; . ~/.claude/secrets/routine_webhook.env; set +a
   (der Wrapper ist no-op-sicher, es knallt nicht — es kommt nur nie etwas an).
   Wer von der PC-Seite nach Discord melden will, nutzt den Bot-Token-Weg über die
   ENV-Variablen `CLAUDE_DISCORD_BOT_TOKEN` / `CLAUDE_DISCORD_CHANNEL_ID`
-  (so machen es `discord_afk_relay.py` und die Loop-Context-Frühwarnung in
+  (so machen es `discord_afk_relay.py`, `bg_needs_input_notify.py` und die Loop-Context-Frühwarnung in
   `context_threshold_warning.py`) — nicht `rc-notify.sh`.
+  ⚠ **Stand 2026-10-22: Diese Variablen sind am PC NICHT gesetzt** (weder Session noch
+  HKCU\Environment, geprüft von der PC-Skills-Session). Alle drei Meldewege sind am PC damit
+  heute stumm. Erst wenn der Nutzer Token und Kanal setzt, funktioniert der Weg.
 
 ## Aktuelle Konsumenten
 
