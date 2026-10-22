@@ -267,6 +267,13 @@ def _discord(text: str) -> None:
     token = os.environ.get("CLAUDE_DISCORD_BOT_TOKEN", "").strip()
     channel = os.environ.get("CLAUDE_DISCORD_CHANNEL_ID", "").strip()
     if not token or not channel:
+        # Weg A (2026-10-22): rc-notify.sh auf netcup, am PC per SSH dorthin
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import notify_fallback
+            notify_fallback.send("Claude Kontext-Warnung", text)
+        except Exception:
+            pass
         return
     try:
         import urllib.request

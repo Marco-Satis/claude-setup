@@ -47,9 +47,11 @@ set -a; . ~/.claude/secrets/routine_webhook.env; set +a
   ENV-Variablen `CLAUDE_DISCORD_BOT_TOKEN` / `CLAUDE_DISCORD_CHANNEL_ID`
   (so machen es `discord_afk_relay.py`, `bg_needs_input_notify.py` und die Loop-Context-Frühwarnung in
   `context_threshold_warning.py`) — nicht `rc-notify.sh`.
-  ⚠ **Stand 2026-10-22: Diese Variablen sind am PC NICHT gesetzt** (weder Session noch
-  HKCU\Environment, geprüft von der PC-Skills-Session). Alle drei Meldewege sind am PC damit
-  heute stumm. Erst wenn der Nutzer Token und Kanal setzt, funktioniert der Weg.
+  ⚠ **Stand 2026-10-22: Diese Variablen sind am PC NICHT gesetzt.** Deshalb gilt seit
+  2026-10-22 (der Nutzer-Entscheid, Weg A) der Helfer `hooks/notify_fallback.py`: netcup →
+  `rc-notify.sh`; Bot-Token gesetzt → Discord-API; sonst Windows → `ssh netcup-marco
+  ~/.claude/rc-notify.sh "<titel>" "<text>"` (Webhook bleibt auf netcup, am PC kein Secret).
+  Neue Hooks mit Discord-Meldung nutzen `notify_fallback.send(titel, text)`.
 
 ## Aktuelle Konsumenten
 

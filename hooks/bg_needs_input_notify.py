@@ -158,25 +158,10 @@ def main() -> None:
     if os.environ.get("BG_NEEDS_INPUT_DRY_RUN") == "1":
         sys.stderr.write(json.dumps({"title": title, "text": text}, ensure_ascii=False) + "\n")
         return
-    if NOTIFY.exists():
-        subprocess.run([str(NOTIFY), title, text], timeout=20,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-        return
-    # PC: rc-notify.sh gibt es dort nicht (rules/discord-notify-channel.md) ->
-    # Bot-Token-Weg wie context_threshold_warning.py/discord_afk_relay.py.
-    token = os.environ.get("CLAUDE_DISCORD_BOT_TOKEN", "").strip()
-    channel = os.environ.get("CLAUDE_DISCORD_CHANNEL_ID", "").strip()
-    if not token or not channel:
-        return
-    import urllib.request
-    req = urllib.request.Request(
-        f"https://discord.com/api/v10/channels/{channel}/messages",
-        data=json.dumps({"content": f"**{title}**\n{text}"[:1900]}).encode("utf-8"),
-        method="POST",
-        headers={"Authorization": f"Bot {token}", "Content-Type": "application/json",
-                 "User-Agent": "claude-bg-needs-input/1.0"},
-    )
-    urllib.request.urlopen(req, timeout=8).read()
+    # netcup: rc-notify.sh; PC: Bot-Token oder SSH zu netcup (notify_fallback, Weg A 2026-10-22)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import notify_fallback
+    notify_fallback.send(title, text)
 
 
 if __name__ == "__main__":

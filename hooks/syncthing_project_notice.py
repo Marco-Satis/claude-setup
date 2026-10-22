@@ -45,17 +45,10 @@ def main() -> None:
     if root is None:
         sys.exit(0)
 
-    # Ordner `projekte` ist auf netcup sendonly (Stand 2026-10-22): netcup sendet zum PC,
-    # Aenderungen vom PC kommen auf netcup NICHT an. Am PC heisst der Ordner projects-sync.
-    if root.name.lower() not in ("projects", "projects-sync"):
-        richtung = ("synct bidirektional PC<->Server via Syncthing (near-realtime) - "
-                    "Datei-Aenderungen tauschen automatisch aus")
-    elif os.name == "nt":
-        richtung = ("synct per Syncthing mit dem Server. ACHTUNG: Der Server nimmt fuer ~/projects "
-                    "keine Aenderungen vom PC an (sendonly) - was du hier aenderst, kommt dort nicht an")
-    else:
-        richtung = ("synct per Syncthing zum PC (dieser Server ist fuer ~/projects sendonly: "
-                    "Aenderungen von hier gehen zum PC, Aenderungen vom PC werden hier nicht uebernommen)")
+    # Seit 2026-10-22 (der Nutzer) sind alle Ordner wieder sendreceive, auch `projekte`
+    # (war zeitweise sendonly auf netcup; am PC heisst er projects-sync).
+    richtung = ("synct bidirektional PC<->Server via Syncthing (near-realtime) - "
+                "Datei-Aenderungen tauschen automatisch aus")
     msg = (
         f"[syncthing] Dieser Ordner ({root}) {richtung}. ABER: .git, Secrets, "
         "node_modules und Caches sind vom Sync ausgeschlossen -> git-History/Commits bleiben "
