@@ -17,11 +17,14 @@ from pathlib import Path
 
 
 def _synced_root(start: Path) -> Path | None:
-    """Gehe von start aufwaerts; erste .stignore mit 'Syncthing'-Marker = gesyncter Root."""
+    """Gehe von start aufwaerts; gesyncter Root = .stfolder vorhanden (echter Syncthing-
+    Ordner) UND .stignore mit 'Syncthing'-Marker. Nur .stignore genuegt nicht: am PC liegt
+    in OneDrive\\Dokumente\\Projekte eine alte .stignore ohne Sync (Befund 2026-10-22)."""
     for d in (start, *start.parents):
         sti = d / ".stignore"
         try:
-            if sti.is_file() and "syncthing" in sti.read_text(encoding="utf-8", errors="ignore").lower():
+            if ((d / ".stfolder").exists() and sti.is_file()
+                    and "syncthing" in sti.read_text(encoding="utf-8", errors="ignore").lower()):
                 return d
         except Exception:
             continue
@@ -42,9 +45,19 @@ def main() -> None:
     if root is None:
         sys.exit(0)
 
+    # Ordner `projekte` ist auf netcup sendonly (Stand 2026-10-22): netcup sendet zum PC,
+    # Aenderungen vom PC kommen auf netcup NICHT an.
+    if root.name.lower() != "projects":
+        richtung = ("synct bidirektional PC<->Server via Syncthing (near-realtime) - "
+                    "Datei-Aenderungen tauschen automatisch aus")
+    elif os.name == "nt":
+        richtung = ("synct per Syncthing mit dem Server. ACHTUNG: Der Server nimmt fuer ~/projects "
+                    "keine Aenderungen vom PC an (sendonly) - was du hier aenderst, kommt dort nicht an")
+    else:
+        richtung = ("synct per Syncthing zum PC (dieser Server ist fuer ~/projects sendonly: "
+                    "Aenderungen von hier gehen zum PC, Aenderungen vom PC werden hier nicht uebernommen)")
     msg = (
-        f"[syncthing] Dieser Ordner ({root}) synct bidirektional PC<->Server via Syncthing "
-        "(near-realtime) - Datei-Aenderungen tauschen automatisch aus. ABER: .git, Secrets, "
+        f"[syncthing] Dieser Ordner ({root}) {richtung}. ABER: .git, Secrets, "
         "node_modules und Caches sind vom Sync ausgeschlossen -> git-History/Commits bleiben "
         "pro-Seite (Push/Deploy pro Seite ausfuehren). Nicht dieselbe Datei zeitgleich auf PC "
         "und Server anfassen (sonst .sync-conflict-Dateien). Konflikte pruefen: "
