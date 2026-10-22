@@ -271,7 +271,7 @@ def _discord(text: str) -> None:
         try:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             import notify_fallback
-            notify_fallback.send("Claude Kontext-Warnung", text)
+            notify_fallback.send("Claude Kontext-Warnung", text, timeout=4)
         except Exception:
             pass
         return
