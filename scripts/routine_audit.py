@@ -178,6 +178,8 @@ TIMERS = [
     ("claude-autoupdate.timer", "taeglich 04:30", 30),
     # mcp-memory-purge.timer: seit 2026-10-21 in RETIRED (E1/S4).
     ("routine-report.timer", "taeglich 08:15", 30),
+    # 2026-10-22 wissen-mcp (Chat-Apps): Uebernahme-Pruefung des Eingangs, schreibt wissen_eingang_<datum>.md
+    ("wissen-mcp-eingang.timer", "taeglich 07:40", 30),
     # 2026-10-01 auf Meldung der Discord_Bots-Session (der Nutzer-Entscheid 29.09.): System-Timer,
     # nicht --user. Skript /usr/local/sbin/weekly-apt-upgrade schreibt den Report selbst.
     ("weekly-apt-upgrade.timer", "Mo 05:00", 8 * 24, "system"),
