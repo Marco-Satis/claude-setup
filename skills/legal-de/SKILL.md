@@ -1,7 +1,7 @@
 ---
 name: legal-de
-version: 1.0.1
-last-reviewed: 2026-05-28
+version: 1.1.0
+last-reviewed: 2026-10-23
 userInvocable: true
 description: |
   Rechtliche Fragen mit deutschem Jurisdiktions-Kontext bearbeiten — verhindert
@@ -38,15 +38,12 @@ der Nutzer arbeitet primär unter deutschem Recht. Claude muss bei Rechts-Fragen
 
 ## Phase 1 — Kontext laden (Pflicht vor jeder Antwort)
 
-Bei Skill-Aktivierung zuerst den DE-Recht-Kontext aus dem Memory laden:
+Bei Skill-Aktivierung zuerst den DE-Recht-Kontext lesen:
 
-```
-mcp__memory__memory_search(query="topic-legal-de DE-Recht-Kontext")
-```
+1. **Datei (kanonisch):** `references/de-recht-kontext.md` neben dieser SKILL.md mit dem Read-Tool lesen. Sie enthält Quellen-Liste, wichtigste Gesetzbücher, Prinzipien und verbotene Phrasen (Volltext aus mcp-memory `7e93c9ec`, gesichert 2026-10-23).
+2. **Fallback:** `mcp__memory__memory_search(query="topic-legal-de DE-Recht-Kontext")`, falls die Datei fehlt.
 
-Erwartung: Memory mit content_hash `7e93c9ec...` (Stand 2026-05-19) — enthält Quellen-Liste, wichtigste Gesetzbücher, Prinzipien, verbotene Phrasen.
-
-Falls Memory fehlt: aus dem Kopf antworten mit Disclaimer „Kontext-Memory nicht verfügbar, Antwort auf Training-Data-Basis — Belege manuell prüfen".
+Fehlen beide: aus dem Kopf antworten mit Disclaimer „Kontext nicht verfügbar, Antwort auf Training-Data-Basis — Belege manuell prüfen".
 
 ## Phase 2 — Rechtsfrage einordnen
 
@@ -162,6 +159,8 @@ Wenn der Nutzer eine neue Lesson aus einer Rechts-Frage zieht (z.B. „Verjähru
 - „Nach deutschem Recht …"
 
 ## Changelog
+
+- **v1.1.0** (2026-10-23): DE-Recht-Kontext als `references/de-recht-kontext.md` gesichert und als kanonische Quelle gesetzt; mcp-Memory nur noch Fallback (Wissenssystem Stichtag L).
 
 - **v1.0.1** (2026-05-28): Lyra-Audit — Frontmatter-Schema an der Nutzer-Standard angeglichen: `last-reviewed` + `userInvocable: true` ergänzt, `triggers:`-Liste → `when_to_use:` (Matcher-Konsistenz mit allen anderen Skills).
 - **v1.0.0** (2026-05-19): Erste Version.
