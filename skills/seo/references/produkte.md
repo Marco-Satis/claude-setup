@@ -4,9 +4,10 @@ Diese Datei ist eine Übersicht, **nicht** die Quelle. Vor jeder Empfehlung die 
 
 ## 1. Agent OS + Voice-Agent (ein Produkt)
 
-- **Maßgeblich:** `~/projects/Personal_Agent_OSS/PROGRESS.md`, `_intern/ENTSCHEIDUNGEN_K_*.md`, `PLAN.md`.
+- **Maßgeblich:** `~/projects/Personal_Agent_OSS/PROGRESS.md`, `_intern/ENTSCHEIDUNGEN_K_*.md`, `_intern/KRITIK_produktplan_2026-10-19.md`, `_intern/MARCO_TODO.md`, `PLAN.md`.
 - **Zeitplan:** Verkauf frühestens Mitte/Ende 2027 (Entscheidung K7); bis dahin Name, Domain und Textentwürfe, Live-Schaltung kurz vor Gewerbe/erstem Pilot.
-- **Was:** Self-hosted KI-Assistenz für kleine Handwerksbetriebe (z. B. Zimmereien): Die Anrufannahme läuft über einen Telefonie-Anbieter mit KI-Annahme nach Geschäftsschluss (K9, nicht selbst gebaut); der eigene Mehrwert liegt in Terminen, Auswertung und Modulen wie E-Mail/Kalender, Angebote und Freigaben. Technischer Kern ist Open Source (`~/projects/Personal_Agent_OSS`, GitHub `Marco-Satis/personal-agent-oss`). DSGVO als Architekturziel.
+- **Nische (offen, MARCO_TODO K7):** Vorschlag Fahrradwerkstätten (2–10 Leute) als erste Branche; PROGRESS sagt seit 19.10. „Baukasten statt Branche“ — Widerspruch, der Nutzer entscheidet. Verkauft wird ein Branchenpaket, nicht der Baukasten (KRITIK M4).
+- **Was:** Self-hosted KI-Assistenz für kleine Betriebe (Fahrradwerkstätten/Handwerk): Die Anrufannahme läuft über einen Telefonie-Anbieter mit KI-Annahme nach Geschäftsschluss (K9, nicht selbst gebaut); der eigene Mehrwert liegt in Terminen, Auswertung und Modulen wie E-Mail/Kalender, Angebote und Freigaben. Technischer Kern ist Open Source (`~/projects/Personal_Agent_OSS`, GitHub `Marco-Satis/personal-agent-oss`). DSGVO als Architekturziel.
 - **Wer zahlt:** Inhaber kleiner Betriebe, die Anrufe verpassen (auf der Baustelle, nach Feierabend). Testkunde: Familienbetrieb.
 - **Wettbewerb:** fertige Telefon-KI-Dienste ab ca. 10–200 €/Monat; Agenturen mit 499 € Einrichtung + 199 €/Monat (Faktencheck 30.09.2026). Differenzierung muss belegt werden: DSGVO/Self-hosting, Handwerks-Abläufe, persönlicher Ansprechpartner.
 - **Kanäle:** (a) Landingpage auf Deutsch für Betriebe („KI-Telefonassistent für Handwerksbetriebe“, Notdienst, Terminannahme), (b) Google-Unternehmensprofil + Servicegebiet, (c) Empfehlungen/Innungen, (d) GitHub/PyPI für Entwickler-Sichtbarkeit der Open-Source-Seite (englisch). Suchbegriffe von Betrieben sind Problembegriffe („Anrufe verpasst Baustelle“, „Telefonservice Handwerker“), nicht Technikbegriffe.
