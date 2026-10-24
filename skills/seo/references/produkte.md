@@ -1,5 +1,7 @@
 # des Nutzers Produkte: Zielgruppe, Kanal, Gates (Stand 2026-10-24)
 
+**Rahmen (der Nutzer, 24.10.2026):** Alle Produkte entstehen zuerst für der Nutzer, Familie und Freunde (Eigenbedarf, eigener Einsatz); kommerzielle Nutzung ist Nebenziel. Kein Baustopp wegen fehlender Kundengespräche — Gespräche/Signale laufen nebenher, und „Verkaufsfähigkeit offen halten“ (Konfiguration statt Hardcoding, Daten je Nutzer getrennt, saubere Lizenz, Einrichtungsanleitung) ist die Bau-Regel.
+
 Diese Datei ist eine Übersicht, **nicht** die Quelle. Vor jeder Empfehlung die je Produkt genannte maßgebliche Projektdatei lesen; bei Widerspruch gilt das Projekt. Ist der Stand hier älter als 30 Tage, Abgleich vorschlagen.
 
 ## 1. Agent OS + Voice-Agent (ein Produkt)
@@ -18,6 +20,7 @@ Diese Datei ist eine Übersicht, **nicht** die Quelle. Vor jeder Empfehlung die 
 
 - **Maßgeblich:** Audio_Setup-Projekt am PC (Session „Audio_Setup“), `wz find FootstepPro`.
 
+- **Ausbau:** Start mit Call of Duty (des Nutzers Hauptspiel), später weitere Competitive Shooter (Valorant, CS2 …) — Spiel als Profil, Anti-Cheat/AGB je Spiel prüfen.
 - **Was:** Audio-Kette für Call of Duty/Warzone am PC (Equalizer APO, VoiceMeeter, HeSuVi, eigene Analyse-Werkzeuge), die Schritte besser hörbar und ortbar macht; mit Messmethodik und Analyzer.
 - **Wer zahlt:** PC-Spieler mit Headset, die Gegner zu spät hören. Ob sie für Presets zahlen, ist **unbelegt** — viele EQ-Presets gibt es gratis (Foren, YouTube, Headset-Software).
 - **Kanäle:** YouTube (Vorher/Nachher-Hörbeispiele, Kopfhörer empfohlen), Reddit/Discord-Communities (ehrlich als Entwickler, Regeln der Subreddits), eine Produktseite mit Download/Anleitung. Suchbegriffe: „warzone footsteps eq“, „hear footsteps better warzone“, „equalizer apo cod settings“, deutsch „Warzone Schritte besser hören“.
