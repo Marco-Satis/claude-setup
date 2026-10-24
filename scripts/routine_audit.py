@@ -143,6 +143,13 @@ CRON_ROUTINES = [
     {"name": "sweep_watchdog", "plan": "alle 5 min", "kind": "event_only",
      "path": HOME / "n8n_stack/logs/sweep_watchdog.log",
      "note": "loggt nur bei Daemon-Neustart, Stille = Daemon laeuft"},
+    # 2026-10-24 (UYM-Session, der Nutzer-Freigabe): Feedback Nutzerin A/Nutzer B von uym-memory holen.
+    # Log bleibt im Normalbetrieb leer (event_only waere blind, vgl. memory_outbox_flush) ->
+    # Beleg ist die State-Datei, die jeder Lauf alle 5 min schreibt.
+    {"name": "uym_feedback_pull", "plan": "alle 5 min", "kind": "append",
+     "path": HOME / ".claude/state/uym_feedback_pull.json", "max_h": 1, "since": "2026-10-24",
+     "note": "holt /srv/uym-feedback von uym-memory nach FEEDBACK/inbox.md + mcp-memory; "
+             "Report nur bei neuem Feedback/Fehler; State-mtime ist der Lauf-Beleg"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
