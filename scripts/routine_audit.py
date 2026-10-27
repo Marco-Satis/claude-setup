@@ -145,6 +145,11 @@ CRON_ROUTINES = [
      "path": HOME / ".claude/state/uym_feedback_pull.json", "max_h": 1, "since": "2026-10-24",
      "note": "holt /srv/uym-feedback von uym-memory nach FEEDBACK/inbox.md + mcp-memory; "
              "Report nur bei neuem Feedback/Fehler; State-mtime ist der Lauf-Beleg"},
+    # 2026-10-27 (der Nutzer-Auftrag): wartet auf Tailscale-Fix (Funnel ohne oeffentlichen DNS-Eintrag),
+    # damit der Connector von nginx/DuckDNS zurueck auf Funnel ziehen kann. Meldet nur, stellt nicht um.
+    {"name": "tailscale_funnel_watch", "plan": "taeglich 07:10", "kind": "append",
+     "path": HOME / ".claude/logs/tailscale_funnel_watch.log", "max_h": 30, "since": "2026-10-27",
+     "note": "prueft oeffentliches DNS + Funnel-Abruf von aussen + GitHub-Issues; Discord bei Erfolg"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
