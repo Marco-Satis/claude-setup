@@ -163,12 +163,12 @@ CRON_ROUTINES = [
      "path": HOME / ".claude/logs/codex_rc_watch.log", "max_h": 30, "since": "2026-09-29"},
     # 2026-10-18 auf Meldung der Trading-Session: Paper-Trading-Bot (~/projects/Trading).
     # Alle drei teilen ein monatlich rotiertes Log -> Beleg ist der eigene Report je Routine.
-    {"name": "trading_crypto", "plan": "taeglich 08:00+20:00", "kind": "append",
+    {"name": "trading_crypto", "cron_match": "cron_run.sh run --market crypto", "plan": "taeglich 08:00+20:00", "kind": "append",
      "path": REPORTS / "trading_crypto_*.md", "max_h": 30, "since": "2026-10-19"},
-    {"name": "trading_stocks", "plan": "Mo-Fr 16:00+20:45", "kind": "append",
+    {"name": "trading_stocks", "cron_match": "cron_run.sh run --market stocks", "plan": "Mo-Fr 16:00+20:45", "kind": "append",
      "path": REPORTS / "trading_stocks_*.md", "max_h": 4 * 24, "since": "2026-10-19",
      "note": "4 Tage Toleranz, damit Wochenende plus ein Feiertag keinen Alarm ausloesen"},
-    {"name": "trading_review", "plan": "Fr 22:30", "kind": "append",
+    {"name": "trading_review", "cron_match": "cron_run.sh review", "plan": "Fr 22:30", "kind": "append",
      "path": REPORTS / "trading_review_*.md", "max_h": 8 * 24, "since": "2026-10-23"},
     {"name": "codex_zombie_guard", "plan": "alle 15 min", "kind": "event_only",
      "path": HOME / ".claude/logs/codex_zombie_guard.log",
