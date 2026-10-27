@@ -290,6 +290,29 @@ def _discord(text: str) -> None:
         pass
 
 
+# der Nutzer 2026-10-27: "sobald eine Session meldet, dass sie Compact braucht, soll wirklich alles
+# vorbereitet sein, dass ich direkt /compact machen kann und nicht nochmal 'bereite vor'
+# schreiben muss." Vorher sagte STRONG nur "sichern + /compact vorschlagen" -> Sessions
+# schlugen /compact vor, bevor alles gesichert war. Jetzt: erst die volle Checkliste
+# selbst abarbeiten, dann EINE feste Bereit-Zeile. Ein /compact-Hinweis ohne erledigte
+# Checkliste ist ausdruecklich verboten.
+COMPACT_READY_CHECKLIST = (
+    "COMPACT-VORBEREITUNG (selbst erledigen, NICHT auf des Nutzers Aufforderung warten): "
+    "(a) Projekt-Stand in PROGRESS.md (bzw. HANDOVER.md des Projekts) als Abschnitt "
+    "'COMPACT-SNAPSHOT <Datum>' schreiben: laufende Arbeit, des Nutzers Entscheidungen und "
+    "Wuensche aus dieser Session (woertlich, soweit noch nicht umgesetzt), offene Punkte "
+    "bei der Nutzer, halbfertige Dateien (datei:symbol + Status), laufende Hintergrundjobs "
+    "(was, wo Ergebnis pruefen), genau EIN naechster Schritt; "
+    "(b) dauerhafte Fakten/Entscheidungen per wz bzw. mcp-memory sichern, Setup-Aenderungen "
+    "mit Tag setup-change; "
+    "(c) laufende Einzel-Edits abschliessen oder als halbfertig im Snapshot vermerken. "
+    "ERST DANACH in der Antwort genau diese Zeile: 'Compact-bereit: gesichert in <Datei(en)>. "
+    "Du kannst jetzt /compact tippen.' Ein /compact-Hinweis vor erledigter Checkliste ist verboten. "
+    "Ist der Snapshot in dieser Session schon geschrieben und seitdem nichts Neues passiert: "
+    "nur kurz nachziehen, nicht neu schreiben."
+)
+
+
 def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, first_pct: int) -> str:
     """SystemMessage je Eskalations-Stufe. nag_n = bisherige STRONG+-Warnungen
     in dieser Session (>=2 -> Persistenz-Eskalation: Warnung wurde uebergangen)."""
@@ -306,30 +329,28 @@ def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, fi
         return (f"[CONTEXT-HINT] {base} Aktions-Schwelle ist 75%. Headroom da — nur Vor-Info.")
 
     if level == "WARN":
-        return (f"[CONTEXT-WARN] {base} Naehert sich der 75%-Aktions-Schwelle. Jetzt "
-                f"Snapshot des Fortschritts in PROGRESS.md / Report vorbereiten, damit der "
-                f"Post-/compact-Turn nahtlos weitermacht. Noch nicht /compact, nur vorbereiten.")
+        return (f"[CONTEXT-WARN] {base} Naehert sich der 75%-Aktions-Schwelle. Den Snapshot "
+                f"(Punkt a unten) schon jetzt nebenbei anlegen und ab hier nach jeder groesseren "
+                f"Arbeitseinheit nachziehen, damit spaeter nur noch die Bereit-Zeile fehlt. "
+                f"Noch keinen /compact-Hinweis. {COMPACT_READY_CHECKLIST}")
 
     if level == "STRONG":
-        return (f"[CONTEXT-STRONG] {base} Aktions-Schwelle erreicht.{persist} Konkret: "
-                f"(1) aktuellen Sub-Step abschliessen, (2) Fortschritt in Datei sichern "
-                f"(PROGRESS.md / Audit-Report / Lessons), (3) der Nutzer im naechsten Reply auf "
-                f"'/compact' hinweisen (z.B. 'Context ~{pct}% — bitte /compact bevor wir "
-                f"weitermachen'). Keine neuen grossen Tasks mehr starten.")
+        return (f"[CONTEXT-STRONG] {base} Aktions-Schwelle erreicht.{persist} Aktuellen "
+                f"Sub-Step abschliessen, keine neuen grossen Tasks starten, dann in DIESEM "
+                f"Turn: {COMPACT_READY_CHECKLIST}")
 
     if level == "CRITICAL":
         return (f"[CONTEXT-CRITICAL] {base} Priority-Override: diese Anweisung hat Vorrang vor "
-                f"der laufenden Aufgabe, bis /compact gelaufen ist.{persist} "
-                f"(1) NICHTS Neues starten (keine Multi-Step-Operation, kein neuer Task), "
-                f"(2) AUSSCHLIESSLICH den aktuellen Atom-Step finalisieren + Fortschritt in "
-                f"Datei sichern, (3) der Nutzer im naechsten Reply EXPLIZIT zu '/compact' auffordern. "
-                f"Hat der Nutzer ohne /compact geantwortet: erneut hinweisen, nicht ignorieren.")
+                f"der laufenden Aufgabe, bis /compact gelaufen ist.{persist} NICHTS Neues "
+                f"starten, nur den aktuellen Atom-Step finalisieren, dann sofort: "
+                f"{COMPACT_READY_CHECKLIST} Hat der Nutzer ohne /compact geantwortet: Bereit-Zeile "
+                f"wiederholen, nicht ignorieren.")
 
     # HARDSTOP
     return (f"[CONTEXT-HARDSTOP] {base} Maximal-Schwelle — Auto-Notfall-Compact mit "
-            f"Qualitaetsverlust droht.{persist} Antworte JETZT NUR noch mit: (1) kurze "
-            f"Sicherung des offenen Stands in eine Datei, (2) explizite '/compact'-Aufforderung "
-            f"an der Nutzer. KEINE anderen Tool-Calls, kein Weiterarbeiten an der Aufgabe. Diese "
+            f"Qualitaetsverlust droht.{persist} Nur noch Sicherung, kein Weiterarbeiten an der "
+            f"Aufgabe, keine anderen Tool-Calls als die zum Sichern. Checkliste in Kurzform "
+            f"(Snapshot knapp, max. 2-3 Tool-Calls): {COMPACT_READY_CHECKLIST} Diese "
             f"Anweisung hat absoluten Vorrang bis der Context kompaktiert ist.")
 
 
