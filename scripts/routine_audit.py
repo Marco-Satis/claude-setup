@@ -71,11 +71,6 @@ CRON_ROUTINES = [
      "since": "2026-08-17"},
     {"name": "weekly_hook_suggest", "plan": "Mo 08:00", "kind": "append",
      "path": HOME / ".claude/logs/weekly_hook_suggest.log", "max_h": 8 * 24},
-    # 2026-10-01 auf Meldung der Allgemein-Session (der Nutzer-Auftrag): befristet bis 14.11.,
-    # danach beendet sich das Skript still -> "until" blendet die Routine im Audit aus.
-    {"name": "therme_deal_check", "plan": "taeglich 09:00", "kind": "append",
-     "path": HOME / "general/routinen/therme_deal_check.log", "max_h": 30,
-     "since": "2026-10-01", "until": "2026-11-14"},
     {"name": "weekly_transcript_dreamer", "plan": "So 04:50", "kind": "append",
      "path": HOME / ".claude/logs/weekly_transcript_dreamer.log", "max_h": 8 * 24,
      "since": "2026-10-01"},
@@ -195,6 +190,9 @@ TIMERS = [
 # Stillgelegt: keine Faelligkeitspruefung, nur Nachweis im MD-Digest.
 # Rueckweg je Eintrag: Zeile in CRON_ROUTINES bzw. TIMERS zurueck (Fassung im .bak.pre-e1.*).
 RETIRED = [
+    {"name": "therme_deal_check", "plan": "taeglich 09:00", "since": "2026-10-27",
+     "note": "der Nutzer-Ja 27.10.: Tiefensuche ohne kaufbare Aktion fuer 15.11., Aldi kam 2026 nur im Mai; "
+             "crontab-Zeile entfernt (Backup ~/general/routinen/crontab.bak.pre-therme-aus.*), Skript bleibt"},
     {"name": "memory_consolidate", "plan": "taeglich 02:30", "since": "2026-10-21",
      "note": "E1/S3 (der Nutzer-Freigabe Sofort-Paket): MCP_CONSOLIDATION_ENABLED=false, "
              "crontab Z. 46 auskommentiert. Grund: 27x Timeout, +605k Kanten im Oktober"},
