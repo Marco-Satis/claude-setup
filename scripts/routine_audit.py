@@ -150,6 +150,10 @@ CRON_ROUTINES = [
     {"name": "tailscale_funnel_watch", "plan": "taeglich 07:10", "kind": "append",
      "path": HOME / ".claude/logs/tailscale_funnel_watch.log", "max_h": 30, "since": "2026-10-27",
      "note": "prueft oeffentliches DNS + Funnel-Abruf von aussen + GitHub-Issues; Discord bei Erfolg"},
+    # 2026-11-07 (Meldung uym-setup-Session): taeglicher UYM-Serverbericht; Cron setzt der Nutzer selbst.
+    {"name": "uym_server_report", "plan": "taeglich 07:30", "kind": "append",
+     "path": HOME / ".claude/logs/uym_server_report.log", "max_h": 30, "since": "2026-11-08",
+     "note": "projects/uym-setup/server/uym_server_report.sh; schreibt eigenen Report via routine_md.sh"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
