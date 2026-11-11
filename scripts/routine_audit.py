@@ -154,6 +154,11 @@ CRON_ROUTINES = [
     {"name": "uym_server_report", "plan": "taeglich 07:30", "kind": "append",
      "path": HOME / ".claude/logs/uym_server_report.log", "max_h": 30, "since": "2026-11-08",
      "note": "projects/uym-setup/server/uym_server_report.sh; schreibt eigenen Report via routine_md.sh"},
+    # 2026-11-11 (der Nutzer: durchgehende Konsistenz): Projekt-CLAUDE.md gegen claude_md_drift_muster.json.
+    # Schreibt seinen Report selbst; Log bekommt bei jedem Lauf die Zählzeile. Cron setzt der Nutzer.
+    {"name": "claude_md_konsistenz", "plan": "woechentlich Mo 07:20", "kind": "append",
+     "path": HOME / ".claude/logs/claude_md_konsistenz.log", "max_h": 8 * 24, "since": "2026-11-16",
+     "note": "rules/setup-konsistenz.md; Funde = veraltete Setup-Aussagen in Projekt-CLAUDE.md"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
