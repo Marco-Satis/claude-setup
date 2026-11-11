@@ -58,18 +58,28 @@ def main() -> None:
             # den sich alle Sessions teilen. Nie anfassen.
             if "--transport http" in cmd:
                 continue
-            # Parent lebt UND ist eine claude.exe? -> aktive Session, NICHT killen.
+            # Vorfahr lebt UND ist eine claude.exe? -> aktive Session, NICHT killen.
+            # Bis zu 3 Ebenen hoch, solange der Vorfahr selbst python/graphify ist:
+            # Seit 2026-11-12 laeuft graphify am PC in einer uv-Tool-venv. Deren
+            # pythonw.exe ist nur ein Launcher, der den echten Interpreter als Kind
+            # startet (claude -> venv-pythonw -> Python311\pythonw). Mit reiner
+            # Parent-Pruefung haette der Hook dieses Kind in laufenden Sessions getoetet.
             # ppid lazy NUR fuer graphify.serve-Treffer (bulk-ppid = 8s, s.o.).
-            try:
-                ppid = p.ppid()
-            except psutil.Error:
-                ppid = None
             parent_is_live_claude = False
-            if ppid:
-                try:
-                    parent_is_live_claude = "claude" in (psutil.Process(ppid).name() or "").lower()
-                except psutil.Error:
-                    parent_is_live_claude = False     # Parent weg = Orphan
+            try:
+                anc = p.parent()
+                for _ in range(3):
+                    if anc is None:
+                        break                         # Parent weg = Orphan
+                    aname = (anc.name() or "").lower()
+                    if "claude" in aname:
+                        parent_is_live_claude = True
+                        break
+                    if "python" not in aname and "graphify" not in aname:
+                        break
+                    anc = anc.parent()
+            except psutil.Error:
+                parent_is_live_claude = False
             if not parent_is_live_claude:
                 p.kill()
                 killed.append(p.pid)

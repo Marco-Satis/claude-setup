@@ -142,7 +142,7 @@ Vor allem anderen. Bei Fail: im Output dokumentieren, degraded weitermachen.
 | 1 | Git-Repo? `git -C <root> rev-parse --is-inside-work-tree` | **Git-Diff-Scope (Phase 1A) aktiv** | mtime-Scope (Phase 1B) |
 | 2 | Worktree verschachtelt (`<repo>/.claude/worktrees/...`)? | Sub-Agents nutzbar | Inline-Fallback, Notiz "Reviewer-Failures" |
 | 3 | Memory-Service: `curl -s ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/api/health` (Netcup-Primary) | Regression-Tagging aktiv | Skip + Notiz "Memory offline" |
-| 4 | SAST-Tools je Sprache (K4): `bandit --version`, `pip show semgrep`, `detect-secrets --version`, `Get-Command Invoke-ScriptAnalyzer`, `npx eslint -v`, `shellcheck -V` — nur fuer im Diff vorkommende Sprachen pruefen | tool-augmentiert | Notiz welche Tools je Sprache fehlten |
+| 4 | SAST-Tools je Sprache (K4): `bandit --version`, `semgrep --version`, `detect-secrets --version`, `Get-Command Invoke-ScriptAnalyzer`, `npx eslint -v`, `shellcheck -V` — nur fuer im Diff vorkommende Sprachen pruefen | tool-augmentiert | Notiz welche Tools je Sprache fehlten |
 | 5 | Concurrent-Lock: `~/.claude/reports/review/.review_lock`? | Lockfile (PID, atomic) anlegen | lebt anderes PID → abort, der Nutzer informieren |
 
 **Lockfile:** `~/.claude/reports/review/.review_lock`, Inhalt `<PID>\n<TS>\n<SCOPE>`. Am Ende loeschen.

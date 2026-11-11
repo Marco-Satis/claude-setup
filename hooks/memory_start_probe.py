@@ -153,7 +153,9 @@ def main() -> None:
             since = f"~{int((now - last_up) / 3600)}h" if last_up else "unbekannt lang"
             alerts.append(
                 f"[MEMORY-DOWN] Service seit {cdown} Starts down (letzter up: {since}) — "
-                f"Auto-Capture + Injection inaktiv. Start: scripts/start_memory_server.bat")
+                f"Auto-Capture + Injection inaktiv. Dienst läuft auf netcup: Erreichbarkeit über "
+                f"Tailscale prüfen (http://100.x.y.z:8000/api/health). KEINEN lokalen Server starten "
+                f"(drittes Gedächtnis, der Nutzer 2026-10-27).")
         elif status == "up":
             cap = _read_ts(CAPTURE_OK)
             act = _read_ts(SESSION_ACTIVE)
