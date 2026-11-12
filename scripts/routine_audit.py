@@ -186,6 +186,9 @@ CRON_ROUTINES = [
 
 TIMERS = [
     ("claude-rc-watchdog.timer", "alle 5 min", 1),
+    # 2026-11-12 (FritzBox-Session, der Nutzer richtete ihn per sudo ein): löst den wg0-Endpoint der
+    # FRITZ!Box neu auf, sonst stirbt der Tunnel bei jeder neuen Box-IP (wz netcup-infra/…-7dfe).
+    ("wg-reresolve-dns@wg0.timer", "alle 2 min", 1, "system"),
     # 2026-08-25 nachgetragen: beide liefen seit Tagen, standen aber in keiner
     # Registrierung — gefunden von routine_selbstpruefung.py beim ersten Lauf.
     # Genau der Fall, den sie abdecken soll: eine Routine, die niemandem fehlt.
