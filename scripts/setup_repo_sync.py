@@ -59,7 +59,8 @@ GENERIC = {
     "private_key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
 }
 PUBLIC_VALUES = {"https://ntfy.sh", "https://ntfy.sh/"}  # oeffentliche Standardwerte in env-Dateien, kein Geheimnis
-MAIL_OK = re.compile(r"noreply|no-reply|example|localhost|\.invalid$|@x\.y|user@|name@|you@|foo@|test@", re.I)
+# systemd-Template-Units (z. B. wg-reresolve-dns@wg0.timer) sind keine Mailadressen (2026-11-12)
+MAIL_OK = re.compile(r"noreply|no-reply|example|localhost|\.invalid$|@x\.y|user@|name@|you@|foo@|test@|@[\w-]+\.(?:timer|service|socket|path|target|mount)$", re.I)
 
 
 def excluded(rel: str) -> bool:
