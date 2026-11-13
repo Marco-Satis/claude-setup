@@ -93,6 +93,14 @@ if [ "$STATUS" = "OK" ] && printf '%s' "$OUT_SCAN" \
     STATUS="WARN"
 fi
 
+# 2026-11-12: Routinen melden Bedarf ausdruecklich mit Zeilen „BRAUCHT: …“. Vorher landete
+# so etwas nur in der Ausgabe, und der BRAUCHT-Block sagte „nichts“ (Lyra-Patch lag zwei
+# Wochen unbemerkt). Solche Zeilen machen den Lauf mindestens WARN und stehen wörtlich im Block.
+BRAUCHT_ZEILEN="$(printf '%s\n' "$OUT" | grep -E '^[[:space:]]*BRAUCHT:[[:space:]]' | sed -E 's/^[[:space:]]*BRAUCHT:[[:space:]]*/- /' | head -10)"
+if [ -n "$BRAUCHT_ZEILEN" ] && [ "$STATUS" = "OK" ]; then
+    STATUS="WARN"
+fi
+
 {
     echo "## Was lief"
     echo "- Befehl: \`$(printf '%s ' "$@" | sed "s|$HOME|~|g" | cut -c1-160)\`"
@@ -114,7 +122,8 @@ fi
     elif [ "$RC" -eq 1 ] && [ "$FINDINGS_OK" -eq 1 ]; then
         echo "- Routine meldet einen Befund (Exit 1) — sie lief korrekt, hat aber etwas gefunden (siehe Ausgabe)"
     fi
-        [ "$STATUS" = "WARN" ] && echo "- Ausgabe enthaelt Fehler-/Warnhinweise (siehe oben) — pruefen ob folgenreich"
+        [ -n "$BRAUCHT_ZEILEN" ] && printf '%s\n' "$BRAUCHT_ZEILEN"
+        [ "$STATUS" = "WARN" ] && [ -z "$BRAUCHT_ZEILEN" ] && echo "- Ausgabe enthaelt Fehler-/Warnhinweise (siehe oben) — pruefen ob folgenreich"
     fi
 } | ROUTINE_PLAN="$PLAN" "$HOME/.claude/scripts/routine_md.sh" "$NAME" "$STATUS"
 

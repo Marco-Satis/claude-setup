@@ -58,6 +58,16 @@ aus — ein naiver Checker hätte zwei Fehlalarme erzeugt.
 
 Systemd-Timer brauchen keine Heuristik: `LastTriggerUSec` ist der harte Beleg.
 
+## Bedarf ausdrücklich melden: Zeilen `BRAUCHT: …` (seit 2026-11-12)
+
+Eine Routine, die über `routine_wrap.sh` läuft, meldet alles, was der Nutzer oder die Skills-Session
+tun oder entscheiden muss, als **eigene Ausgabezeile, die mit `BRAUCHT: ` beginnt**. Der Wrapper
+übernimmt diese Zeilen wörtlich in den BRAUCHT-Block, stuft den Lauf mindestens auf WARN, und der
+Session-Start-Digest legt sie vor. Hinweise im Fließtext erkennt er nicht — Anlass: Der
+Lyra-Wochenlauf meldete zweimal „Patch liegt bereit, nicht angewendet“ nur im Text, der Report sagte
+„braucht nichts“, und Lyra blieb zwei Wochen auf altem Stand. Routinen mit `claude -p` schreiben
+die Pflicht zur `BRAUCHT:`-Zeile in ihren Auftragstext.
+
 ## Bestandsroutinen: Wrapper statt Skript-Edit
 
 Die sieben Bestandsroutinen laufen seit 2026-08-14 durch

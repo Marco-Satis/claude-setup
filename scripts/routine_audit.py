@@ -90,12 +90,6 @@ CRON_ROUTINES = [
      "since": "2026-08-17",
      "note": "prueft nach, ob die Scraper-Fixes a4bf740/cb9d9fe halten "
              "(0-URL-Quote und EPIPE gegen die Ausgangslage 62 % / 3 in 5 Tagen)"},
-    {"name": "graphify_doku_staleness", "plan": "Mo 07:45", "kind": "append",
-     "path": HOME / ".claude/logs/graphify_doku_staleness.log", "max_h": 8 * 24,
-     "since": "2026-08-19",
-     "note": "prueft Alter, geaenderte Korpus-Dateien und Geisterquellen des "
-             "Doku-Graphen sowie den HTTP-Dienst dahinter (Anlass: Graph war 66 "
-             "Tage alt, GraphifyRefresh pflegt einen anderen Graphen)"},
     {"name": "memory_pressure_watch", "plan": "alle 5 min", "kind": "event_only",
      "path": HOME / ".claude/logs/memory_pressure.log",
      "note": "meldet nur bei Druck; Stille = Slice unter der Drossel"},
@@ -207,6 +201,9 @@ TIMERS = [
 # Stillgelegt: keine Faelligkeitspruefung, nur Nachweis im MD-Digest.
 # Rueckweg je Eintrag: Zeile in CRON_ROUTINES bzw. TIMERS zurueck (Fassung im .bak.pre-e1.*).
 RETIRED = [
+    {"name": "graphify_doku_staleness", "plan": "Mo 07:45", "since": "2026-11-12",
+     "note": "der Nutzer-Ja 12.11.: Graph stillgelegt (bildet nur Skills_&_Co-Doku ab, wird nicht genutzt; "
+             "Verknüpfung gehört in wz). crontab-Zeile entfernt (Backup ~/.claude/state/crontab.bak.pre-graphify-aus.*)"},
     {"name": "therme_deal_check", "plan": "taeglich 09:00", "since": "2026-10-27",
      "note": "der Nutzer-Ja 27.10.: Tiefensuche ohne kaufbare Aktion fuer 15.11., Aldi kam 2026 nur im Mai; "
              "crontab-Zeile entfernt (Backup ~/general/routinen/crontab.bak.pre-therme-aus.*), Skript bleibt"},
