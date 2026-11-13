@@ -40,6 +40,22 @@ RE_CREATE_VERB = re.compile(r"\bcreate\b", re.I)
 RE_START_PROC = re.compile(r"start-process", re.I)
 RE_HIDDEN = re.compile(r"windowstyle\s+hidden|createnowindow|create_no_window", re.I)
 
+# Fix p-93900f9be1 (2026-11-13): Text, der nur geschrieben bzw. ausgegeben wird, startet nichts.
+# Vorher schlug der Guard auch an, wenn ein Journal-Eintrag einen frueheren Fehlstart BESCHREIBT
+# (Heredoc nach JOURNAL.md, echo >> ...). Diese Teile werden vor der Pruefung entfernt.
+RE_HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n.*?\n\s*\2[ \t]*(?=\n|$)", re.S)
+RE_PS_HERESTRING = re.compile(r"@'.*?'@|@\".*?\"@", re.S)
+RE_TEXT_CMDS = re.compile(
+    r"\b(?:echo|printf|write-output|write-host|add-content|set-content|out-file)\b[^\n;|&]*",
+    re.I)
+
+
+def executable_text(cmd: str) -> str:
+    """Kommando ohne reinen Text: Heredoc-Bodies, PS-Here-Strings, echo/printf/Add-Content-Argumente."""
+    cmd = RE_HEREDOC.sub(" ", cmd)
+    cmd = RE_PS_HERESTRING.sub(" ", cmd)
+    return RE_TEXT_CMDS.sub(" ", cmd)
+
 
 def touches_bot(cmd: str) -> str | None:
     low = cmd.lower()
@@ -62,7 +78,7 @@ def main() -> None:
         sys.exit(0)
 
     ti = data.get("tool_input") or {}
-    cmd = ti.get("command") or ""
+    cmd = executable_text(ti.get("command") or "")
     if not cmd or not RE_PYTHON_EXE.search(cmd):
         sys.exit(0)
 

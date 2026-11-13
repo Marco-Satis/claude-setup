@@ -44,8 +44,10 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -321,6 +323,43 @@ def _build_cmd(codex: str, args, effort: str, out_file: Path | None,
     return cmd
 
 
+def _kill_tree(proc: subprocess.Popen) -> None:
+    """Ganzen Prozessbaum beenden (p-9c07fda291): unter Windows killte proc.kill() nur
+    cmd.exe (codex.cmd), node lief weiter und hielt die Pipes bis zum Ende offen."""
+    try:
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                           capture_output=True, timeout=15,
+                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        else:
+            os.killpg(proc.pid, signal.SIGKILL)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+
+def _run_tree(cmd: list[str], data: str, timeout: int, env: dict) -> tuple[int, str, str, bool]:
+    """Wie subprocess.run(timeout=...), killt bei Timeout aber den ganzen Baum.
+    Rueckgabe: (rc, stdout, stderr, timed_out)."""
+    kw: dict = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
+                else {"start_new_session": True})
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                            errors="replace", env=env, **kw)
+    try:
+        out, err = proc.communicate(input=data, timeout=timeout)
+        return proc.returncode, out or "", err or "", False
+    except subprocess.TimeoutExpired:
+        _kill_tree(proc)
+        try:
+            out, err = proc.communicate(timeout=15)
+        except subprocess.TimeoutExpired:
+            out, err = "", ""
+        return (proc.returncode if proc.returncode not in (None, 0) else 1), out or "", err or "", True
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Codex-CLI wrapper + usage tracker")
     p.add_argument("--mode", default="other",
@@ -371,7 +410,11 @@ def main() -> int:
 
     effort = args.effort or DEFAULT_EFFORT.get(args.mode, "medium")
     profile = _profile_for(args.mode, args.profile)
-    timeout = args.timeout or (CODEX_REVIEW_TIMEOUT if args.mode == "review" else CODEX_TIMEOUT)
+    # second-opinion MIT --repo ist agentisch (liest Dateien) und braucht wie review das
+    # lange Fenster; 300 s killte am 2026-10-07 einen 21-min-Lauf mit fertigen Findings.
+    agentic = args.mode == "review" or (args.mode == "second-opinion" and args.repo)
+    timeout = args.timeout or (CODEX_REVIEW_TIMEOUT if agentic else CODEX_TIMEOUT)
+    salvaged = False
 
     t0 = time.time()
     rc, out, err = 1, "", ""
@@ -380,7 +423,9 @@ def main() -> int:
     if not codex:
         err = "codex-cli nicht gefunden (npm install -g @openai/codex)"
     else:
-        out_file = Path(os.environ.get("TMPDIR", "/tmp")) / f"codex_last_{os.getpid()}.txt"
+        # tempfile statt hartem "/tmp": unter Windows ohne TMPDIR zeigte das auf C:\tmp,
+        # das es nicht gibt -> -o schlug fehl, und es gab nichts zu retten (2026-11-13).
+        out_file = Path(os.environ.get("TMPDIR") or tempfile.gettempdir()) / f"codex_last_{os.getpid()}.txt"
         cmd = _build_cmd(codex, args, effort, out_file, profile)
         if os.name == "nt" and codex.lower().endswith((".cmd", ".bat")):
             cmd = ["cmd", "/c"] + cmd
@@ -401,19 +446,22 @@ def main() -> int:
         except Exception:
             pass
         try:
-            proc = subprocess.run(
-                cmd, input=full_input, capture_output=True, text=True, encoding="utf-8",
-                errors="replace", timeout=timeout, env=_cenv,
-            )
-            rc, out, err = proc.returncode, proc.stdout or "", proc.stderr or ""
+            rc, out, err, timed_out = _run_tree(cmd, full_input, timeout, _cenv)
             # -o schreibt nur die letzte Agent-Nachricht — sauberer als stdout,
             # das bei --json auch den Event-Stream enthaelt.
-            if rc == 0 and out_file.exists():
+            txt = ""
+            if out_file.exists():
                 txt = out_file.read_text(encoding="utf-8", errors="replace").strip()
+            if rc == 0 and txt:
+                out = txt
+            elif timed_out:
+                # Fertiges Ergebnis VOR dem Unlink retten (p-9c07fda291).
                 if txt:
-                    out = txt
-        except subprocess.TimeoutExpired:
-            err = f"timeout nach {timeout}s"
+                    rc, out, salvaged = 0, txt, True
+                    print(f"[codex] timeout nach {timeout}s, fertige Antwort aus -o gerettet",
+                          file=sys.stderr)
+                else:
+                    err = f"timeout nach {timeout}s (Prozessbaum beendet)\n{err}".strip()
         except Exception as e:
             err = f"exec-fehler: {e}"
         finally:
@@ -439,7 +487,7 @@ def main() -> int:
     quota_hit = any(m in el_err for m in _QUOTA_MARKERS) and rc != 0
     auth_needed = any(m in el for m in _AUTH_MARKERS) and rc != 0
     status = ("quota" if quota_hit else "auth-needed" if auth_needed
-              else "ok" if rc == 0 else "error")
+              else ("timeout-salvaged" if salvaged else "ok") if rc == 0 else "error")
 
     _stamp({
         "ts": datetime.now(timezone.utc).isoformat(), "provider": "codex",

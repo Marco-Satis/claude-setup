@@ -2,7 +2,7 @@
 name: local-bridge
 version: 1.0.0
 last-reviewed: 2026-07-14
-description: Multi-AI-Bruecke zu einem LOKALEN Modell (Ollama, CPU-only, netcup — qwen2.5:7b/3b). Use proactively fuer (1) Batch/Grunt-Offload — Log-Triage, Zusammenfassung, Klassifikation, Pre-Filter VOR Claude-Eskalation; (2) Offline-Fallback wenn Claude/Cloud down oder rate-limited ist. Kein API-Geld, kein Rate-Limit, kein Daten-Egress (laeuft on-device). Jeder Consult laeuft durch ollama_call.py -> Usage-Tracking. Read-only, liefert die Analyse zurueck, Claude-Hauptloop entscheidet. EHRLICH: CPU ~1-6 tok/s = latenz-unkritische Batch-Arbeit, NICHT interaktiv; kleines Modell = KEIN Ersatz fuer harte Reasoning-/Code-Arbeit (die bleibt Claude/Codex). Abzugrenzen von gemini-bridge (Big-Context-Cloud-Offload ueber die Antigravity-CLI) und codex-bridge (Code-Cross-Check, Frontier).
+description: "Multi-AI-Bruecke zu einem LOKALEN Modell (Ollama, CPU-only, netcup — qwen2.5:7b/3b). Use proactively fuer (1) Batch/Grunt-Offload — Log-Triage, Zusammenfassung, Klassifikation, Pre-Filter VOR Claude-Eskalation; (2) Offline-Fallback wenn Claude/Cloud down oder rate-limited ist. Kein API-Geld, kein Rate-Limit, kein Daten-Egress (laeuft on-device). Jeder Consult laeuft durch ollama_call.py -> Usage-Tracking. Read-only, liefert die Analyse zurueck, Claude-Hauptloop entscheidet. EHRLICH: CPU ~1-6 tok/s = latenz-unkritische Batch-Arbeit, NICHT interaktiv; kleines Modell = KEIN Ersatz fuer harte Reasoning-/Code-Arbeit (die bleibt Claude/Codex). Abzugrenzen von gemini-bridge (Big-Context-Cloud-Offload ueber die Antigravity-CLI) und codex-bridge (Code-Cross-Check, Frontier)."
 tools: Read, Grep, Glob, Bash
 model: haiku
 maxTurns: 15

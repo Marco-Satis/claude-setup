@@ -2,7 +2,7 @@
 name: meta-agent
 version: 4.0.1
 last-reviewed: 2026-06-01
-description: "Welcher Subagent für diese Aufgabe?" — Routing-Entscheidungen + Vorschläge für neue Agents. Use wenn du unsicher bist welchen Sub-Agent du aufrufen sollst, oder wenn du einen neuen Agent brauchst. Abzugrenzen von synthesizer (Konsolidierung NACH Multi-Agent-Arbeit) — meta-agent operiert VOR der Arbeit (Routing-Entscheidung), nicht danach.
+description: "\"Welcher Subagent für diese Aufgabe?\" — Routing-Entscheidungen + Vorschläge für neue Agents. Use wenn du unsicher bist welchen Sub-Agent du aufrufen sollst, oder wenn du einen neuen Agent brauchst. Abzugrenzen von synthesizer (Konsolidierung NACH Multi-Agent-Arbeit) — meta-agent operiert VOR der Arbeit (Routing-Entscheidung), nicht danach."
 tools: Read, Glob, Grep
 model: opus
 maxTurns: 30

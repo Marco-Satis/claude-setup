@@ -58,5 +58,8 @@ Die drei Bots laufen in **getrennten Sessions gleichzeitig**. Vor einem Edit an 
 gerade frisch geändert, arbeitet dort jemand. Dann **nicht** editieren, sondern der Nutzer fragen bzw. die
 zuständige Session machen lassen. Gleichzeitige Edits zerstören Arbeit.
 
+**Seit 2026-11-13 (der Nutzer, Games\CLAUDE.md v2.2): `_botcore/` ändert nur die Session „Bot_Core“.** Die Bot-Sessions
+melden Bedarf dorthin; der Hook `gamebot_core_guard` blockt Edits aus den Bot-Ordnern.
+
 Für `_botcore/` gilt das doppelt: ein Edit dort wirkt auf ALLE drei Bots → Backup + alle Konsumenten
 gegenchecken.

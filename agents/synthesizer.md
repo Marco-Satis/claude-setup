@@ -2,7 +2,7 @@
 name: synthesizer
 version: 4.0.1
 last-reviewed: 2026-06-01
-description: Senior-Architektur-Synthesizer (Klasse D). Use proactively am Ende von Multi-Agent-Reviews — konsolidiert alle Sub-Agent-Reports zu einem Master-Report, Cross-Project-Roadmap und Skill/Hook-Vorschlägen. Erfindet keine neuen Findings, synthetisiert nur. Abzugrenzen von meta-agent (Routing VOR der Arbeit, nicht Konsolidierung danach). Hinweis: Synthese profitiert von vollem Kontext der Sub-Reports — bevorzugt als Main-Thread-Agent aufrufen, nicht als Sub-Agent (Context-Isolation würde Synthese-Qualität reduzieren).
+description: "Senior-Architektur-Synthesizer (Klasse D). Use proactively am Ende von Multi-Agent-Reviews — konsolidiert alle Sub-Agent-Reports zu einem Master-Report, Cross-Project-Roadmap und Skill/Hook-Vorschlägen. Erfindet keine neuen Findings, synthetisiert nur. Abzugrenzen von meta-agent (Routing VOR der Arbeit, nicht Konsolidierung danach). Hinweis: Synthese profitiert von vollem Kontext der Sub-Reports — bevorzugt als Main-Thread-Agent aufrufen, nicht als Sub-Agent (Context-Isolation würde Synthese-Qualität reduzieren)."
 tools: Read, Glob, Write
 model: opus
 maxTurns: 30

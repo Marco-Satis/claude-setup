@@ -184,6 +184,13 @@ CRON_ROUTINES = [
      "path": REPORTS / "cve_watch_*.md", "max_h": 30, "since": "2026-10-22",
      "note": "dpkg/npm/PyPI/Go gegen api.osv.dev; Discord nur bei neuem HIGH/CRITICAL "
              "oder gescheitertem Scan; Zustand ~/.local/share/cve_watch/state.json"},
+    # 2026-11-13: Aufbewahrung .bak (rules/backup-aufbewahrung.md), cron by der Nutzer
+    {"name": "backup_prune", "plan": "taeglich 04:50", "kind": "append",
+     "path": HOME / ".claude/logs/backup_prune.log", "max_h": 30, "since": "2026-11-14"},
+    # 2026-11-13: CoD-DB-Update-Check (cron 07:23, ohne Wrapper) fehlte im Audit (Inventur offene Punkte)
+    {"name": "cod_db_update_check", "plan": "taeglich 07:23", "kind": "append",
+     "path": HOME / "projects/CoD_Waffen_DB/cod_db_deltas_v2/_raw/update_check.log", "max_h": 30,
+     "since": "2026-11-13"},
     {"name": "codex_rc_watch", "plan": "taeglich 08:40", "kind": "append",
      "path": HOME / ".claude/logs/codex_rc_watch.log", "max_h": 30, "since": "2026-09-29"},
     # 2026-10-18 auf Meldung der Trading-Session: Paper-Trading-Bot (~/projects/Trading).
