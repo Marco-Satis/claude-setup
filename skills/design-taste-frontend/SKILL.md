@@ -1,16 +1,24 @@
 ---
 name: design-taste-frontend
-description: 'Anti-Slop-Frontend-Design BEIM Generieren — 3 Regler (DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY, Baseline 8/6/4) + Bias-Correction gegen generische AI-UIs (Lila-Ban, Inter-Font-Ban, Anti-Center-Bias, Anti-3-Card-Row, AI-Tells wie "John Doe"/"Elevate"/99.99%). React/Next+Tailwind+Framer-orientiert, ABER Typo-/Color-/Layout-/AI-Tell-Regeln sind stack-agnostisch (auch HTMX/vanilla). Invoke bei Frontend-/Dashboard-/Landing-Page-Arbeit für Design das nicht nach Standard-AI-Slop aussieht. Ergänzt /a11y-check + /ui-critique (kein WCAG-Fokus). Quelle: Leonxlnx/taste-skill v1 (lean 226 Zeilen; v2 = 1206-Zeilen-Rewrite verfügbar falls mehr Tiefe nötig).'
+description: 'Anti-Slop-Frontend-Design BEIM Generieren — 3 Regler (DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY, Baseline 8/3/4) + Bias-Correction gegen generische AI-UIs (Lila-Ban, Reflex-Font-Ban, Anti-Center-Bias, Anti-3-Card-Row, AI-Tells wie "John Doe"/"Elevate"/99.99%). Nachrangig: impeccable und frontend-design gehen vor, Prüfung über die Anti-KI-Checkliste aus rules/design-qualitaet.md. React/Next+Tailwind+Framer-orientiert, ABER Typo-/Color-/Layout-/AI-Tell-Regeln sind stack-agnostisch (auch HTMX/vanilla). Invoke bei Frontend-/Dashboard-/Landing-Page-Arbeit für Design das nicht nach Standard-AI-Slop aussieht. Ergänzt /a11y-check + /ui-critique (kein WCAG-Fokus). Quelle: Leonxlnx/taste-skill v1, entgiftet in G247.'
+version: 1.1.0
+last-reviewed: 2026-11-13
 ---
 
 # High-Agency Frontend Skill
 
+> **Vorrang (G247, 13.11.2026): impeccable und frontend-design gehen vor.** Widerspricht dieser Skill ihnen, der
+> Anti-KI-Checkliste `~/.claude/templates/anti_ki_checkliste.md` oder `~/.claude/rules/design-qualitaet.md`
+> (WCAG 2.2, Tor vor der Übergabe), gelten diese. Der Skill liefert nur noch Stack-Konventionen (React/Tailwind)
+> und Zusatz-Verbote. Effekte aus Abschnitt 8 sind ein Angebot, keine Quote: höchstens ein benannter
+> Signaturmoment, Glas, Glow, Grain und Mesh nur, wenn der Brief es verlangt.
+
 ## 1. ACTIVE BASELINE CONFIGURATION
 * DESIGN_VARIANCE: 8 (1=Perfect Symmetry, 10=Artsy Chaos)
-* MOTION_INTENSITY: 6 (1=Static/No movement, 10=Cinematic/Magic Physics)
+* MOTION_INTENSITY: 3 (1=Static/No movement, 10=Cinematic/Magic Physics)
 * VISUAL_DENSITY: 4 (1=Art Gallery/Airy, 10=Pilot Cockpit/Packed Data)
 
-**AI Instruction:** The standard baseline for all generations is strictly set to these values (8, 6, 4). Do not ask the user to edit this file. Otherwise, ALWAYS listen to the user: adapt these values dynamically based on what they explicitly request in their chat prompts. Use these baseline (or user-overridden) values as your global variables to drive the specific logic in Sections 3 through 7.
+**AI Instruction:** The standard baseline for all generations is strictly set to these values (8, 3, 4). Do not ask the user to edit this file. Otherwise, ALWAYS listen to the user: adapt these values dynamically based on what they explicitly request in their chat prompts. Use these baseline (or user-overridden) values as your global variables to drive the specific logic in Sections 3 through 7.
 
 ## 2. DEFAULT ARCHITECTURE & CONVENTIONS
 Unless the user explicitly specifies a different stack, adhere to these structural constraints to maintain consistency:
@@ -18,7 +26,7 @@ Unless the user explicitly specifies a different stack, adhere to these structur
 * **DEPENDENCY VERIFICATION [MANDATORY]:** Before importing ANY 3rd party library (e.g. `framer-motion`, `lucide-react`, `zustand`), you MUST check `package.json`. If the package is missing, you MUST output the installation command (e.g. `npm install package-name`) before providing the code. **Never** assume a library exists.
 * **Framework & Interactivity:** React or Next.js. Default to Server Components (`RSC`). 
     * **RSC SAFETY:** Global state works ONLY in Client Components. In Next.js, wrap providers in a `"use client"` component.
-    * **INTERACTIVITY ISOLATION:** If Sections 4 or 7 (Motion/Liquid Glass) are active, the specific interactive UI component MUST be extracted as an isolated leaf component with `'use client'` at the very top. Server Components must exclusively render static layouts.
+    * **INTERACTIVITY ISOLATION:** If Section 4 (Motion) is active, the specific interactive UI component MUST be extracted as an isolated leaf component with `'use client'` at the very top. Server Components must exclusively render static layouts.
 * **State Management:** Use local `useState`/`useReducer` for isolated UI. Use global state strictly for deep prop-drilling avoidance.
 * **Styling Policy:** Use Tailwind CSS (v3/v4) for 90% of styling. 
     * **TAILWIND VERSION LOCK:** Check `package.json` first. Do not use v4 syntax in v3 projects. 
@@ -37,8 +45,8 @@ LLMs have statistical biases toward specific UI cliché patterns. Proactively co
 
 **Rule 1: Deterministic Typography**
 * **Display/Headlines:** Default to `text-4xl md:text-6xl tracking-tighter leading-none`.
-    * **ANTI-SLOP:** Discourage `Inter` for "Premium" or "Creative" vibes. Force unique character using `Geist`, `Outfit`, `Cabinet Grotesk`, or `Satoshi`.
-    * **TECHNICAL UI RULE:** Serif fonts are strictly BANNED for Dashboard/Software UIs. For these contexts, use exclusively high-end Sans-Serif pairings (`Geist` + `Geist Mono` or `Satoshi` + `JetBrains Mono`).
+    * **ANTI-SLOP:** No reflex fonts without a reason from the brief: Inter, Space Grotesk, Geist, Outfit, Satoshi and every entry on impeccable's reject list (`reference/brand.md`). Choose the typeface from the brief and the reference, max two families.
+    * **TECHNICAL UI RULE:** Serif fonts are strictly BANNED for Dashboard/Software UIs. For these contexts, use a Sans-Serif + Mono pairing chosen for the brief (not a reflex font).
 * **Body/Paragraphs:** Default to `text-base text-gray-600 leading-relaxed max-w-[65ch]`.
 
 **Rule 2: Color Calibration**
@@ -47,7 +55,7 @@ LLMs have statistical biases toward specific UI cliché patterns. Proactively co
 * **COLOR CONSISTENCY:** Stick to one palette for the entire output. Do not fluctuate between warm and cool grays within the same project.
 
 **Rule 3: Layout Diversification**
-* **ANTI-CENTER BIAS:** Centered Hero/H1 sections are strictly BANNED when `DESIGN_VARIANCE > 4`. Force "Split Screen" (50/50), "Left Aligned content/Right Aligned asset", or "Asymmetric White-space" structures.
+* **ANTI-CENTER BIAS:** Do not default to a centered Hero/H1 when `DESIGN_VARIANCE > 4`, and do not swap in another default either: a split hero (text left, asset right) is itself a template recipe unless the content justifies it. Derive the hero structure from content and reference.
 
 **Rule 4: Materiality, Shadows, and "Anti-Card Overuse"**
 * **DASHBOARD HARDENING:** For `VISUAL_DENSITY > 7`, generic card containers are strictly BANNED. Use logic-grouping via `border-t`, `divide-y`, or purely negative space. Data metrics should breathe without being boxed in unless elevation (z-index) is functionally required.
@@ -65,11 +73,10 @@ LLMs have statistical biases toward specific UI cliché patterns. Proactively co
 
 ## 4. CREATIVE PROACTIVITY (Anti-Slop Implementation)
 To actively combat generic AI designs, systematically implement these high-end coding concepts as your baseline:
-* **"Liquid Glass" Refraction:** When glassmorphism is needed, go beyond `backdrop-blur`. Add a 1px inner border (`border-white/10`) and a subtle inner shadow (`shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]`) to simulate physical edge refraction.
 * **Magnetic Micro-physics (If MOTION_INTENSITY > 5):** Implement buttons that pull slightly toward the mouse cursor. **CRITICAL:** NEVER use React `useState` for magnetic hover or continuous animations. Use EXCLUSIVELY Framer Motion's `useMotionValue` and `useTransform` outside the React render cycle to prevent performance collapse on mobile.
-* **Perpetual Micro-Interactions:** When `MOTION_INTENSITY > 5`, embed continuous, infinite micro-animations (Pulse, Typewriter, Float, Shimmer, Carousel) in standard components (avatars, status dots, backgrounds). Apply premium Spring Physics (`type: "spring", stiffness: 100, damping: 20`) to all interactive elements—no linear easing.
+* **Easing, no perpetual motion:** No continuous micro-animations in standard components (avatars, status dots, backgrounds). Interactive elements: ease-out (quart/quint/expo) or a critically damped spring (`type: "spring", stiffness: 100, damping: 20`), no linear easing, no bounce/overshoot.
 * **Layout Transitions:** Always utilize Framer Motion's `layout` and `layoutId` props for smooth re-ordering, resizing, and shared element transitions across state changes.
-* **Staggered Orchestration:** Do not mount lists or grids instantly. Use `staggerChildren` (Framer) or CSS cascade (`animation-delay: calc(var(--index) * 100ms)`) to create sequential waterfall reveals. **CRITICAL:** For `staggerChildren`, the Parent (`variants`) and Children MUST reside in the identical Client Component tree. If data is fetched asynchronously, pass the data as props into a centralized Parent Motion wrapper.
+* **Staggered Orchestration (lists only):** Stagger only the items of one list, total at most 500 ms (e.g. `staggerChildren: 0.04` or `animation-delay: calc(min(var(--index), 10) * 40ms)`); never across sections, no load choreography in tools, content complete without the reveal. **CRITICAL:** For `staggerChildren`, the Parent (`variants`) and Children MUST reside in the identical Client Component tree. If data is fetched asynchronously, pass the data as props into a centralized Parent Motion wrapper.
 
 ## 5. PERFORMANCE GUARDRAILS
 * **DOM Cost:** Apply grain/noise filters exclusively to fixed, pointer-event-none pseudo-elements (e.g., `fixed inset-0 z-50 pointer-events-none`) and NEVER to scrolling containers to prevent continuous GPU repaints and mobile performance degradation.
@@ -86,7 +93,7 @@ To actively combat generic AI designs, systematically implement these high-end c
 
 ### MOTION_INTENSITY (Level 1-10)
 * **1-3 (Static):** No automatic animations. CSS `:hover` and `:active` states only.
-* **4-7 (Fluid CSS):** Use `transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)`. Use `animation-delay` cascades for load-ins. Focus strictly on `transform` and `opacity`. Use `will-change: transform` sparingly.
+* **4-7 (Fluid CSS):** Transition named properties only (`transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1)`), never `transition: all`. Stagger only within lists (max 500 ms total). Focus strictly on `transform` and `opacity`. Use `will-change: transform` sparingly.
 * **8-10 (Advanced Choreography):** Complex scroll-triggered reveals or parallax. Use Framer Motion hooks. NEVER use `window.addEventListener('scroll')`.
 
 ### VISUAL_DENSITY (Level 1-10)
@@ -99,13 +106,13 @@ To guarantee a premium, non-generic output, you MUST strictly avoid these common
 
 ### Visual & CSS
 * **NO Neon/Outer Glows:** Do not use default `box-shadow` glows or auto-glows. Use inner borders or subtle tinted shadows.
-* **NO Pure Black:** Never use `#000000`. Use Off-Black, Zinc-950, or Charcoal.
+* **NO Pure Black:** Never use `#000000`, and no reflex near-black either: a tinted near-black (`#0B0B0B`, `#111`, Zinc-950) with a single neon accent is itself a tell. Derive dark tones from the palette's own hue.
 * **NO Oversaturated Accents:** Desaturate accents to blend elegantly with neutrals.
 * **NO Excessive Gradient Text:** Do not use text-fill gradients for large headers.
 * **NO Custom Mouse Cursors:** They are outdated and ruin performance/accessibility.
 
 ### Typography
-* **NO Inter Font:** Banned. Use `Geist`, `Outfit`, `Cabinet Grotesk`, or `Satoshi`.
+* **NO Reflex Fonts:** Inter, Space Grotesk, Geist, Outfit, Satoshi (and impeccable's reject list) only with a reason from the brief.
 * **NO Oversized H1s:** The first heading should not scream. Control hierarchy with weight and color, not just massive scale.
 * **Serif Constraints:** Use Serif fonts ONLY for creative/editorial designs. **NEVER** use Serif on clean Dashboards.
 
@@ -121,7 +128,7 @@ To guarantee a premium, non-generic output, you MUST strictly avoid these common
 * **NO Filler Words:** Avoid AI copywriting clichés like "Elevate", "Seamless", "Unleash", or "Next-Gen". Use concrete verbs.
 
 ### External Resources & Components
-* **NO Broken Unsplash Links:** Do not use Unsplash. Use absolute, reliable placeholders like `https://picsum.photos/seed/{random_string}/800/600` or SVG UI Avatars.
+* **NO Stock Placeholders:** No Unsplash, picsum or random images, no empty image boxes. Use real content from the brief or purpose-made SVG; if neither exists, ask.
 * **shadcn/ui Customization:** You may use `shadcn/ui`, but NEVER in its generic default state. You MUST customize the radii, colors, and shadows to match the high-end project aesthetic.
 * **Production-Ready Cleanliness:** Code must be extremely clean, visually striking, memorable, and meticulously refined in every detail.
 
@@ -150,7 +157,7 @@ Do not default to generic UI. Pull from this library of advanced concepts to ens
 ### Cards & Containers
 * **Parallax Tilt Card:** A 3D-tilting card tracking the mouse coordinates.
 * **Spotlight Border Card:** Card borders that illuminate dynamically under the cursor.
-* **Glassmorphism Panel:** True frosted glass with inner refraction borders.
+* **Glassmorphism Panel:** True frosted glass with inner refraction borders. *(Only if the brief asks for it.)*
 * **Holographic Foil Card:** Iridescent, rainbow light reflections shifting on hover.
 * **Tinder Swipe Stack:** A physical stack of cards the user can swipe away.
 * **Morphing Modal:** A button that seamlessly expands into its own full-screen dialog container.
@@ -169,9 +176,9 @@ Do not default to generic UI. Pull from this library of advanced concepts to ens
 * **Drag-to-Pan Grid:** A boundless grid you can freely drag in any compass direction.
 * **Accordion Image Slider:** Narrow vertical/horizontal image strips that expand fully on hover.
 * **Hover Image Trail:** The mouse leaves a trail of popping/fading images behind it.
-* **Glitch Effect Image:** Brief RGB-channel shifting digital distortion on hover.
+* **Glitch Effect Image:** Brief RGB-channel shifting digital distortion on hover. *(Only if the brief asks for it.)*
 
-### Typography & Text
+### Typography & Text (only if the brief asks for it)
 * **Kinetic Marquee:** Endless text bands that reverse direction or speed up on scroll.
 * **Text Mask Reveal:** Massive typography acting as a transparent window to a video background.
 * **Text Scramble Effect:** Matrix-style character decoding on load or hover.
@@ -179,7 +186,7 @@ Do not default to generic UI. Pull from this library of advanced concepts to ens
 * **Gradient Stroke Animation:** Outlined text with a gradient continuously running along the stroke.
 * **Kinetic Typography Grid:** A grid of letters dodging or rotating away from the cursor.
 
-### Micro-Interactions & Effects
+### Micro-Interactions & Effects (only if the brief asks for it)
 * **Particle Explosion Button:** CTAs that shatter into particles upon success.
 * **Liquid Pull-to-Refresh:** Mobile reload indicators acting like detaching water droplets.
 * **Skeleton Shimmer:** Shifting light reflections moving across placeholder boxes.
@@ -189,33 +196,7 @@ Do not default to generic UI. Pull from this library of advanced concepts to ens
 * **Mesh Gradient Background:** Organic, lava-lamp-like animated color blobs.
 * **Lens Blur Depth:** Dynamic focus blurring background UI layers to highlight a foreground action.
 
-## 9. THE "MOTION-ENGINE" BENTO PARADIGM
-When generating modern SaaS dashboards or feature sections, you MUST utilize the following "Bento 2.0" architecture and motion philosophy. This goes beyond static cards and enforces a "Vercel-core meets Dribbble-clean" aesthetic heavily reliant on perpetual physics.
-
-### A. Core Design Philosophy
-* **Aesthetic:** High-end, minimal, and functional.
-* **Palette:** Background in `#f9fafb`. Cards are pure white (`#ffffff`) with a 1px border of `border-slate-200/50`.
-* **Surfaces:** Use `rounded-[2.5rem]` for all major containers. Apply a "diffusion shadow" (a very light, wide-spreading shadow, e.g., `shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]`) to create depth without clutter.
-* **Typography:** Strict `Geist`, `Satoshi`, or `Cabinet Grotesk` font stack. Use subtle tracking (`tracking-tight`) for headers.
-* **Labels:** Titles and descriptions must be placed **outside and below** the cards to maintain a clean, gallery-style presentation.
-* **Pixel-Perfection:** Use generous `p-8` or `p-10` padding inside cards.
-
-### B. The Animation Engine Specs (Perpetual Motion)
-All cards must contain **"Perpetual Micro-Interactions."** Use the following Framer Motion principles:
-* **Spring Physics:** No linear easing. Use `type: "spring", stiffness: 100, damping: 20` for a premium, weighty feel.
-* **Layout Transitions:** Heavily utilize the `layout` and `layoutId` props to ensure smooth re-ordering, resizing, and shared element state transitions.
-* **Infinite Loops:** Every card must have an "Active State" that loops infinitely (Pulse, Typewriter, Float, or Carousel) to ensure the dashboard feels "alive".
-* **Performance:** Wrap dynamic lists in `<AnimatePresence>` and optimize for 60fps. **PERFORMANCE CRITICAL:** Any perpetual motion or infinite loop MUST be memoized (React.memo) and completely isolated in its own microscopic Client Component. Never trigger re-renders in the parent layout.
-
-### C. The 5-Card Archetypes (Micro-Animation Specs)
-Implement these specific micro-animations when constructing Bento grids (e.g., Row 1: 3 cols | Row 2: 2 cols split 70/30):
-1. **The Intelligent List:** A vertical stack of items with an infinite auto-sorting loop. Items swap positions using `layoutId`, simulating an AI prioritizing tasks in real-time.
-2. **The Command Input:** A search/AI bar with a multi-step Typewriter Effect. It cycles through complex prompts, including a blinking cursor and a "processing" state with a shimmering loading gradient.
-3. **The Live Status:** A scheduling interface with "breathing" status indicators. Include a pop-up notification badge that emerges with an "Overshoot" spring effect, stays for 3 seconds, and vanishes.
-4. **The Wide Data Stream:** A horizontal "Infinite Carousel" of data cards or metrics. Ensure the loop is seamless (using `x: ["0%", "-100%"]`) with a speed that feels effortless.
-5. **The Contextual UI (Focus Mode):** A document view that animates a staggered highlight of a text block, followed by a "Float-in" of a floating action toolbar with micro-icons.
-
-## 10. FINAL PRE-FLIGHT CHECK
+## 9. FINAL PRE-FLIGHT CHECK
 Evaluate your code against this matrix before outputting. This is the **last** filter you apply to your logic.
 - [ ] Is global state used appropriately to avoid deep prop-drilling rather than arbitrarily?
 - [ ] Is mobile layout collapse (`w-full`, `px-4`, `max-w-7xl mx-auto`) guaranteed for high-variance designs?
@@ -224,3 +205,8 @@ Evaluate your code against this matrix before outputting. This is the **last** f
 - [ ] Are empty, loading, and error states provided?
 - [ ] Are cards omitted in favor of spacing where possible?
 - [ ] Did you strictly isolate CPU-heavy perpetual animations in their own Client Components?
+
+## Changelog
+
+- 1.1.0 (2026-11-13): G247 Phase 1 B5 „entgiftet“ (der Nutzer wz `4bef`, MB98): Vorrang-Kopf (impeccable und frontend-design gehen vor, Anti-KI-Checkliste, Tor aus `rules/design-qualitaet.md`); MOTION_INTENSITY 6 → 3. Gestrichen: Pflicht für Geist/Outfit/Satoshi (jetzt selbst Reflex-Schriften), Split-Hero-Zwang, Liquid Glass, Dauer-Mikroanimationen in Standardkomponenten, `transition: all`, Zinc-950 als Off-Black, picsum, Abschnitt 9 „Bento 2.0“ samt Overshoot-Badge (Pre-Flight jetzt Abschnitt 9). Glitch, Scramble, Mesh und die Effekt-Gruppen in Abschnitt 8 nur auf Brief-Wunsch; Stagger nur innerhalb von Listen, insgesamt höchstens 500 ms. Backup `SKILL.md.bak.g247p1.1794609612`.
+- 1.0.0 (2026-07-21): Übernahme Leonxlnx/taste-skill v1 (lean, 226 Zeilen).

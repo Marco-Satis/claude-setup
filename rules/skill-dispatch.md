@@ -19,9 +19,10 @@
 | Neuen Skill bauen | `skill-create` | skill-creator-Plugin |
 | Recurring-Intervall-Task in DIESER Session | Builtin `loop` | `loopmode` |
 | Autonome Bot-Operator-Schleife (Games) | `loopmode` | Builtin `loop` |
-| UI-/Seiten-Design (Mockups, Varianten, HTML) | `design-shotgun` → `design-html`, Stil-Regeln `design-taste-frontend` | Builtin `/design` (Research-Preview, `disable-model-invocation` — nur der Nutzer kann es tippen; Probe 2026-09-29) |
+| UI-/Seiten-Design, Seite oder Dashboard bauen (Mockups, Varianten, HTML) | (Stufe V: `site-anatomy` für das Vorbild) → `design-shotgun` optional → `design-html` → Tor (`rules/design-qualitaet.md`). Stilquelle: `frontend-design`, `impeccable`, Anti-KI-Checkliste | `design-taste-frontend` als alleinige Stilquelle; Builtin `/design` (Research-Preview, `disable-model-invocation` — nur der Nutzer kann es tippen; Probe 2026-09-29) |
+| Eigene Oberfläche oder Animation prüfen | `visual_sheet.mjs --pruefen`, beide Checklisten (`anti_ki_checkliste.md`, `visual_sheet_checkliste.md`), Zweitblick; Tiefenstufe `impeccable` critique | `ui-critique` allein (nur Code) |
 | Fremde Website (URL/Domain) gestalterisch analysieren oder als Vorlage fürs eigene Design nutzen | `site-anatomy` (danach `design-html` über DESIGN.md + Sektionsplan) | `leanrea` (nur Technik: Bundles, APIs), `impeccable` extract/critique, `ui-critique` (nur eigener Code), `design:design-critique` |
-
+| Bewegung einer fremden Seite zerlegen | `site-anatomy` (Phase 2d „Bewegung“, kommt mit G247 B9); JS-Zeitleisten → `leanrea` | Screenshots allein |
 | Perspektive zu einer Urteils-Frage im Review | **läuft automatisch** (review K6, Trigger C1–C5, Einzel-Mitglied ~1,5k) | nicht zusätzlich `/council` starten |
 | Echte Deliberation zu einer offenen Entscheidung | `/council --duo`/`--triad` (~21–23k) | `--full` (~47k) außer der Nutzer will es ausdrücklich |
 

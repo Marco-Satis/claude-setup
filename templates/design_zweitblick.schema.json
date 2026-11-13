@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["urteil", "sicherheit", "bilder_gesehen", "indizien"],
+  "properties": {
+    "urteil": { "type": "string", "enum": ["ki", "mensch", "unklar"] },
+    "sicherheit": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "bilder_gesehen": { "type": "integer", "minimum": 0, "maximum": 50 },
+    "indizien": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["bild", "stelle", "merkmal", "fix"],
+        "properties": {
+          "bild": { "type": "string" },
+          "stelle": { "type": "string" },
+          "merkmal": { "type": "string" },
+          "fix": { "type": "string" }
+        }
+      }
+    }
+  }
+}

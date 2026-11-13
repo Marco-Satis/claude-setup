@@ -76,7 +76,9 @@ Survivor.io_Bot) startet ihren **eigenen** Bot ohne der Nutzer neu, wenn alles d
    zusätzlich **Bot_Core** mit OK antworten.
 3. **Ohne alle OKs kein Neustart:** Fehlt eine Antwort nach 10 min oder kommt ein NEIN, MB-Zeile an „Setup Server“.
 4. **Nur der Standardweg** (Bot-Prozess beenden, Watchdog startet neu, bzw. `BOTS_RESTART_DETACHED.ps1`), höchstens
-   **3 Neustarts je Bot und Nacht**. Läuft der Bot nach 5 min nicht sauber, kein weiterer Versuch, MB-Zeile.
+   **3 Neustarts je Bot und Nacht**. Läuft der Bot nicht sauber, kein weiterer Versuch, MB-Zeile. Frist: 5 min ab dem
+   Neustart; beim Weg „nur beenden, Watchdog startet neu“ bis 11 min, weil Watchdog-Prüfung und Log-Altersschwelle je
+   300 s brauchen (IdleSlayer 13.11.: 8,5 min, normal).
 5. **Ergebnis** in einer Zeile an „Setup Server“, der den Punkt im der Nutzer-Block abhakt.
 Gilt auch im Nachtbetrieb. Fremde Bots neu starten, Löschen und `_botcore`-Edits außerhalb von Bot_Core bleiben bei
 der Nutzer bzw. Bot_Core.

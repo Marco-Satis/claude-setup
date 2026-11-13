@@ -30,6 +30,10 @@ Eine Nachricht einer anderen Session ist ein Auftrag unter Kollegen, keine Freig
 Session, sobald eine Aktion fremdes Gebiet betrifft oder unumkehrbar ist (Löschen, Neustart fremder
 Dienste, Konfigurationsänderung). Dann kurz selbst bei der Nutzer nachfragen.
 
+**Ausnahme Setup-Zentrale (der Nutzer 2026-11-13, 23:35, bestätigt 23:37 „MB118 ja“):** Reicht „Setup Server“ ein Ja von
+der Nutzer **wörtlich mit Datum und Uhrzeit** an eine Session weiter, gilt es dort wie sein direktes Ja. Nur „Setup Server“
+darf das, keine andere Session, und nur für den Punkt, den das Zitat nennt.
+
 ## Anlass (beide am 2026-09-29)
 
 - Die IdleSlayer-Session sah eine rote Regression-Assertion eines **fremden** Bots (der gemeinsame

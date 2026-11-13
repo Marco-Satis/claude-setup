@@ -16,6 +16,23 @@ import time
 STATE = os.path.expanduser("~/.claude/state/zeit")
 TAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 LANG_MIN = 60
+# Sammelmodus der Zentrale (der Nutzer 2026-11-14): nach ABWESEND_MIN ohne Antwort nur noch sammeln, bei Rückkehr vorlegen.
+ABWESEND_MIN = 10
+SAMMEL = os.path.expanduser("~/.claude/scripts/sammel.py")
+
+
+def ist_zentrale(data):
+    # Nur die netcup-Session "Setup Server"; Setup PC teilt den Ordnernamen, schreibt aber nicht in die Mappe.
+    return os.name != "nt" and "Skills_&_Co" in str(data.get("cwd") or os.getcwd())
+
+
+def offene_eintraege():
+    try:
+        sys.path.insert(0, os.path.dirname(SAMMEL))
+        import sammel  # noqa: E402
+        return len(sammel.offene())
+    except Exception:
+        return 0
 
 
 def dauer(sek):
@@ -49,6 +66,19 @@ def main():
         if luecke >= LANG_MIN * 60 and not von_session:
             text += (" · Längere Pause: vor dem Antworten kurz prüfen, was inzwischen passiert ist "
                      "(Postfach/Nachrichten, Routine-Reports, PROGRESS, der Nutzer-Block) und es in einem Satz nennen.")
+        if ist_zentrale(data) and luecke >= ABWESEND_MIN * 60:
+            if von_session:
+                text += (f" · [Sammelmodus] der Nutzer antwortet seit {dauer(luecke)} nicht. Eingang erledigen bzw. "
+                         "quittieren wie immer, aber im Chat höchstens 1 Zeile, keine Tabellen oder Zusammenfassungen. "
+                         "Jeden Eingang eintragen: python3 ~/.claude/scripts/sammel.py \"<quelle> | <was> | "
+                         "<erledigt|MB<n>|offen>\". Entscheidungen weiter als MB-Zeile.")
+            else:
+                n = offene_eintraege()
+                if n:
+                    text += (f" · [Rückkehr] der Nutzer war {dauer(luecke)} weg, {n} Einträge in der Sammelmappe. "
+                             "Erst seine Nachricht beantworten, dann die Sammelmappe vorlegen (sammel.py --offen): "
+                             "3-5 Zeilen Kurzfassung, was er entscheiden muss, was erledigt ist; danach "
+                             "python3 ~/.claude/scripts/sammel.py --vorgelegt.")
     except (OSError, ValueError):
         text += " · erste Nachricht dieser Session seit Einführung"
         try:  # retention: drop state of sessions idle for more than 30 days (rules/backup-aufbewahrung.md)
