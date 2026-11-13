@@ -6,7 +6,7 @@ description: Strukturierte Web-Recherche mit Quellen-Kennzeichnung, Konfidenz-Ka
 when_to_use: web recherche, strukturierte recherche, multi-search, recherche-report, quellenbasierte web-suche, mehrere suchen, recherche mit konfidenz, multi-step research, community resonanz, was sagen reddit und hacker news, stimmung zu einem tool, letzte 30 tage, trend-check
 argument-hint: Thema + optional Ziel-Datei (z. B. "BO7 7.1 Audio-Output -> AudioSetup/research/bo7_audio.md")
 allowed-tools: WebSearch WebFetch Read Write Bash Agent
-userInvocable: true
+user-invocable: true
 ---
 
 # Websuche — Strukturierte Web-Recherche

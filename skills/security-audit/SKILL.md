@@ -6,7 +6,7 @@ description: Security-fokussierter Audit — orchestriert security-reviewer-Suba
 when_to_use: security audit, SAST, vulnerability scan, CWE check, secrets scan, threat review, bandit, semgrep, detect-secrets, security review, pre-deploy security, post-incident audit
 argument-hint: Optional Scope-Pfad oder "diff" für nur uncommitted Files
 allowed-tools: Read Grep Bash Glob Agent Write
-userInvocable: true
+user-invocable: true
 model: opus
 ---
 

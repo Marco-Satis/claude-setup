@@ -2,7 +2,7 @@
 name: finanzberater
 version: 1.0.1
 last-reviewed: 2026-05-28
-userInvocable: true
+user-invocable: true
 description: |
   Persönlicher KI-Finanzberater-Workflow für der Nutzer (deutscher Steuer-/Recht-Kontext).
   Erzeugt via strukturiertes Interview ein 3-Doku-Setup: Finanzprofil, Ziele,
@@ -52,7 +52,7 @@ Beim Skill-Start zuerst prüfen:
    - Nein → Modus `init` (Phase 1-5)
    - Ja → der Nutzer fragen: „Bestehendes Profil gefunden (Stand: <datum>). `review` zum Aktualisieren oder `check <Entscheidung>` für Plausibilitätscheck?"
 2. Falls `check <X>` als Argument: Phase 6 direkt, Phasen 1-5 überspringen.
-3. Memory-Service-Check: `Bash(curl -s --max-time 3 ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/api/health)` (Netcup-Primary; ENV überschreibt). Bei nicht-erreichbar: Phase 5 später skippen mit Hinweis im Chat.
+3. Memory-Service-Check: `Bash(curl -s --max-time 3 ${MCP_MEMORY_BASE_URL:-http://100.x.y.z:8000}/api/health)` (Netcup-Primary; ENV überschreibt). Bei nicht-erreichbar: Phase 5 später skippen mit Hinweis im Chat.
 
 ## Phase 1 — Interview (Init-Modus)
 
@@ -211,7 +211,7 @@ Aus Risikoprofil + Pain-Points wird `~/.finanzberater/verhalten.md`.
 Nach Phase 2-4: Service-Health, dann Memory-Write.
 
 ```
-Wenn curl ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/api/health == healthy:
+Wenn curl ${MCP_MEMORY_BASE_URL:-http://100.x.y.z:8000}/api/health == healthy:
   mcp__memory__memory_store(
     content=<Zusammenfassung max 800 Zeichen: Demografie-Bucket, Vermögens-Bucket,
              Risikoklasse, Horizont, 3 Top-Ziele, 3 wichtigste Verbote>,

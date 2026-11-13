@@ -6,7 +6,7 @@ description: "Richtet Wake-Up-Polling fuer Long-Run/Nacht-Sessions ein — Multi
 when_to_use: wakeup einrichten, long run setup, nacht session, session ueber nacht, autonom ueber stunden, rate-limit-resume, ScheduleWakeup einrichten, wake-up polling, window-reset wake-up, multi-session wakeup, mehrere chats wakeup, wakeup liste, wakeup status
 argument-hint: Sub-Command (register | list | remove | status) optional + Task-Name. Default ohne Argument = "register" mit der Nutzer-Frage nach Task-Name.
 allowed-tools: Read Write Bash
-userInvocable: true
+user-invocable: true
 ---
 
 # wakeup-setup v2 — Multi-Session-Wake-Up-Registry

@@ -6,7 +6,7 @@ description: Quality-Gate für abgeschlossene Änderungssätze — deterministis
 when_to_use: gate, quality gate, änderungssatz abnehmen, ist das fertig, vor dem merge prüfen, ai-slop prüfen, code guard, gegatete abnahme, deterministische prüfung vor review
 argument-hint: 'Optional Pfad/Scope — Default: uncommitted Änderungen (`git diff`). `--quick` überspringt Build+Review, `--force` ignoriert den Cache, `--dual` = Zweifach-Abnahme Claude+Codex nur für kritische Lieferungen.'
 allowed-tools: Read Grep Glob Bash Edit Write Task
-userInvocable: true
+user-invocable: true
 ---
 
 # /gate — Abnahme eines Änderungssatzes

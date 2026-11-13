@@ -2,7 +2,7 @@
 name: legal-de
 version: 1.1.0
 last-reviewed: 2026-10-23
-userInvocable: true
+user-invocable: true
 description: |
   Rechtliche Fragen mit deutschem Jurisdiktions-Kontext bearbeiten — verhindert
   dass Claude US-Recht-Konzepte (Tenant-Law, FMLA, At-Will-Employment, Common-Law)
@@ -162,5 +162,5 @@ Wenn der Nutzer eine neue Lesson aus einer Rechts-Frage zieht (z.B. „Verjähru
 
 - **v1.1.0** (2026-10-23): DE-Recht-Kontext als `references/de-recht-kontext.md` gesichert und als kanonische Quelle gesetzt; mcp-Memory nur noch Fallback (Wissenssystem Stichtag L).
 
-- **v1.0.1** (2026-05-28): Lyra-Audit — Frontmatter-Schema an der Nutzer-Standard angeglichen: `last-reviewed` + `userInvocable: true` ergänzt, `triggers:`-Liste → `when_to_use:` (Matcher-Konsistenz mit allen anderen Skills).
+- **v1.0.1** (2026-05-28): Lyra-Audit — Frontmatter-Schema an der Nutzer-Standard angeglichen: `last-reviewed` + `user-invocable: true` ergänzt, `triggers:`-Liste → `when_to_use:` (Matcher-Konsistenz mit allen anderen Skills).
 - **v1.0.0** (2026-05-19): Erste Version.

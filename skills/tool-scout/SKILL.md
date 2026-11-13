@@ -6,7 +6,7 @@ description: Autonome Tool-Discovery + Anticipation. Sucht periodisch oder on-de
 when_to_use: tool-scout, neue tools finden, plugin entdeckung, was sollte ich installieren, anticipation, foresight scan, weekly tool scan, scout for skills, was kommt als naechstes, plugin suggestions, autonome tool entdeckung
 argument-hint: optional — Fokus (DASHBOARD/AUDIO/DEVOPS/MEMORY/DISCORD/CONTENT/ALL) + optional `--install` (Top-Empfehlungen direkt installieren) + optional `--scheduled` (cron-Modus mit reduzierter Output-Verbosity)
 allowed-tools: Read Write Edit Bash Glob Grep WebSearch WebFetch Agent
-userInvocable: true
+user-invocable: true
 ---
 
 # Tool-Scout — Autonome Discovery + Anticipation
@@ -36,7 +36,7 @@ Lies aus folgenden Quellen des Nutzers aktuellen Workload-Stand:
 5. **`~/.claude/settings.json` `enabledPlugins`** — installierte Plugins
 6. **mcp-memory-service** Semantic-Search nach `recent` Workload-Themen (Cluster-Pattern)
 7. **`~/.claude/lessons/`** + **`~/.claude/audit/`** — historische Probleme, gelöste Pattern, offene Sprints
-8. **letzte 2 Audit-Reports** unter `~/.claude/reports/review/inventory_audit_*/REVIEW_REPORT_MASTER.md` (+ Alt-Pfad `~/.claude/reviews/` für historische) — aktuelle Sprint-Roadmap
+8. **letzte 2 Audit-Reports** unter `~/.claude/reports/review/*/REVIEW_REPORT_MASTER.md` (neueste 2 nach Datum; `inventory_audit_*` gibt es dort nicht) (+ Alt-Pfad `~/.claude/reviews/` für historische) — aktuelle Sprint-Roadmap
 
 Output dieser Phase: kompakte Workload-Snapshot-Tabelle (max 10 Bullets).
 
@@ -54,16 +54,16 @@ Frage dich pro Workload: **was kommt logisch als nächstes?**
 | FootstepPro Audio-DSP | Spektrogramm-Viz, Realtime-Streaming | "real-time spectrogram", "audio dsp visualization" |
 | Active-Enforcement-Hooks-Pattern | Hook-Composability, Hook-Testing-Framework | "claude code hook test", "hook orchestration" |
 | Long-Run/Nacht-Sessions mit Wake-Up | Session-Resume-Pattern, Window-Reset-Detection, Multi-Window-Orchestration | "claude code wake-up", "session resume after rate limit", "long-running claude code" |
-| Token-Optimierung (Max-5x-Plan) | Skill-Listing-Slim, MCP-Tool-Definition-Reduction, Cache-Maximization | "claude code token efficiency", "skill listing optimization" |
+| Token-Optimierung (Max-20x-Plan) | Skill-Listing-Slim, MCP-Tool-Definition-Reduction, Cache-Maximization | "claude code token efficiency", "skill listing optimization" |
 
-**Wichtig:** Anticipation ist nicht Marketing-Speak — sondern logische Konsequenz aus dem aktiven Stack. Beispiel: Wer ~3500 Memories in einer sqlite_vec-DB hat, wird logisch eine Visualisierungs-Frage haben. Antizipiert wird **bevor** der Nutzer fragt.
+**Wichtig:** Anticipation ist nicht Marketing-Speak — sondern logische Konsequenz aus dem aktiven Stack. Beispiel: Wer ~15.000 Memories in einer sqlite_vec-DB hat, wird logisch eine Visualisierungs-Frage haben. Antizipiert wird **bevor** der Nutzer fragt.
 
 ## Phase 3 — Such-Run
 
 Quellen-Hierarchie verbindlich (höhere Priorität zuerst):
 
-1. **Anthropic offiziell:** `docs.claude.com`, `claude.com/blog`, GitHub `anthropics/claude-code`, `anthropics/skills`, `anthropics/anthropic-cookbook`
-2. **Claude-Code Plugin-Marketplaces** (`community-plugins.txt`) + GitHub-Topic `claude-code`, `claude-skill`
+1. **Anthropic offiziell:** `code.claude.com/docs`, `platform.claude.com/docs`, `claude.com/blog`, GitHub `anthropics/claude-code`, `anthropics/skills`, `anthropics/claude-cookbooks`
+2. **Claude-Code Plugin-Marketplaces** (`~/.claude/plugins/known_marketplaces.json`) + GitHub-Topic `claude-code`, `claude-skill`
 3. **GitHub-Repos** mit ≥100 Stars UND ≥1 Commit in den letzten 90 Tagen
 4. **Community-Posts** (r/ClaudeAI, Discord, X) ausschließlich als Hinweis-Quelle
 
@@ -96,7 +96,7 @@ Belege je Quelle: `~/projects/Discord_Bots/research/websuche_auto-queryable-clau
 | OSS Insight — Agent Skills & AGENTS.md | `https://api.ossinsight.io/v1/collections/10124/ranking_by_stars/` | JSON | sehr hoch |
 | OSS Insight — MCP Client | `https://api.ossinsight.io/v1/collections/10099/ranking_by_stars/` | JSON | hoch |
 | MCP-Registry (offiziell) | `https://registry.modelcontextprotocol.io/v0/servers?limit=50` | JSON | hoch |
-| Glama.ai MCP-Verzeichnis (createdAt-Cursor) | `https://glama.ai/api/mcp/v1/servers?first=50` | JSON | hoch |
+| Glama.ai MCP-Verzeichnis (createdAt-Cursor) — **Stand 2026-11-13: HTTP 401, Endpunkt verlangt API-Key → überspringen** | `https://glama.ai/api/mcp/v1/servers?first=50` | JSON | — |
 | GitHub Topic `claude-code` | `https://api.github.com/search/repositories?q=topic:claude-code&sort=updated&order=desc&per_page=20` | JSON | mittel |
 | GitHub Topic `claude-code-plugin` | `https://api.github.com/search/repositories?q=topic:claude-code-plugin&sort=updated&order=desc&per_page=20` | JSON | hoch |
 | GitHub Topic `claude-skill` | `https://api.github.com/search/repositories?q=topic:claude-skill&sort=updated&order=desc&per_page=20` | JSON | hoch |
@@ -116,7 +116,7 @@ Belege je Quelle: `~/projects/Discord_Bots/research/websuche_auto-queryable-clau
 | Latent Space Newsletter | `https://www.latent.space/feed` | RSS | mittel-hoch |
 | swyx.io Blog | `https://swyx.io/rss.xml` | RSS | mittel-hoch |
 | Alexander Sprogis — GitHub | `https://api.github.com/users/AlexPEClub/repos?sort=updated` | JSON | hoch (thematisch exakt) |
-| Alexander Sprogis — YouTube | `https://www.youtube.com/feeds/videos.xml?channel_id=UC5Ns-Tc7anOZdf6FWGiM25A` | Atom | hoch, aber Feed defekt (s.u.) |
+| Alexander Sprogis — YouTube | `https://www.youtube.com/feeds/videos.xml?channel_id=UC5Ns-Tc7anOZdf6FWGiM25A` | Atom | hoch |
 | GitHub Topic `claude-code-skill` | `https://api.github.com/search/repositories?q=topic:claude-code-skill&sort=updated&order=desc&per_page=20` | JSON | mittel |
 | GitHub Topic `claude-plugin` | `https://api.github.com/search/repositories?q=topic:claude-plugin&sort=updated&order=desc&per_page=20` | JSON | mittel |
 
@@ -326,7 +326,7 @@ Bei `--scheduled`: zusätzlich Memory-Service-Eintrag mit Tag `tool-scout-<YYYY-
 
 ## Scheduled-Modus (cron/Task Scheduler)
 
-Setup-Empfehlung fuer wiederkehrenden Scan:
+**Aktiv:** netcup-Cron Mo 08:30 → `~/.claude/scripts/weekly_tool_scout.sh` (Läufe ALL + CONTENT, `claude -p … --no-session-persistence`). Der PC-Task `tool-scout-weekly` ist deaktiviert, am PC gibt es seit 2026-11-13 keine `claude`-CLI im PATH. Alt-Setup (PC, nicht aktiv):
 
 ```powershell
 # Wochentlicher Run, Donnerstag 09:00 Berlin (passend zu Lyra Mo 09:00 — staggered)
@@ -335,7 +335,7 @@ $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Thursday -At 9am
 Register-ScheduledTask -TaskName "tool-scout-weekly" -Action $action -Trigger $trigger
 ```
 
-(Falls Claude Code CLI nicht direkt cron-faehig: Wrapper-Script mit `claude --headless /tool-scout ALL --scheduled` siehe `~/.claude/scripts/scheduled_tool_scout.ps1`.)
+(Falls Claude Code CLI nicht direkt cron-faehig: Wrapper-Script mit `claude -p "Run skill /tool-scout ALL --scheduled" --no-session-persistence` siehe `~/.claude/scripts/scheduled_tool_scout.ps1`.)
 
 ## Versionierung
 

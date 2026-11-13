@@ -6,7 +6,7 @@ description: UX/Layout-Review für HTML/CSS-Komponenten — visuelle Hierarchie,
 when_to_use: ui review, design critique, dashboard kritik, html review, css review, ux feedback, visual hierarchy check, design konsistenz, spacing check, hover states review
 argument-hint: Optional File/Komponente ("web/templates/dashboard.html" | "navigation" | "stats-card") — Default scant gesamten templates-Ordner
 allowed-tools: Read Grep Glob Bash Write Edit
-userInvocable: true
+user-invocable: true
 ---
 
 # ui-critique — UX/Layout-Review

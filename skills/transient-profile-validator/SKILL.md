@@ -6,7 +6,7 @@ description: Validiert FootstepPro TRANSIENT_PROFILES auf Centroid-Range vs prim
 when_to_use: TRANSIENT_PROFILES validation, FootstepPro profile check, centroid-bands consistency, sound class collision, AUD-H3
 argument-hint: Optional Profil-Name (default = alle Profile)
 allowed-tools: Read Grep Glob Bash Write Edit
-userInvocable: true
+user-invocable: true
 ---
 
 # Transient-Profile-Validator
@@ -43,7 +43,7 @@ Fuer jedes Paar (P1, P2) aus TRANSIENT_PROFILES:
 ### 3. Bekannte Konflikt-Patterns (AUD-H3 aus v4)
 - **footstep_grass:** primary darf NICHT B9 enthalten (Killstreak-Kollision). Erlaubt: B7, B8 in primary; B9 nur in secondary.
 - **crate_idle_hum vs footstep_concrete:** beide haben primary B7+B8, ueberlappende centroid_range. Disambiguator-Check: `is_masking_source=True` (crate) vs `surface='concrete'` (footstep) ist OK, aber duration-Filter im segment_classifier waere besser.
-- **damage_indicator vs footstep:** damage_indicator hat primary B6+B7+B8, centroid 1500-3500. Ueberlappt mit allen 7 footstep_*-Profilen. Hier ist der Disambiguator das duration_ms-Feld (damage <150ms) — aber segment_classifier wertet duration nicht aus.
+- **damage_indicator vs footstep:** damage_indicator hat primary B6+B7+B8, centroid 1500-3500. Ueberlappt mit allen 10 footstep_*-Profilen. Hier ist der Disambiguator das duration_ms-Feld (damage <150ms) — aber segment_classifier wertet duration nicht aus.
 
 ### 4. Surface-Field-Konsistenz
 Profile mit `surface`-Field muessen einer der 7 erlaubten Werte haben:

@@ -6,7 +6,7 @@ description: WCAG-2.1-AA-Accessibility-Audit für HTML/CSS/JS — Color-Contrast
 when_to_use: a11y check, accessibility audit, WCAG audit, kontrast prüfen, keyboard navigation, ARIA review, dashboard barrierefreiheit, color contrast check, screen reader compatibility
 argument-hint: Optional File/Glob ("web/templates/dashboard.html" | "web/templates/**/*.html") — Default scant gesamten templates-Ordner
 allowed-tools: Read Grep Glob Bash Write Edit
-userInvocable: true
+user-invocable: true
 ---
 
 # a11y-check — WCAG 2.1 AA Audit
@@ -17,7 +17,7 @@ Zweck: Dashboard und HTML-Templates auf Accessibility-Probleme prüfen. Fokus: W
 
 1. Scope ermitteln: Argument oder Default `web/templates/**/*.html` + zugehörige CSS-Files
 2. Komponenten-Liste aus HTML extrahieren (Buttons, Links, Form-Inputs, Modals, Tables, Charts)
-3. CSS-Tokens lesen (`web/static/style.css` für Color-Variables)
+3. CSS-Tokens lesen: die Stylesheets, die das Basis-Template wirklich lädt (`grep -n stylesheet web/templates/base*.html`). Discord-Bots-Dashboard v5: alle Seiten erben von `base_v5.html` → `web/static/tailwind/_tokens.css` + `web/static/c3.css` (+ `_preview/v5_components.css`, `_preview/mobile.css`); `web/static/style.css` hängt nur am verwaisten `base.html`. Diese Dateien auch in den `style.css`-Greps unten einsetzen.
 
 ## Phase 1 — Statische Checks
 
@@ -32,7 +32,7 @@ contrast_ratio = relative_luminance_ratio(text_color, bg_color)
 ```
 
 Tools (lokal nutzbar):
-- `npx pa11y <url>` (CLI-Wrapper für axe-core) — wenn Dashboard läuft
+- `npx pa11y <url>` (CLI, Standard-Runner HTML_CodeSniffer; axe-core via `--runner axe`) — wenn Dashboard läuft
 - Manuell: Browser-DevTools → Lighthouse → Accessibility-Audit
 
 **Pflicht-Findings:**
@@ -56,7 +56,7 @@ grep -E 'class="btn"' web/templates/**/*.html
 - `tabindex="-1"` auf interaktiven Elementen → HIGH (entfernt aus Tab-Order)
 - `tabindex` > 0 → MEDIUM (überschreibt natürliche Reihenfolge)
 
-### Touch-Targets (WCAG 2.5.5 AAA / 2.5.8 AA)
+### Touch-Targets (WCAG 2.5.5 AAA / 2.5.8 AA — 2.5.8 erst ab WCAG 2.2)
 
 CSS-Check für Buttons/Links:
 ```bash
@@ -162,7 +162,7 @@ npx pa11y http://localhost:8080 --standard WCAG2AA --reporter json > a11y_live.j
 | UX-Texte für Screen-Reader (alt-texts, aria-labels) | `design:ux-copy` |
 | Neue Komponente bauen mit A11Y-First | `frontend-design` + danach `/a11y-check` |
 
-Workflow-Übersicht: `~/.claude/docs/design-workflow.md`
+Workflow-Übersicht: `~/.claude/docs/design-workflow.md` (nur PC — `docs/` synct nicht nach netcup)
 
 ## Beispiel-Triggers
 

@@ -16,7 +16,7 @@ Dependency-Security-Spezialist. Prüft auf CVEs, Slopsquatting, Lockfile-Hygiene
 
 ## Tools
 
-**pip-audit:** Standard ist das bereits installierte venv: `<venv>/bin/pip-audit --format=json` (auditiert installierte Pakete, installiert nichts). Nur fuer eine nicht installierte Requirements-Datei: `pip-audit -r requirements.txt --no-deps --disable-pip --format=json`, das setzt vollstaendig gepinnte Versionen (idealerweise mit Hashes) voraus. **Nie `pip-audit -r` ohne `--disable-pip`:** Sonst loest pip-audit die Datei ueber pip in einem Temp-venv auf und fuehrt dabei Build-Code (setup.py) jedes Pakets aus. Ein gesquattetes Paket, genau das, wonach wir suchen, liefe damit auf dem Host (Befund Codex-Port-Pruefung 2026-09-30). Server: SSH zu `/home/botuser/Discord_Bots/venv/bin/pip-audit` (installiertes venv, ohne `-r`).
+**pip-audit:** Standard ist das bereits installierte venv: `<venv>/bin/pip-audit --format=json` (auditiert installierte Pakete, installiert nichts). Nur fuer eine nicht installierte Requirements-Datei: `pip-audit -r requirements.txt --no-deps --disable-pip --format=json`, das setzt vollstaendig gepinnte Versionen (idealerweise mit Hashes) voraus. **Nie `pip-audit -r` ohne `--disable-pip`:** Sonst loest pip-audit die Datei ueber pip in einem Temp-venv auf und fuehrt dabei Build-Code (setup.py) jedes Pakets aus. Ein gesquattetes Paket, genau das, wonach wir suchen, liefe damit auf dem Host (Befund Codex-Port-Pruefung 2026-09-30). Server: `ssh netcup-marco "~/.local/bin/pip-audit --path /home/botuser/Discord_Bots/venv/lib/python3.11/site-packages --format=json"` (installiertes venv, ohne `-r`; im Bot-venv selbst ist kein pip-audit installiert).
 
 **Slopsquatting via curl** (nicht WebFetch):
 ```bash

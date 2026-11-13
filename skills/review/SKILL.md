@@ -6,7 +6,7 @@ description: Multi-Agent Projekt- und Code-Review-Orchestrator. Prueft NICHT nur
 when_to_use: projekt review / komplettes projekt untersuchen (Scope `projekt` = ganzes Repo, Code-Achsen A-D + Projekt-Achsen E-J), code review (session-bewusst — ERSTES Review der Session scannt alles was zum Session-Thema gehoert (angefasste/besprochene Files, NICHT das ganze Repo — dafuer `all`), jedes weitere nur die Aenderungen seit dem letzten Review + Re-Check ob die Vorbefunde noch existieren), pr review, pre-commit review, session-diff-review, regression check, kritischer review der letzten Aenderungen, /review (fuer Quartals-Audit der gesamten Codebase nutze full-audit)
 argument-hint: Optional Scope-Override ("projekt"/"all" = ganzes Projekt inkl. Achsen E-J | "setup" | "discord" | "footstep" | "--since YYYY-MM-DD" | "<pfad-glob>") oder Flags "--projekt" (Achsen E-J auch bei kleinem Scope erzwingen) / "--no-projekt" / "--no-council" (Council-Trigger C1-C5 abschalten; Default ist AN) / "--council" (zusaetzlich die teure Deliberation erlauben) / "--no-loop" / "--no-memory" / "--no-graph" / "--no-problems" / "--no-learn" / "--verify-fixes"
 allowed-tools: Read Bash Glob Grep Write Edit Agent
-userInvocable: true
+user-invocable: true
 model: opus
 ---
 
@@ -141,7 +141,7 @@ Vor allem anderen. Bei Fail: im Output dokumentieren, degraded weitermachen.
 |---|-------|------|------|
 | 1 | Git-Repo? `git -C <root> rev-parse --is-inside-work-tree` | **Git-Diff-Scope (Phase 1A) aktiv** | mtime-Scope (Phase 1B) |
 | 2 | Worktree verschachtelt (`<repo>/.claude/worktrees/...`)? | Sub-Agents nutzbar | Inline-Fallback, Notiz "Reviewer-Failures" |
-| 3 | Memory-Service: `curl -s ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/api/health` (Netcup-Primary) | Regression-Tagging aktiv | Skip + Notiz "Memory offline" |
+| 3 | Memory-Service: `curl -s ${MCP_MEMORY_BASE_URL:-http://100.x.y.z:8000}/api/health` (Netcup-Primary) | Regression-Tagging aktiv | Skip + Notiz "Memory offline" |
 | 4 | SAST-Tools je Sprache (K4): `bandit --version`, `semgrep --version`, `detect-secrets --version`, `Get-Command Invoke-ScriptAnalyzer`, `npx eslint -v`, `shellcheck -V` — nur fuer im Diff vorkommende Sprachen pruefen | tool-augmentiert | Notiz welche Tools je Sprache fehlten |
 | 5 | Concurrent-Lock: `~/.claude/reports/review/.review_lock`? | Lockfile (PID, atomic) anlegen | lebt anderes PID → abort, der Nutzer informieren |
 
@@ -377,7 +377,7 @@ Liegt im Review-Folder. Phase 6/6.5 lesen NUR von hier.
 
 ## Phase 4 — Regression-Tagging (Memory)
 
-Wenn Memory-Health passed: pro Finding VOR Reporting suchen — bevorzugt `mcp__memory__memory_search`, sonst `POST ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/api/search {"query":"<50 Zeichen Beschreibung + file-basename>","n_results":3}`. Match Similarity > 0.75 → Finding `[REGRESSION seit <datum>]` + Master-Section "Regressions". Offline → Notiz "Regression-Check skipped".
+Wenn Memory-Health passed: pro Finding VOR Reporting suchen — bevorzugt `mcp__memory__memory_search`, sonst `POST ${MCP_MEMORY_BASE_URL:-http://100.x.y.z:8000}/api/search {"query":"<50 Zeichen Beschreibung + file-basename>","n_results":3}`. Match Similarity > 0.75 → Finding `[REGRESSION seit <datum>]` + Master-Section "Regressions". Offline → Notiz "Regression-Check skipped".
 
 ---
 

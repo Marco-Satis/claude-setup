@@ -6,7 +6,7 @@ description: DSP-Korrektheit-Check fuer FootstepPro Spatial-Pipeline. Validiert 
 when_to_use: footstep spatial, DSP pipeline check, spatial_analyzer review, TRANSIENT_PROFILES centroid conflict, audio pipeline audit, spatial_health AUD-H1
 argument-hint: Optional File-Pfad (default = beide pruefen)
 allowed-tools: Read Grep Glob Bash Write Edit
-userInvocable: true
+user-invocable: true
 ---
 
 # Spatial-Pipeline-Helper — FootstepPro DSP-Check
@@ -22,7 +22,7 @@ Datenbasis ist **(Windows-lokal)** — FootstepPro/FootstepAnalyzer liegt nur au
 ## Checks
 
 ### 1. spatial_health-Adjustment-Asymmetrie (AUD-H1)
-Lies `metrics.py` und pruefe ob `spatial_health(levels, spatial=...)` Adjustment direkt auf `result` addiert (FALSCH) ODER als separater Bonus auf `spatial_bonus`-Score (RICHTIG).
+Lies `metrics.py` und pruefe ob `spatial_health()` (seit Plan v1.6 nur `spatial_health(band_levels)`, Bonus separat in `spatial_quality_bonus_points()`) Adjustment direkt auf `result` addiert (FALSCH) ODER als separater Bonus auf `spatial_bonus`-Score (RICHTIG).
 
 **Falsch (Sabotage-Risiko):**
 ```python
@@ -34,15 +34,16 @@ result += iacc_bonus + spread_bonus  # schiebt aus Idealband [-8,-3] heraus
 ```python
 sh = spatial_health(bands.levels)  # ohne spatial-Argument
 # ... Score-Mapping ergibt spatial_bonus ...
-if spatial is not None and not spatial.is_mono:
-    spatial_bonus = min(100.0, spatial_bonus + iacc_bonus_pts + spread_bonus_pts)
+spatial = getattr(bands, 'spatial', None)
+spatial_bonus = spatial_bonus * 0.85 + spatial_quality_bonus_points(spatial)  # Plan v1.7 MED-1: kein Saturieren bei 100
+spatial_bonus = min(100.0, spatial_bonus)
 ```
 
 ### 2. TRANSIENT_PROFILES-Konflikt-Matrix (AUD-H3)
 Lies `constants.py:TRANSIENT_PROFILES` und baue eine Konflikt-Matrix:
 - Profile mit gleichen `primary_bands` UND ueberlappenden `centroid_range_hz`
 - Speziell: `footstep_grass` darf B9 NICHT in primary haben (Killstreak-Kollision)
-- Speziell: `crate_idle_hum` und `footstep_concrete` duerfen sich nicht in primary_bands UND centroid_range gleichzeitig ueberlappen ohne Disambiguierung (z.B. min_above_db-Differenz >=2 oder duration-Filter)
+- Speziell: `crate_idle_hum` und `footstep_concrete` duerfen sich nicht in primary_bands UND centroid_range gleichzeitig ueberlappen ohne Disambiguierung (z.B. min_above_noise_db-Differenz >=2 oder duration-Filter)
 
 ### 3. Performance-Estimate (AUD-H2)
 Bei einer Aufnahmen-Laenge L (in Sekunden) bei sr=48000:
@@ -50,13 +51,14 @@ Bei einer Aufnahmen-Laenge L (in Sekunden) bei sr=48000:
 - ILD-Loop: 12 × n_windows × ~80 us (per-window RMS)
 - n_windows ≈ (L × 48000 - 24000) / 2400 + 1
 
-Bei L=1800 (30 Min): ~140 s. Empfohlene Vektorisierung via `sliding_window_view`.
+Bei L=1800 (30 Min): ~140 s, das gilt nur fuer den alten Loop-Stand. Seit Plan v1.6/v1.10 vektorisiert: ILD per Cumsum (`_windowed_mean_square`, ersetzt `sliding_window_view`**2, p-8c513fb494), ITD per `_compute_itd_trace_batched` und default aus (`compute_itd=False`, P4-01); Docstring-Ziel ~3 s fuer 30-Min Stereo. Keinen Rueckbau auf `sliding_window_view(x)**2` empfehlen.
 
 ### 4. ITD-Vorzeichen-Konvention
 ITD-Test soll mit Rauschen (nicht Sinus!) erfolgen:
 ```python
 L = np.random.randn(96000)
 R = np.roll(L, 30)  # R kommt 30 Samples spaeter
+# analyze_spatial(np.column_stack([L, R]), 48000, compute_itd=True), ITD ist seit P4-01 default aus
 # Erwartung: ITD ≈ -0.625 ms (negativ = L fuehrt)
 ```
 Bei Sinus-Tests ist Cross-Correlation aliasinganfaellig (Periode-Aliasing).

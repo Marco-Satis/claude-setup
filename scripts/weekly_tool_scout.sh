@@ -5,7 +5,7 @@
 #   1. ALL      -> des Nutzers eigener Stack   -> ~/.claude/audit/tool_scout_<datum>.md
 #   2. CONTENT  -> Nutzerin A & Nutzer B          -> ~/.claude/audit/tool_scout_content_<datum>.md
 #
-# Der Skill selbst haelt Quellen, Filter und Report-Format (SKILL.md v1.4.0) — dieses
+# Der Skill selbst haelt Quellen, Filter und Report-Format (SKILL.md) — dieses
 # Script ist nur der Antrieb. Best-effort: bricht die Cron nie hart ab, installiert nie
 # etwas automatisch (kein --install).
 set -uo pipefail

@@ -6,7 +6,7 @@ description: Erstellt einen neuen Sub-Agent nach des Nutzers Standard-Pattern �
 when_to_use: neuen sub-agent erstellen, agent anlegen, agent scaffold, neuen .claude/agents/-file erstellen, subagent template, sub-agent bauen
 argument-hint: Optional Agent-Name + Domain — bei fehlend interaktive Fragen
 allowed-tools: Read Write Edit Bash Glob
-userInvocable: true
+user-invocable: true
 ---
 
 # Agent-Create — Neuen Sub-Agent erstellen

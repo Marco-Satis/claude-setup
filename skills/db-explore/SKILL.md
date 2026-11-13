@@ -6,7 +6,7 @@ description: SQLite-Datenbank-Inspect ohne Modifikationen — Schema, Indices, R
 when_to_use: db explore, db inspect, sqlite analysieren, datenbank stichprobe, schema check, db statistik, table profile, query plan, sqlite analyze, db hygiene check
 argument-hint: Required DB-Pfad ("/path/to/file.sqlite") + Optional Mode ("schema" | "stats" | "queries" | "full" — Default "full")
 allowed-tools: Read Bash Glob
-userInvocable: true
+user-invocable: true
 ---
 
 # db-explore — SQLite-Inspect-Skill
@@ -21,7 +21,7 @@ Zweck: Schnelle Übersicht einer SQLite-DB ohne Daten zu verändern. Pflicht Rea
 
 ```bash
 # Prüfung ob Service läuft (Linux):
-ssh -p <ssh-port> <user>@<server-ip> "sudo systemctl is-active monitor-bot gameserver-bot admin-bot web-dashboard"
+ssh netcup-marco "systemctl is-active recon-bot operator-bot marshal-bot pipeline-bot web-dashboard"
 ```
 
 ## Phase 1 — Schema-Inventar
@@ -154,7 +154,7 @@ Basierend auf Phase 1–5:
 | DB-Pfad | Service | Hinweise |
 |---|---|---|
 | `C:\Users\<user>\AppData\Local\mcp-memory\sqlite_vec.db` (Windows, real) bzw. `~/.local/share/mcp-memory/sqlite_vec.db` (Linux) | mcp-memory-service | Port 8000 — Health-Check vor Inspect. WAL-Mode: `wal_checkpoint` vor Backup. Backup-Script: `~/.claude/scripts/backup_memory_db.py` |
-| `/home/botuser/Discord_Bots/data/bot.db` | monitor-bot, gameserver-bot, admin-bot | shared DB — Inspect lieber bei niedriger Last |
+| `/home/botuser/Discord_Bots/data/bot.db` | recon-bot, operator-bot, marshal-bot (ex monitor/gameserver/admin-bot) | shared DB — Inspect lieber bei niedriger Last |
 | `$HOME/n8n_stack/state/pipeline_state.sqlite` (geplant) | n8n-Workflow | erst nach Phase-2-Setup der Pipeline |
 | `$HOME/n8n_data/database.sqlite` (geplant) | n8n selbst | Workflow-Storage |
 

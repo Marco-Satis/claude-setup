@@ -6,7 +6,7 @@ description: Strukturierter Abschluss eines Feature-Branches — Test-Gate zuers
 when_to_use: branch fertig, feature-branch abschließen, branch mergen oder löschen, branch aufräumen, implementation fertig was nun mit dem branch, branch finish, merge zurück auf main
 argument-hint: 'Optional: Branch-Name — Default: aktueller Branch'
 allowed-tools: Bash Read
-userInvocable: true
+user-invocable: true
 ---
 
 # Branch-Finish — Feature-Branch strukturiert abschließen

@@ -1,12 +1,12 @@
 ---
 name: skill-create
-version: 2.3.0
-last-reviewed: 2026-10-18
+version: 2.3.1
+last-reviewed: 2026-11-13
 description: Erstellt einen neuen Skill nach des Nutzers Standard-Pattern — vollständiges Frontmatter, Phasen-Struktur, Constraints, Beispiel-Triggers, Versions-Header. Verifiziert YAML-Validität + Schema-Konformität nach Write.
 when_to_use: neuen skill erstellen, claude code skill anlegen, skill scaffold, neuen slash-command bauen, SKILL.md erstellen, skill template, command erstellen
 argument-hint: Optional Skill-Name + kurze Beschreibung — bei fehlend interaktive Fragen
 allowed-tools: Read Write Edit Bash Glob
-userInvocable: true
+user-invocable: true
 ---
 
 # Skill-Create — Neuen Skill nach der Nutzer-Standard
@@ -49,7 +49,7 @@ description: <Wann triggert der Skill? Trigger-Beschreibung, nicht Funktions-Sum
 when_to_use: <kommagetrennte Trigger-Begriffe + Synonyme>
 argument-hint: <falls Argument vorhanden — Format + Default>
 allowed-tools: <Read Grep Bash Write Edit — nur die wirklich gebrauchten>
-userInvocable: true
+user-invocable: true
 model: <haiku|sonnet|opus|fable|inherit>   # NUR setzen wenn explizit nicht der Default; Familien-ALIAS statt Voll-ID (Pinning-Politik 2026-06-12)
 ---
 ```
@@ -112,7 +112,7 @@ Dazu: keine Nuance-Klauseln („nicht X, außer es ist wichtig") — die öffnen
    ```bash
    python -c "import yaml; data = yaml.safe_load(open('<path>/SKILL.md').read().split('---')[1]); print('OK:', list(data.keys()))"
    ```
-4. Pflicht-Felder-Check: `name`, `version`, `description`, `when_to_use`, `userInvocable` müssen vorhanden sein
+4. Pflicht-Felder-Check: `name`, `version`, `description`, `when_to_use`, `user-invocable` müssen vorhanden sein
 5. der Nutzer zeigen + fragen ob Anpassungen nötig
 
 ### Phase 3.5 — Skill-Test an frischem Subagent (geerntet aus superpowers:writing-skills v6.1.1, 2026-07-21)
@@ -168,9 +168,9 @@ bei reinen Referenz-Skills optional.
 
 ### Phase 4 — Integration
 
-1. Skill in globaler CLAUDE.md unter „Globale Slash-Commands" eintragen (falls global)
+1. Skill in globaler CLAUDE.md unter „Globale Slash-Commands" eintragen (falls global; die Sektion gibt es nur in der PC-Fassung, die netcup-CLAUDE.md ist schlank und synct nicht)
 2. Falls projekt-spezifisch: in projekt-CLAUDE.md eintragen
-3. `plugin_hash_snapshot.py --update` ausführen damit der neue Skill in Hash-Drift-Detection erfasst wird
+3. Kein `plugin_hash_snapshot.py --update`: das Skript hasht nur `~/.claude/plugins/`, eigene Skills erfasst es nicht — ein `--update` würde nur offene Plugin-Drift still quittieren
 4. Test-Trigger: in neuer Session `/<name>` aufrufen + sehen ob Skill geladen wird
 
 ## Anti-Patterns (was NICHT tun)
@@ -180,7 +180,7 @@ bei reinen Referenz-Skills optional.
 | Description als Funktions-Summary statt Trigger | „Wann triggert der Skill?" formulieren, nicht „Was macht der Skill?" |
 | Frontmatter ohne `version` | Pflicht: Semver `1.0.0` bei Erstellung |
 | Frontmatter ohne `last-reviewed` | Pflicht: aktuelles Datum |
-| `allowed-tools: *` (Wildcard) | Nur Tools die wirklich gebraucht werden — Token-Listing-Effizienz |
+| `allowed-tools: *` (Wildcard) | Nur Tools die wirklich gebraucht werden — `allowed-tools` gibt sie ohne Rückfrage frei (keine Einschränkung, dafür `disallowed-tools`) |
 | Skill ohne `Constraints`-Section | Pflicht: zumindest Read-only / Write-allowed klären |
 | Vage when_to_use („für alles möglich") | Konkrete kommagetrennte Trigger-Begriffe |
 | Hardcoded Pfade ohne `~/` Tilde-Expansion | Tilde verwenden, dann auf Windows + Linux portabel |
@@ -218,7 +218,7 @@ Bei jedem späteren Edit an einem existierenden Skill:
 - **Pattern-Konsistenz** mit anderen Skills in `~/.claude/skills/` prüfen
 - **Token-Effizienz:** Description max 2 Sätze, kein Bloat
 - **Keine `model:` ohne Begründung** im Body
-- **Quellen** für Anthropic-Skill-Standards: https://docs.claude.com/en/docs/claude-code/skills (bei Drift überprüfen)
+- **Quellen** für Anthropic-Skill-Standards: https://code.claude.com/docs/en/skills (bei Drift überprüfen)
 
 ## Beispiel-Triggers
 
@@ -228,6 +228,7 @@ Bei jedem späteren Edit an einem existierenden Skill:
 
 ## Changelog
 
+- **v2.3.1** (2026-11-13): Korrekturen nach Skill-Drift-Audit — Template-Feld `user-invocable` statt `userInvocable` (wurde ignoriert), Phase 4 ohne `plugin_hash_snapshot.py --update` (erfasst nur Plugins), `allowed-tools`-Semantik richtiggestellt, Doku-URL code.claude.com, netcup-CLAUDE.md-Hinweis; dazu die Edits vom 13.11. (keine Terminal-CLI am PC, Agent-Tool).
 - **v2.3.0** (2026-10-18): Phase 3.6 Eval (TikTok-Auswertung A3.7, der Nutzer-Ja): Ausgabe-Eval mit/ohne Skill per parallelen Subagenten + Assertions; Trigger-Eval der Description über `scripts/skill_trigger_eval.sh` (Anthropics `run_eval.py`, abgeschirmt: keine Hooks, keine Transkripte, Aufräumen); Evals bleiben als Regressionstest beim Skill.
 - **v2.2.0** (2026-07-21): Fidelity-Nachernte (Verifier-Befund): Gestaltungs-Prinzipien-Sektion — Degrees of Freedom, Feedback-Loop/Plan-Validate-Execute, Script-Guidance (solve-don't-punt, Voodoo-Konstanten, Execute-vs-Read-Intent), @-Link-Verbot, Persuasions-Prinzipien (Negativ-Regeln Liking/Reciprocity).
 - **v2.1.0** (2026-07-21): Superpowers-Harvest (geerntet aus superpowers:writing-skills v6.1.1): Anti-Bloat-Gate im Pre-Flight (ein Skill = ein Job, mechanische Regeln → Hook, Baseline-Frage), Description-Trigger-Optimierung (nie Workflow-Summary — Agent folgt sonst der Kurzfassung statt dem Body, Feuert-NICHT-Check mit Kollisions-Grep, Keyword-Coverage), Body-Formulierungs-Tabelle (Form an Fehlertyp: Verbot vs. Positiv-Rezept vs. Struktur-Slot vs. Konditional; keine Nuance-Klauseln; <500 Zeilen + references/-Regeln), neue Phase 3.5 Skill-Test an frischem Subagent (Baseline/Verify/Typ-Tabelle/Meta-Test/Rationalisierungs-Tabelle; Zukunft: Micro-Wording-Tests via claude -p-Batch), Re-Test-Pflicht bei MINOR/MAJOR-Edits, 2 neue Anti-Pattern-Zeilen (Narrativ-Beispiel, verschachtelte Referenzen).

@@ -6,7 +6,7 @@ description: Dependency-Vulnerability-Audit — orchestriert dependency-auditor-
 when_to_use: dependency audit, pip-audit, CVE check, slopsquatting detection, lockfile hygiene, package vulnerability, requirements.txt review, npm audit, supply chain audit
 argument-hint: Optional requirements-Datei-Pfad oder "server" für Remote-Audit auf netcup-server
 allowed-tools: Read Grep Bash Glob Agent Write
-userInvocable: true
+user-invocable: true
 model: sonnet
 ---
 
@@ -55,15 +55,15 @@ Agent({
 ## Phase 2 — Server-Audit (optional, bei Argument `server` oder `all`)
 
 ```bash
-ssh -p <ssh-port> <user>@<server-ip> \
-  "sudo /bin/su - botuser -c 'cd /home/botuser/Discord_Bots && \
-   .venv/bin/pip-audit --format json --output /tmp/pip-audit.json'"
-scp -P <ssh-port> <user>@<server-ip>:/tmp/pip-audit.json \
+ssh netcup-marco \
+  "~/.local/bin/pip-audit --path /home/botuser/Discord_Bots/venv/lib/python3.11/site-packages \
+   --format json --output /tmp/pip-audit.json"
+scp netcup-marco:/tmp/pip-audit.json \
   ~/.claude/reports/deps-check/<datum>/RAW_TOOL_OUTPUT/server_pip-audit.json
 ```
 
-Hinweis: Server hat eigene venvs pro Bot. Pro Bot einzeln:
-- monitor-bot, gameserver-bot, admin-bot, web-dashboard
+Hinweis: Alle Bots teilen ein venv (`/home/botuser/Discord_Bots/venv`), ein Lauf deckt ab:
+- recon-bot, operator-bot, marshal-bot, pipeline-bot, web-dashboard
 
 ## Phase 3 — Konsolidierung
 
@@ -94,7 +94,7 @@ Pfad: ~/.claude/reports/deps-check/<datum>/REVIEW_REPORT_DEPENDENCIES.md
 
 Update-Reihenfolge:
   1. SOFORT-Items hintereinander, je Update Tests laufen lassen
-  2. Bei Bot-Restart: monitor-bot zuerst, dann andere
+  2. Bei Bot-Restart: recon-bot zuerst, dann andere
 ```
 
 ## Anti-Patterns (Output-Qualität)
@@ -103,9 +103,9 @@ Update-Reihenfolge:
 |---|---|
 | Findings ohne CVE-ID | Pflicht: CVE-X-Y oder GHSA-X bei GitHub-Advisory |
 | „Update everything" pauschal | Priorisieren nach Severity; Breaking-Changes flaggen |
-| Auto-Update ohne Test-Hinweis | „Update X → vor Deploy: alle 4 test_*.py laufen lassen" |
+| Auto-Update ohne Test-Hinweis | „Update X → vor Deploy: alle test_*.py laufen lassen" |
 | Slopsquatting nicht als separates Finding | Eigene Severity-Spalte (HIGH wenn `pip install` lokal lief) |
-| Server-Update ohne Restart-Reihenfolge | siehe `.claude/rules/server-edits.md` Service-Restart-Reihenfolge |
+| Server-Update ohne Restart-Reihenfolge | siehe `Discord_Bots/.claude/rules/server-edits.md` Service-Restart-Reihenfolge |
 
 ## Constraints
 
@@ -113,12 +113,12 @@ Update-Reihenfolge:
 - **Server-Updates via SSH** — sudo/-su pattern, kein direkter pip-Call
 - **Severity-Skala** kompatibel zu `/review`, `/security-audit`, `/full-audit`
 - **Skill-Version-Header** in jedem Report
-- **CVE-Datenbank** via pip-audit (NVD + PyPI Advisory DB), nicht halluzinieren
+- **CVE-Datenbank** via pip-audit (PyPI Advisory DB, optional OSV via `-s osv`), nicht halluzinieren
 
 ## Beispiel-Triggers
 
 - `/deps-check` — lokal, Default-requirements
-- `/deps-check server` — auf netcup-server für alle Bot-venvs
+- `/deps-check server` — auf netcup-server für das gemeinsame Bot-venv
 - `/deps-check all` — lokal + Server kombiniert
 - `/deps-check requirements-dev.txt` — spezifisches File
 

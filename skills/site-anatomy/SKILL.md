@@ -6,7 +6,7 @@ description: Use this skill whenever der Nutzer wants someone else's public webs
 when_to_use: webseite analysieren, website auslesen, seite nachbauen eigenes design, wie ist die seite gebaut, design einer firma verstehen, design system einer fremden website auslesen, design tokens einer website, bildsprache analysieren, website inhalte analysieren, landingpage zerlegen, konkurrenz website design, warum wirkt die seite hochwertig, referenz website, inspiration von website, site teardown, website anatomy
 argument-hint: "<url> [--pages N] [--own-tokens <pfad>] [--ziel <projektpfad>] — eine URL je Lauf; Default Startseite + bis 5 Seiten aus der Hauptnavigation"
 allowed-tools: Read Grep Glob Bash Write Edit
-userInvocable: true
+user-invocable: true
 ---
 
 # site-anatomy — Fremde Website verstehen und aufs eigene Design übertragen

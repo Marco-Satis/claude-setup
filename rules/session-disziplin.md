@@ -78,3 +78,7 @@ oder „Setup Server“, sonst ab 10 min ohne Antwort spät abends):
    Backup wie immer.
 4. „Setup Server“ führt davon nur aus, was in seinem eigenen Bereich liegt und die Bedingungen für delegierte
    Entscheidungen erfüllt ([mitdenken](mitdenken.md)). Freigaben in fremden Sessions erteilt nur der Nutzer selbst.
+
+Auch tagsüber gilt: Rückfragen nur, wenn sie etwas schützen. Die häufigsten vermeidbaren (Freigabe-Audit 13.11., netcup
+und PC): `curl` (am PC Ask-Regel) → Webseiten mit WebFetch, Memory mit den `mcp__memory__*`-Tools; `rm` → Scratchpad;
+`git push` → gebündelt; `AskUserQuestion` nur bei echten Entscheidungen, alles andere als MB-Zeile an „Setup Server“.

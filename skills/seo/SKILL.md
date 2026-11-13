@@ -6,7 +6,7 @@ description: Use when der Nutzer wants a product, website, landing page or GitHu
 when_to_use: seo, suchmaschinenoptimierung, google ranking, gefunden werden, sichtbarkeit, ki-suche, chatgpt findet mich nicht, geo, aeo, ai overviews, landingpage optimieren, meta description, title tag, keywords, keyword recherche, search console, google unternehmensprofil, bewertungen sammeln, local seo, github sichtbarkeit, github stars, pypi, readme optimieren, produkt vermarkten, kommerziell nutzen, kunden gewinnen online, launch, floppt das, markteinführung
 argument-hint: "[audit <url|datei> | plan <produkt> | github <repo-pfad> | inhalt <seite/thema> | lokal | recht | messen] — ohne Argument: Modus erfragen"
 allowed-tools: Read Grep Glob Bash Write Edit WebFetch WebSearch
-userInvocable: true
+user-invocable: true
 ---
 
 # seo — gefunden werden, gewählt werden, nicht floppen

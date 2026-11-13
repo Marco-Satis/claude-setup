@@ -6,7 +6,7 @@ description: Schneller Spot-Review eines einzelnen Files oder uncommitted Git-Di
 when_to_use: spot review aktuelles file, uncommitted git diff review, pre-commit single-file check, inline schneller check ohne sub-agent, schneller code-check
 argument-hint: 'Optional Datei-Pfad — Default: `git diff` für uncommitted changes'
 allowed-tools: Read Grep Bash
-userInvocable: true
+user-invocable: true
 ---
 
 # Quick-Review — Spot-Check vor Commit

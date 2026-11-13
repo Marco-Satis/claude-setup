@@ -14,7 +14,8 @@
    git, Syncthing-Versionierung und das Archiv (`_archive_*`), nicht `.bak`.
 3. **Aufgeräumt wird automatisch**, nicht von Hand:
    - netcup: `~/.claude/scripts/backup_prune.py` (Trockenlauf ohne Argument, `--los` löscht), täglich per Routine.
-   - PC: geplante Aufgabe über „Setup PC" mit derselben Regel (Vorlage: `Games/CellSurvivor/backup_prune.ps1`).
+   - PC: Windows-Aufgabe `BackupPrunePC` täglich 03:40 mit `~/.claude/scripts/backup_prune_pc.py --los` (gleiche Regel,
+     schützt offene Canary-Backups der Gamebots, Löschprotokoll `~/.claude/logs/backup_prune_pc_geloescht.log`).
 4. **„Archivieren statt löschen" gilt für Arbeitsdateien**, nicht für `.bak`-Kopien: Ein Backup ist selbst schon
    die Sicherung und wird nach Ablauf gelöscht.
 5. Ausgenommen: `_archive*`/`_archiv*`, `.git`, `.stversions`, Rotations-Backups ohne Zeitstempel, `~/wissen`

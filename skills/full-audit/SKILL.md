@@ -5,7 +5,7 @@ last-reviewed: 2026-08-13
 description: Echter Multi-Agent-Schwarm fuer komplette Projekt-Audits. Parallel-dispatcht 5 Spezial-Reviewer (security, async, dependency, audio-pipeline, perf), synthetisiert Ergebnisse via synthesizer-Agent, dann Pflicht-Iterativer-Self-Review-Loop (Phase 3.5, Cap 4, analog /review v3.0 fuer Schwarm-Scope). Nutze fuer Pre-Release, Quartals-Reviews oder nach groesseren Refactors.
 when_to_use: full audit (komplette Codebase), schwarm review (5 parallele Spezial-Reviewer), pre-release audit, quartals-review, master review der gesamten Projekt-Architektur, post-refactor audit groesserer Aenderungen (>10 Files). Fuer Session-Diff oder inkrementellen Pre-Commit-Check siehe review-Skill.
 argument-hint: Optional Pfad-Filter (z.B. "modules/database") oder Scope ("full" | "discord" | "footstep")
-userInvocable: true
+user-invocable: true
 allowed-tools: Read Glob Grep Bash Write Agent
 ---
 
