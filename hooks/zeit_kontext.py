@@ -70,8 +70,9 @@ def main():
             if von_session:
                 text += (f" · [Sammelmodus] der Nutzer antwortet seit {dauer(luecke)} nicht. Eingang erledigen bzw. "
                          "quittieren wie immer, aber im Chat höchstens 1 Zeile, keine Tabellen oder Zusammenfassungen. "
-                         "Jeden Eingang eintragen: python3 ~/.claude/scripts/sammel.py \"<quelle> | <was> | "
-                         "<erledigt|MB<n>|offen>\". Entscheidungen weiter als MB-Zeile.")
+                         "Jeden Eingang eintragen: python3 ~/.claude/scripts/sammel.py <sicherheit|braucht-dich|"
+                         "erledigt|laeuft|info> \"<session> | <was> | <stand, z. B. MB-Nummer>\". "
+                         "Entscheidungen weiter als MB-Zeile.")
             else:
                 n = offene_eintraege()
                 if n:
