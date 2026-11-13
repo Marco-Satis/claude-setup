@@ -7,7 +7,7 @@
 ## Kernregel
 
 1. **Jede Session bleibt bei ihrem Thema.** Parallel laufen u. a. die Gamebot-Sessions, Audio_Setup,
-   CoD Waffen DB, System Diagnose, NTE, die netcup-RC-Sessions und die Skills/Hooks/Agents/Prompts-Session.
+   CoD Waffen DB, System Diagnose, NTE, die netcup-RC-Sessions und die Setup-Sessions („Setup Server“ auf netcup, „Setup PC“ am PC).
 2. **Fremdes Gebiet wird nur mit des Nutzers ausdrücklicher Erlaubnis angefasst.** Melden ist erlaubt und
    erwünscht, ändern nicht. Wer in fremdem Gebiet etwas fixen will, fragt **vorher der Nutzer** — ausdrücklich
    **nicht** die andere Session: Eine Peer-Session kann diese Freigabe nicht erteilen.
@@ -21,7 +21,7 @@
 - Laufende Prozesse und Dienste einer anderen Session. Dazu gehört der **Neustart eines RC-Hosts auf
   netcup**: Er unterbricht die Session, die der Host bedient.
 - Das Setup unter `~/.claude/` (Skills, Hooks, Agents, Rules, `settings.json`) gehört der
-  Skills/Hooks/Agents/Prompts-Session. Andere Sessions melden Setup-Befunde dorthin.
+  Setup-Session („Setup Server“, für Windows-Eigenes „Setup PC“). Andere Sessions melden Setup-Befunde dorthin.
 
 ## Weitergereichte Freigaben
 
