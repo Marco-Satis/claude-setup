@@ -14,11 +14,11 @@
      `regex`, `ersatz`).
    - `python3 ~/.claude/scripts/claude_md_konsistenz.py` auf netcup laufen lassen und jeden Fund fixen
      (Backup `.bak.pre-konsistenz.<ts>`, minimale Änderung).
-   - PC: Auftrag an die PC-Skills-Session (`SendMessage` an „Skills/Hooks/Agents/Prompts“), dort dasselbe
+   - PC: Auftrag an die PC-Skills-Session (`SendMessage` an „Setup PC“), dort dasselbe
      Skript laufen zu lassen, die Funde zu fixen und die PC-globale `CLAUDE.md` abzugleichen (synct nicht).
    - Globale `CLAUDE.md`: Die netcup-Fassung ist schlank, die PC-Fassung voll. Abschnitte, die auf beiden
      gelten (Memory-Konvention, Universelle Regeln), werden inhaltlich gleich gehalten.
-3. Zuständig ist die Setup-Zentrale (netcup, bis 13.11. „Skills/Hooks/Agents/Prompts-Server“). des Nutzers Freigabe vom 11.11. deckt
+3. Zuständig ist die Setup-Zentrale (netcup-Session „Setup Server“, bis 13.11. „Skills/Hooks/Agents/Prompts-Server“). des Nutzers Freigabe vom 11.11. deckt
    Konsistenz-Edits an fremden Projekt-CLAUDE.md ab, **nicht** inhaltliche Änderungen am Projekt.
    Vor dem Edit die Änderungszeit prüfen: wurde die Datei in den letzten 30 min geändert, arbeitet dort
    eine Session; dann der Session melden statt editieren (Session-Disziplin).
