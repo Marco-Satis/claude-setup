@@ -39,7 +39,9 @@ def main():
     text = f"[Zeit] {TAGE[now.weekday()]} {now:%d.%m.%Y %H:%M:%S} (lokal)"
     pfad = os.path.join(STATE, sid + ".ts")
     # Messages from other sessions also fire UserPromptSubmit; they must not reset "der Nutzer's last message".
-    von_session = "<cross-session-message" in str(data.get("prompt", ""))
+    _p = str(data.get("prompt", ""))
+    von_session = any(m in _p for m in ("<cross-session-message", "<task-notification", "[SYSTEM NOTIFICATION",
+                                          "<agent-message", "Tool loaded."))
     try:
         vorher = float(open(pfad).read().strip())
         luecke = max(0.0, jetzt - vorher)
@@ -56,7 +58,7 @@ def main():
         except OSError:
             pass
     if von_session:
-        text += " · (diese Eingabe ist eine Session-Nachricht, nicht von der Nutzer)"
+        text += " · (diese Eingabe ist eine Session- bzw. Systemnachricht, nicht von der Nutzer)"
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": text}}))
         return
     try:

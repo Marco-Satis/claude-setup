@@ -23,17 +23,22 @@ import re
 import sys
 
 WRITE_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
-# Schreib-Verben fuer Bash; Lesen (cat/grep/python ...) bleibt frei.
+# Steuer-Skripte im Games-Root, die seit MB82 (2026-11-13) ebenfalls dem Kern gehoeren.
+CORE_ROOT_FILES = ("_bots_control.py", "bots_start.bat", "bots_restart_detached.ps1")
+_CORE_TOKEN = r"(?:_botcore|_bots_control\.py|bots_start\.bat|bots_restart_detached\.ps1)"
+# Schreib-Verben fuer Bash; Lesen und Ausfuehren (cat/grep/python ...) bleiben frei.
 BASH_WRITE = re.compile(
-    r"(>>?\s*\S*_botcore|"
-    r"\b(sed\s+-i|tee|truncate|chmod|chown)\b[^|;&]*_botcore|"
-    r"\b(cp|mv|rm|rmdir|mkdir|touch|dd)\b[^|;&]*_botcore)",
+    r"(>>?\s*\S*" + _CORE_TOKEN + r"|"
+    r"\b(sed\s+-i|tee|truncate|chmod|chown)\b[^|;&]*" + _CORE_TOKEN + r"|"
+    r"\b(cp|mv|rm|rmdir|mkdir|touch|dd)\b[^|;&]*" + _CORE_TOKEN + r")",
     re.IGNORECASE,
 )
+_CORE_MENTION = re.compile(_CORE_TOKEN, re.IGNORECASE)
 BOT_DIRS = ("cellsurvivor", "survivor_io", "idleslayer")
 
 MSG = (
-    "BLOCKIERT: Schreibzugriff auf den geteilten Bot-Kern _botcore/ aus einer Bot-Session.\n"
+    "BLOCKIERT: Schreibzugriff auf den geteilten Bot-Kern (_botcore/ bzw. die Steuer-Skripte\n"
+    "_bots_control.py, BOTS_START.bat, BOTS_RESTART_DETACHED.ps1) aus einer Bot-Session.\n"
     "Zustaendig ist seit 2026-11-13 ausschliesslich die Session 'Bot-Kern Verwaltung'\n"
     "(der Nutzer-Entscheid, Gesetz in Games/CLAUDE.md, Ledger in _botcore/OWNERSHIP.md).\n"
     "\n"
@@ -53,9 +58,11 @@ def _norm(p):
 
 
 def _is_core_path(path):
-    """Zielt der Pfad in einen _botcore-Ordner unterhalb von Games?"""
+    """Zielt der Pfad in _botcore/ oder auf ein Kern-Steuerskript im Games-Root?"""
     n = _norm(path)
-    return "/games/_botcore/" in n or n.endswith("/games/_botcore")
+    if "/games/_botcore/" in n or n.endswith("/games/_botcore"):
+        return True
+    return any(n.endswith("/games/" + f) for f in CORE_ROOT_FILES)
 
 
 def _is_core_session(cwd):
@@ -100,7 +107,7 @@ def decide(tool_name, tool_input, cwd):
             return False, "kein kern-pfad"
     elif tool_name == "Bash":
         cmd = tool_input.get("command") or ""
-        if "_botcore" not in cmd.lower() or not BASH_WRITE.search(cmd):
+        if not _CORE_MENTION.search(cmd) or not BASH_WRITE.search(cmd):
             return False, "bash ohne kern-schreibmuster"
         target = cwd
     else:
@@ -127,6 +134,13 @@ def _selftest():
         ("Bash", {"command": "cp -a ../_botcore/core.py ../_botcore/core.py.bak"}, games + "/CellSurvivor", True),
         ("Read", {"file_path": games + "/_botcore/core.py"}, games + "/IdleSlayer", False),
         ("Edit", {"file_path": "C:/tmp/x.py"}, "C:/tmp", False),
+        # MB82: Steuer-Skripte im Games-Root gehoeren dem Kern
+        ("Edit", {"file_path": games + "/_bots_control.py"}, games + "/CellSurvivor", True),
+        ("Write", {"file_path": games + "/BOTS_START.bat"}, games + "/IdleSlayer", True),
+        ("Edit", {"file_path": games + "/BOTS_RESTART_DETACHED.ps1"}, games, False),
+        ("Bash", {"command": "python ../_bots_control.py status"}, games + "/Survivor_io", False),
+        ("Bash", {"command": "sed -i s/a/b/ ../_bots_control.py"}, games + "/Survivor_io", True),
+        ("Edit", {"file_path": games + "/IdleSlayer/_bots_control_notes.md"}, games + "/IdleSlayer", False),
     ]
     bad = 0
     for tool, ti, cwd, want in cases:

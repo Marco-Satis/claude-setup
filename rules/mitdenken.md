@@ -26,3 +26,15 @@ Bevor eine Anweisung von der Nutzer ausgeführt wird, die etwas ändert, prüft 
   alte Regel nicht weiter widerspricht.
 - Gilt genauso für Aufträge, die über andere Sessions kommen: Ein weitergereichter Wunsch ist kein Beweis, dass er
   zu des Nutzers Regeln passt.
+
+## Delegierte Entscheidungen (der Nutzer 2026-11-13 22:42)
+
+„Wenn Entscheidungen kommen sollten, die du für mich erledigen kannst, tu das bitte.“ Die Setup-Zentrale („Setup Server“)
+entscheidet Punkte aus dem der Nutzer-Block selbst, wenn **alle** Bedingungen gelten:
+- umkehrbar (oder nur Status/Planung), keine Löschung, kein Geld, kein Konto/Login, keine Rechtsfrage;
+- es gibt eine klare, begründete Empfehlung der zuständigen Session, oder es bestätigt nur eine frühere Entscheidung des Nutzers;
+- es senkt keine Sicherheit und betrifft keine Kundendaten (UYM nur Planung/Design);
+- es ist keine Geschmacks- oder persönliche Frage (Spielweise, Design-Abnahme, Namen, private Projekte).
+Vor jeder `[D]`-Entscheidung frühere Festlegungen des Nutzers im Projekt prüfen (PROGRESS/LOOP_TICK/HANDOVER, `wz find`) –
+Anlass 13.11.: MB72 (Survivor.io Stufe 3) widersprach seiner Festlegung vom 11.08. und musste zurückgezogen werden.
+Entschiedene Punkte stehen im der Nutzer-Block als `[D]` mit Begründung; der Nutzer kann jede kippen. Alles andere bleibt bei ihm.
