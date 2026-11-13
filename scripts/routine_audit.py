@@ -162,7 +162,19 @@ CRON_ROUTINES = [
     # genau ein naechster Schritt, Ergebnis per Postfach an agent-os. Cron setzt der Nutzer (Zeile im Bericht).
     {"name": "agent_os_montag", "plan": "woechentlich Mo 10:30", "kind": "append",
      "path": HOME / ".claude/logs/agent_os_montag.log", "max_h": 8 * 24, "since": "2026-11-16",
-     "note": "~/.claude/scripts/agent_os_montag.sh; Schritte in Skills_&_Co/AGENT_OS_SCHRITTE.md"},
+     "note": "~/.claude/scripts/agent_os_montag.sh; Schritte in Skills_&_Co/AGENT_OS_SCHRITTE.md. Einzige "
+             "Agent-OS-Routine: der Projekt-Kompass liest die Schritte nur und schickt montags keinen eigenen "
+             "agent-os-Schritt (ChatGPT meldet erst Mo ~09:00, der Kompass laeuft 07:45)"},
+    # 2026-11-13 (der Nutzer: taeglich 2-3 Kleinigkeiten, Rest laeuft ohne ihn): claude -p sonnet ohne Werkzeuge,
+    # schreibt eigenen Report + Discord + Postfach-Schritt je Hauptrolle. Laeuft nicht ueber routine_wrap.
+    {"name": "projekt_kompass", "plan": "taeglich 07:45", "kind": "append",
+     "path": HOME / ".claude/logs/projekt_kompass.log", "max_h": 30, "since": "2026-11-14",
+     "note": "~/.claude/scripts/projekt_kompass.sh; Spez POSTFACH_SPEZ_2026-11-13.md Abschnitt Tägliche Projekt-Routine"},
+    # 2026-11-13 (der Nutzer-Ja Autostart der 4 Hauptsessions): geplante Anstoesse skills/cod/agent-os/uym,
+    # 09:30-10:00 und 14:30-15:00, je ein Haiku-Lauf. Jeder Lauf schreibt eine Zeile ins gemeinsame Log.
+    {"name": "session_anstoss", "plan": "taeglich 09:30/09:40/09:50/10:00 + 14:30/14:40/14:50/15:00",
+     "kind": "append", "path": HOME / ".claude/logs/session_anstoss.log", "max_h": 30, "since": "2026-11-14",
+     "note": "~/.claude/scripts/session_anstoss.sh <rolle>; routine_wrap --quiet-ok (Report nur bei Fehler)"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
