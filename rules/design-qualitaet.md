@@ -8,6 +8,7 @@
 1. **Nichts Sichtbares ungesehen übergeben.** Oberflächen, Seiten, Dashboards, Grafiken und Animationen werden vor
    der Übergabe gerendert und mit dem Read-Tool angesehen: Desktop- und Handybreite, bei Animationen mehrere Zeitpunkte
    (Bildserie in Echtzeit, nicht `--virtual-time-budget`). Office-Dateien: [docx-visual-check](docx-visual-check.md).
+   Animationen auf netcup: `node ~/.claude/scripts/visual_sheet.mjs <seite> [--selector …] [--state …]`, bewerten nach `visual_sheet_checkliste.md`; am PC entfällt der Aufruf (Claude in Chrome).
 2. **Gegen KI-Merkmale prüfen**, nicht nur „sieht ordentlich aus“: generische Farbverläufe (v. a. Violett/Cyan),
    Glas-Effekte und Glows ohne Funktion, Standard-Schriften, Drei-Karten-Reihen, Platzhaltertexte, generisches Fade-up,
    Endlos-Animationen ohne Zweck. Die Verbote aus `design-taste-frontend` gelten auch außerhalb von React; seine

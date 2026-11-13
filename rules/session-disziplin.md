@@ -64,3 +64,17 @@ Nachrichten über Remote Control (PC ↔ netcup) melden dem Absender keine Zuste
 - Ausgenommen sind reine Quittungen und Abschlussmeldungen ohne Frage (keine Quittung auf eine Quittung, sonst Schleife).
 - Der Absender wertet eine fehlende Quittung nach 30 min als „nicht angekommen“ und schickt einmal erneut bzw. über
   „Setup PC“ oder „Setup Server“ als Relais.
+
+## Nachtbetrieb: der Nutzer schläft (der Nutzer 2026-11-13)
+
+„Berechtigungsabfragen sollen gesammelt werden, damit in der Zeit, wo ich schlafe, alles weiterlaufen kann.“ Eine
+Freigabe-Abfrage, die niemand beantwortet, hält die Session bis zum Morgen an. Solange der Nutzer schläft (Ansage von ihm
+oder „Setup Server“, sonst ab 10 min ohne Antwort spät abends):
+1. **Keine Aktion starten, die eine Freigabe-Abfrage auslöst:** `rm`, `git push`, `sudo …`, Neustarts von Diensten und
+   alles, was beim letzten Mal nachgefragt hat.
+2. **Stattdessen sammeln:** den genauen Befehl als MB-Zeile an „Setup Server“ schicken
+   (`MB: <projekt> | Freigabe: <befehl> | <dauer> | <warum>`), dann mit anderer Arbeit weitermachen.
+3. **Ohne Rückfrage weiterarbeiten:** Wegwerf-Dateien ins Scratchpad statt `rm`, committen ja, pushen nein, Edits mit
+   Backup wie immer.
+4. „Setup Server“ führt davon nur aus, was in seinem eigenen Bereich liegt und die Bedingungen für delegierte
+   Entscheidungen erfüllt ([mitdenken](mitdenken.md)). Freigaben in fremden Sessions erteilt nur der Nutzer selbst.
