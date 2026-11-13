@@ -71,7 +71,8 @@ Nachrichten über Remote Control (PC ↔ netcup) melden dem Absender keine Zuste
 Freigabe-Abfrage, die niemand beantwortet, hält die Session bis zum Morgen an. Solange der Nutzer schläft (Ansage von ihm
 oder „Setup Server“, sonst ab 10 min ohne Antwort spät abends):
 1. **Keine Aktion starten, die eine Freigabe-Abfrage auslöst:** `rm`, `git push`, `sudo …`, Neustarts von Diensten und
-   alles, was beim letzten Mal nachgefragt hat.
+   alles, was beim letzten Mal nachgefragt hat. Ausnahme: Gamebot-Neustarts nach der Konsens-Regel in
+   [gamebot-reuse-first](gamebot-reuse-first.md) (der Nutzer 13.11.).
 2. **Stattdessen sammeln:** den genauen Befehl als MB-Zeile an „Setup Server“ schicken
    (`MB: <projekt> | Freigabe: <befehl> | <dauer> | <warum>`), dann mit anderer Arbeit weitermachen.
 3. **Ohne Rückfrage weiterarbeiten:** Wegwerf-Dateien ins Scratchpad statt `rm`, committen ja, pushen nein, Edits mit

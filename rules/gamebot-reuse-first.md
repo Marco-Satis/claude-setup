@@ -63,3 +63,20 @@ melden Bedarf dorthin; der Hook `gamebot_core_guard` blockt Edits aus den Bot-Or
 
 Für `_botcore/` gilt das doppelt: ein Edit dort wirkt auf ALLE drei Bots → Backup + alle Konsumenten
 gegenchecken.
+
+## Bot-Neustarts im Konsens (der Nutzer 2026-11-13, 23:29)
+
+„Die Bots sollen sich für Neustarts untereinander absprechen. Wenn alle drei das Okay geben, wird neu gestartet, ohne
+jedes Mal meine Bestätigung. Bot_Core kann zustimmen, wenn nötig.“ Eine Bot-Session (Cell Survivor, IdleSlayer_bot,
+Survivor.io_Bot) startet ihren **eigenen** Bot ohne der Nutzer neu, wenn alles davon gilt:
+1. **Grund:** ein fertiger, gegateter Fix (Selfcheck/Tests grün) oder ein Hänger, der anders nicht zu lösen ist.
+2. **Absprache:** Sie schickt den beiden anderen Bot-Sessions `Neustart-Anfrage: <bot> | <grund> | <dauer>`. Beide
+   antworten `OK Neustart <bot>` oder `NEIN Neustart <bot>: <grund>` (z. B. laufender Kampf, gemeinsames ADB/Emulator
+   gerade belegt). Betrifft der Neustart Startsteuerung, Watchdog-Kette, `_botcore` oder mehr als einen Bot, muss
+   zusätzlich **Bot_Core** mit OK antworten.
+3. **Ohne alle OKs kein Neustart:** Fehlt eine Antwort nach 10 min oder kommt ein NEIN, MB-Zeile an „Setup Server“.
+4. **Nur der Standardweg** (Bot-Prozess beenden, Watchdog startet neu, bzw. `BOTS_RESTART_DETACHED.ps1`), höchstens
+   **3 Neustarts je Bot und Nacht**. Läuft der Bot nach 5 min nicht sauber, kein weiterer Versuch, MB-Zeile.
+5. **Ergebnis** in einer Zeile an „Setup Server“, der den Punkt im der Nutzer-Block abhakt.
+Gilt auch im Nachtbetrieb. Fremde Bots neu starten, Löschen und `_botcore`-Edits außerhalb von Bot_Core bleiben bei
+der Nutzer bzw. Bot_Core.
