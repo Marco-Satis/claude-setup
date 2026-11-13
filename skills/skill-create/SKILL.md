@@ -119,7 +119,7 @@ Dazu: keine Nuance-Klauseln („nicht X, außer es ist wichtig") — die öffnen
 
 Kernprinzip: Ein Skill, den nie ein frischer Agent benutzt hat, ist ungetesteter Code. Vor Phase 4:
 
-1. **Baseline (bei nicht-trivialen Skills idealerweise VOR dem Schreiben):** frischen Subagent (Task-Tool) die Ziel-Aufgabe OHNE Skill lösen lassen. Konkrete Fehler/Auslassungen wörtlich notieren — der Skill adressiert genau DIESE Lücken, nicht hypothetische. Macht die Baseline nichts falsch → zurück zum Anti-Bloat-Gate.
+1. **Baseline (bei nicht-trivialen Skills idealerweise VOR dem Schreiben):** frischen Subagent (Agent-Tool) die Ziel-Aufgabe OHNE Skill lösen lassen. Konkrete Fehler/Auslassungen wörtlich notieren — der Skill adressiert genau DIESE Lücken, nicht hypothetische. Macht die Baseline nichts falsch → zurück zum Anti-Bloat-Gate.
 2. **Verify:** frischer Subagent (oder neue Session) bekommt einen realistischen Auftrag — nicht „was sagt der Skill?" (zu akademisch, Agent rezitiert nur):
    - Trigger-Test: findet/lädt er den Skill anhand der Description allein?
    - Compliance-Test: befolgt er die Phasen? Abweichungen wörtlich festhalten.

@@ -166,7 +166,7 @@ Idee aus ECC (`skills/santa-method/SKILL.md` + `commands/santa-loop.md`, MIT, ge
 | R6 | Konsistenz | keine Widersprüche zwischen Code, Doku und Konfiguration |
 
 **Beide Prüfer in derselben Nachricht starten** (parallel, keiner sieht den anderen):
-- **Prüfer A, Claude:** frischer Subagent (Task-Tool, `general-purpose`), Auftrag „Nur prüfen, nichts ändern. Deine Aufgabe ist, Probleme zu finden, nicht freizugeben." Antwort als JSON nach `dual_verdict.schema.json` in diesem Ordner.
+- **Prüfer A, Claude:** frischer Subagent (Agent-Tool, `general-purpose`), Auftrag „Nur prüfen, nichts ändern. Deine Aufgabe ist, Probleme zu finden, nicht freizugeben." Antwort als JSON nach `dual_verdict.schema.json` in diesem Ordner.
 - **Prüfer B, Codex:** über den vorhandenen Wrapper, read-only, mit Projektzugriff und demselben Schema:
   ```bash
   python3 ~/.claude/scripts/codex_call.py --mode second-opinion --sandbox read-only \

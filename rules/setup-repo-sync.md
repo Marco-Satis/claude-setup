@@ -17,8 +17,11 @@ python3 -I ~/.claude/scripts/setup_repo_sync.py          # kopieren, bereinigen,
 git -C ~/projects/claude-setup status --short            # Änderungen ansehen
 ```
 
-- **Exit 0 (0 Befunde):** README-Zählungen prüfen, dann `git add -A`, Commit (deutsch, was + warum),
-  `git push`. Pre-Commit-Hooks (detect-secrets) nie mit `--no-verify` umgehen.
+- **Exit 0 (0 Befunde):** README-Zählungen prüfen, dann `git add -A`, Commit (deutsch, was + warum).
+  Pre-Commit-Hooks (detect-secrets) nie mit `--no-verify` umgehen.
+- **Push gebündelt (der Nutzer 2026-11-13):** Committen sofort, `git push` aber höchstens einmal je Arbeitsblock,
+  spätestens abends. Jeder Push fragt der Nutzer wegen der Ask-Regel `Bash(git push:*)` nach; seit 11.11. kamen 8 von 12
+  Server-Rückfragen allein von Einzel-Pushes dieses Repos.
 - **Exit 2 (Befunde):** nichts committen. Befund beheben (Ersetzung in
   `~/.claude/secrets/setup_repo_sanitize.json` ergänzen, Datei auf die Denylist im Skript setzen oder
   die Quelle bereinigen), erneut laufen lassen. Unklarer Fall → der Nutzer fragen.

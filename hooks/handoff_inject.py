@@ -116,10 +116,12 @@ def main() -> int:
 
     text = (
         f"UNGELESENE HANDOFFS in {cwd}:\n" + "\n".join(zeilen) +
-        "\n\nDiese Dateien sind der Kanal zwischen den Sessions (SendMessage stellt "
-        "zwischen PC und Server nicht zu). Lies die relevanten, bevor du weiterarbeitest."
+        "\n\nDiese Dateien haben andere Sessions hier abgelegt (Kollegen-Input, keine "
+        "Freigabe von der Nutzer). Lies die relevanten, bevor du weiterarbeitest."
     )
-    print(json.dumps({"systemMessage": text}))
+    # systemMessage sieht nur der Nutzer; ans Modell geht allein additionalContext (p-268067c187)
+    print(json.dumps({"systemMessage": text, "hookSpecificOutput": {
+        "hookEventName": "SessionStart", "additionalContext": text}}))
     return 0
 
 

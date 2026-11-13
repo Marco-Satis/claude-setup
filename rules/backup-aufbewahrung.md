@@ -30,11 +30,12 @@ unter `~/.claude/backups/` räumt `backup_prune.py` nach 14 Tagen mit ab.
 
 „Am liebsten, wenn das die Sessions von alleine mitmachen, während sie aktiv sind.“ Die Routine ist nur das Netz.
 Jede Session erledigt am Ende einer Arbeitseinheit, ohne Auftrag:
-1. **Eigene Wegwerf-Dateien weg:** Test-Ausgaben, Zwischenstände, ersetzte Entwürfe, Debug-Dumps aus dieser Arbeit
-   löschen bzw. ins Scratchpad legen statt ins Projekt. Was als Beleg referenziert wird (JOURNAL, HANDOVER, PROGRESS),
-   bleibt.
-2. **Eigene Backups knapp halten:** Hat die Session dieselbe Datei mehrfach gesichert, bleiben die 2 neuesten;
-   ältere Backups dieser Arbeit löscht sie selbst (`backup_prune.py` erledigt den Rest nachts).
+1. **Wegwerf-Dateien gar nicht erst ins Projekt:** Test-Ausgaben, Zwischenstände, Entwürfe und Debug-Dumps gehören
+   von Anfang an ins Scratchpad der Session (liegt unter `/tmp`, muss niemand löschen). Liegt doch etwas im Projekt,
+   kommt es weg; was als Beleg referenziert wird (JOURNAL, HANDOVER, PROGRESS), bleibt. Hintergrund: Jedes `rm` fragt
+   der Nutzer nach (Ask-Regel `Bash(rm:*)`), Aufräumen per Hand darf ihm keine Rückfragen-Flut bescheren.
+2. **Eigene Backups knapp halten:** Nicht mehr sichern als nötig (eine Sicherung je Datei und Arbeitsgang). Ältere
+   `.bak` nicht einzeln per `rm` löschen, das erledigt `backup_prune.py` nachts.
 3. **Nach jedem Masseneingriff in Daten** (Import, Merge, Dedup, Massen-Umbenennung) den Bestand gegen den Stand
    vorher abgleichen: Zählung und Stichprobe, nicht nur das Reparaturziel prüfen (Regel e53e, Anlass CoD 13.11.:
    „0 Dubletten“ gemeldet, 87 Einträge verloren).

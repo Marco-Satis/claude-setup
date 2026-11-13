@@ -163,22 +163,57 @@ def _load_records(transcript_path: Path) -> list[dict]:
     return records
 
 
+# Harness-Wrapper in user-Records, die keine Eingabe von der Nutzer sind (belegt in PC- und
+# netcup-Transkripten 2026-11-13). Besteht ein Text nur aus diesen Bloecken, ist er
+# kein Turn: lokale Befehle (/compact, /model, /login), Hintergrund-Meldungen,
+# Reminder. (p-e47f2d078d)
+_WRAPPER_TAGS = (
+    "system-reminder", "task-notification", "local-command-caveat",
+    "local-command-stdout", "local-command-stderr", "command-name",
+    "command-message", "command-args", "artifact-content-authored-by-others",
+    "bash-stdout", "bash-stderr",
+)
+_WRAPPER_RE = re.compile(
+    r"<(%s)\b[^>]*?(?:/>|>.*?</\1\b[^>]*>)" % "|".join(_WRAPPER_TAGS), re.S)
+# Skill-Aufruf: <command-message> steht VOR <command-name> (bei lokalen Befehlen
+# umgekehrt). Zaehlt als Turn, Intent wird "/name args".
+_SKILL_CALL_RE = re.compile(
+    r"\s*<command-message>.*?</command-message>\s*<command-name>(.*?)</command-name>"
+    r"(?:\s*<command-args>(.*?)</command-args>)?", re.S)
+
+
+def real_user_text(rec: dict) -> str:
+    """Echter Eingabetext eines Transcript-Records, sonst "".
+
+    "" fuer Nicht-User-Records, Tool-Results, isMeta (Skill-Text, Caveat,
+    Auto-Continue), Compact-Summary und Texte nur aus Harness-Wrappern.
+    """
+    # isMeta MIT promptSource = eigener Auftrag (Loop-TICK per Cron, Nachricht einer
+    # anderen Session) -> zaehlt wie scheduled-task. Ohne promptSource: Skill-Text,
+    # Caveat, Auto-Continue, Bild-Metadaten -> kein Turn.
+    if rec.get("isCompactSummary") or (rec.get("isMeta") and not rec.get("promptSource")):
+        return ""
+    msg = rec.get("message") or {}
+    if not isinstance(msg, dict) or msg.get("role") != "user":
+        return ""
+    content = msg.get("content")
+    if isinstance(content, str):
+        text = content
+    elif isinstance(content, list):
+        text = "\n".join(c.get("text") or "" for c in content
+                         if isinstance(c, dict) and c.get("type") == "text")
+    else:
+        return ""
+    m = _SKILL_CALL_RE.match(text)
+    if m:
+        return f"{m.group(1).strip()} {(m.group(2) or '').strip()}".strip()
+    text = _WRAPPER_RE.sub("", text).strip()
+    return "" if text.startswith(("Caveat:", "[Request interrupted by user")) else text
+
+
 def count_user_turns(records: list[dict]) -> int:
-    """Zaehlt user-role-Messages (der Nutzer-Turns) im vorgeparsten Transcript."""
-    count = 0
-    for rec in records:
-        msg = rec.get("message") or {}
-        if isinstance(msg, dict) and msg.get("role") == "user":
-            # Nur echte User-Eingaben, keine Tool-Results
-            content = msg.get("content")
-            if isinstance(content, str) and content.strip():
-                count += 1
-            elif isinstance(content, list):
-                for c in content:
-                    if isinstance(c, dict) and c.get("type") == "text":
-                        count += 1
-                        break
-    return count
+    """Zaehlt echte Eingaben (der Nutzer-Turns), siehe real_user_text."""
+    return sum(1 for rec in records if real_user_text(rec))
 
 
 def detect_marco_trigger(records: list[dict]) -> bool:
@@ -257,14 +292,10 @@ def build_session_summary(
                     text = (c.get("text") or "").strip()
                     break
         if role == "user":
-            # Skip auto-injected system reminders + slash-commands
-            if (
-                text
-                and not text.startswith("<system-reminder>")
-                and not text.startswith("<command-")
-                and not text.startswith("Caveat:")
-            ):
-                user_turns_text.append(text[:200])
+            # Nur echte Eingaben, ohne Wrapper/Meta/lokale Befehle (p-e47f2d078d)
+            real = real_user_text(rec)
+            if real:
+                user_turns_text.append(real[:200])
         elif role == "assistant" and text:
             last_assistant_text = text[:350]
 
