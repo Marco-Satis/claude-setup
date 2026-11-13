@@ -7,7 +7,7 @@
 
 Am Ende jeder Arbeitseinheit, die Skills, Agents, Hooks, Rules, Templates oder die kuratierten
 Betriebs-Skripte unter `~/.claude` geändert hat — also immer dann, wenn auch eine `setup-change`-Memory
-fällig ist. Zuständig ist die **Skills/Hooks/Agents/Prompts-Session auf netcup**. Andere Sessions
+fällig ist. Zuständig ist die **Setup-Zentrale auf netcup (bis 13.11. „Skills/Hooks/Agents/Prompts-Server“)**. Andere Sessions
 melden Setup-Änderungen dorthin (Session-Disziplin) und pushen nicht selbst.
 
 ## Wie

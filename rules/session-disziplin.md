@@ -43,3 +43,14 @@ Dienste, Konfigurationsänderung). Dann kurz selbst bei der Nutzer nachfragen.
 
 Diese Datei liegt in `~/.claude/rules/` und synct auf PC und netcup. Keine Verdrahtung in
 `settings.json` nötig.
+
+## Setup-Zentrale = Hauptorchestrator (der Nutzer 2026-11-13)
+
+Die netcup-Session **„Setup-Zentrale“** (RC-Host `claude-rc-skills`, Ordner `~/projects/Skills_&_Co`, Postfach-Rolle
+`skills`; bis 13.11. „Skills/Hooks/Agents/Prompts-Server“) ist des Nutzers Hauptsession:
+- Sie verwaltet das Setup und hält den Überblick über alle Projekte (Wissensspeicher, Routinen, Kompass, Postfach).
+- Projektübergreifendes stößt sie bei den zuständigen Sessions an (Postfach, `SendMessage`, `session_anstoss.sh`),
+  statt fremde Projekte selbst zu ändern. Die Session-Disziplin oben gilt weiter auch für sie.
+- Andere Sessions melden Setup-Befunde und projektübergreifende Themen an die Setup-Zentrale.
+- Damit nichts verloren geht: Entscheidungen und Fakten landen im Wissensspeicher (`wz`), Laufendes in
+  `~/projects/Skills_&_Co/PROGRESS.md`.
