@@ -153,6 +153,11 @@ CRON_ROUTINES = [
     {"name": "claude_md_konsistenz", "plan": "woechentlich Mo 07:20", "kind": "append",
      "path": HOME / ".claude/logs/claude_md_konsistenz.log", "max_h": 8 * 24, "since": "2026-11-16",
      "note": "rules/setup-konsistenz.md; Funde = veraltete Setup-Aussagen in Projekt-CLAUDE.md"},
+    # 2026-11-13 (Wissenssystem Stufe 2, V6): woechentlicher Vorschlagslauf, meldet nur (Drift, Widersprueche,
+    # kaputte Kanten, Ausmustern, Waisen). Schreibt seinen Report selbst; Cron setzt der Nutzer (Zeile im Bericht).
+    {"name": "wissen_vorschlaege", "plan": "woechentlich So 05:40", "kind": "append",
+     "path": HOME / ".claude/logs/wissen_vorschlaege.log", "max_h": 8 * 24, "since": "2026-11-15",
+     "note": "~/.claude/scripts/wissen/wz_vorschlaege.py; setzt keine Links, Deckel 15 Vorschlaege"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
