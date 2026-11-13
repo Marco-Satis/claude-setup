@@ -1,7 +1,7 @@
 ---
 name: instructions-drift-check
 description: Prüft des Nutzers kanonische Standard-Anweisungen (~/.claude/CUSTOM_INSTRUCTIONS.md) wöchentlich auf Fakten-Drift (Versionen, Endpoints, Memory-Tool-Namen, Server, Modelle, Source-URLs) und patcht NUR die verifizierbaren Fakten-Regionen automatisch (mit Backup), der Verhaltens-/Stil-Teil bleibt unangetastet. Schreibt einen Drift-Report. Use when "instructions drift", "anweisungen aktualisieren", "custom-instructions check", "/instructions-drift-check", oder wöchentlich per Routine.
-version: 1.2.0
+version: 1.3.0
 model: inherit
 ---
 
@@ -12,7 +12,7 @@ Hält `~/.claude/CUSTOM_INSTRUCTIONS.md` faktisch aktuell (Datei liegt aktuell n
 ## Harte Grenzen (zuerst lesen)
 - **Backup vor jedem Edit** (Universelle Regel 2): `cp -a CUSTOM_INSTRUCTIONS.md CUSTOM_INSTRUCTIONS.md.bak.$(date +%s)`.
 - Edits **ausschließlich** innerhalb der `AUTO-FACTS`-Regionen. Steht außerhalb ein Fakt falsch → nur im Report flaggen, NICHT patchen.
-- **Read-Then-Verify**: Datei erst lesen, dann per Edit ändern — **kein Re-Read zur Kontrolle**. Der Harness lässt einen Edit fehlschlagen, wenn der Anker nicht passt; ein Nachlesen belegt also nichts, was nicht schon feststeht (globale `CLAUDE.md` Regel 2: verifizieren via Verhalten, nicht via Re-Read). Verhalten heißt hier: der Report nennt dokumentierten und Live-Wert nebeneinander.
+- **Read-Then-Verify**: Datei erst lesen, dann per Edit ändern — **kein Re-Read zur Kontrolle**. Der Harness lässt einen Edit fehlschlagen, wenn der Anker nicht passt; ein Nachlesen belegt also nichts, was nicht schon feststeht (globale `CLAUDE.md` Regel 1: verifizieren via Verhalten, nicht via Re-Read). Verhalten heißt hier: der Report nennt dokumentierten und Live-Wert nebeneinander.
 - Datei-Inhalte NUR via Read-Tool lesen (nie Get-Content/cat/head/tail via Bash/PowerShell) — sonst Security-Flag.
 - Bei Unsicherheit über einen Live-Wert: NICHT patchen, im Report als „unklar/manuell prüfen" listen (ehrlich-vor-bequem).
 - Kein `sudo`. Kein schreibender Remote-Befehl.
@@ -28,21 +28,21 @@ Hält `~/.claude/CUSTOM_INSTRUCTIONS.md` faktisch aktuell (Datei liegt aktuell n
 
 ## Ablauf
 1. **Backup** der Datei (s.o.). Dann Datei via Read lesen.
-2. **Live-Fakten proben** (Bash):
+2. **Live-Fakten proben**: genau ein Aufruf im Bash-Tool, wörtlich so und ohne Zusätze:
    ```bash
-   # mcp-memory-Paketversion
-   ls -d ~/.claude/mcp-memory-venv/Lib/site-packages/mcp_memory_service-*.dist-info 2>/dev/null | sed 's#.*mcp_memory_service-##; s#\.dist-info##'
-   # Endpoints
-   curl -s -o /dev/null -w "api/health=%{http_code}\n" -m 5 ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/api/health
-   curl -s -o /dev/null -w "mcp=%{http_code}\n"        -m 5 ${MCP_MEMORY_BASE_URL:-http://10.0.0.x:8000}/mcp
-   # lokale Python-Version
-   python --version 2>&1
-   # Source-Beleg-URLs erreichbar?
-   for u in https://docs.claude.com https://api.github.com; do curl -sI -o /dev/null -w "$u=%{http_code}\n" -m 8 "$u"; done
+   python ~/.claude/scripts/drift_probe.py
    ```
+   Dieser Aufruf ist in der PC-`settings.json` freigegeben und läuft deshalb auch unbeaufsichtigt (seit 2026-11-13). `curl` steht dort auf „ask“ und gehört nicht in den Wochenlauf. Das Skript gibt JSON aus:
+   - lokale Python-Version
+   - Memory-Endpoints: `MCP_MEMORY_BASE_URL`, Tailscale, MagicDNS (Auflösung und Health), wg0, `127.0.0.1`
+   - Werte aus `~/.ssh/config`, SSH-Banner
+   - Server: Distro, Kernel und `python3` per read-only-SSH
+   - Erreichbarkeit der Quellen-URLs
+
+   Lesart: `memory_mcp` = 405 heißt, der Endpoint lebt (GET wird abgelehnt, POST ist der Weg). Die mcp-memory-**Version** kommt aus `mcp__memory__memory_health`; die lokale `mcp-memory-venv` gibt es seit 2026-11-12 nicht mehr.
 3. **Memory-Tool-Namen** gegen die in DIESER Session real verfügbaren `mcp__memory__*`-Tools abgleichen (dein eigenes Tool-Listing ist die Quelle — kein externer Probe nötig). Im Doc gelistete Namen, die es nicht mehr gibt → Drift. Neue Kern-Tools, die fehlen → Drift.
 4. **Modelle** (Region `stack`): dokumentierte Modell-Namen gegen den aktuell bekannten Stand prüfen (Default-Opus-Generation, Long-horizon-Modell). Bei Rename/Deprecation → Drift. Unsicher → Report, nicht patchen.
-5. **Server-Fakten** (Region `stack`): dokumentierte SSH-IP/Port gegen `~/.ssh/config` prüfen, Distro via Banner-Grab (Stufe 2) plausibilisieren, bei Bedarf per read-only-Login exakt bestätigen (`lsb_release -ds`, `uname -r`). Point-Release (`22.04.5`) NICHT ins Doc schreiben — bumpt bei jedem Update und läuft nächste Woche als Fake-Drift auf; nur die Major-Version (`22.04`) zählt.
+5. **Server-Fakten** (Region `stack`): dokumentierte SSH-IP/Port gegen `ssh_config_netcup_marco` prüfen, Distro und OpenSSH-Version aus `server.distro` und `ssh_banner_kurz` des Probe-Laufs (Schritt 2) nehmen. Eigene SSH-Aufrufe sind im Wochenlauf nicht nötig. Point-Release (`22.04.5`) NICHT ins Doc schreiben — bumpt bei jedem Update und läuft nächste Woche als Fake-Drift auf; nur die Major-Version (`22.04`) zählt.
 6. **Drift-Tabelle** bauen: je Fakt `Region | dokumentiert | live | Urteil(ok/drift/unklar)`.
 7. **Auto-Patch**: für jedes `drift` mit eindeutigem Live-Wert die Stelle INNERHALB der zugehörigen `AUTO-FACTS`-Region per Edit korrigieren. `unklar` → nicht patchen. Kein Re-Read nach dem Edit (s. Harte Grenzen) — der Beleg steht in der Drift-Tabelle des Reports.
 8. **Report** schreiben nach `~/projects/Skills_&_Co/INSTRUCTIONS_DRIFT/DRIFT_<YYYY-MM-DD>.md` (Syncthing-synct; PC-seitig = entsprechender `projekte`-Sync-Ordner): geprüfte Fakten, was gepatcht wurde, was offen blieb (mit Grund), Backup-Pfad. Bei 0 Drift: knappe „all green"-Zeile.
