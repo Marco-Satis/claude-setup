@@ -32,7 +32,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `context_threshold_warning.py` | `—` | 5 | UserPromptSubmit Hook: aktiv-erzwingt /compact bei steigender Context-Auslastung. |
 | `secret_leak_detector.py` | `—` | 5 | UserPromptSubmit Hook: erkennt API-Keys / Tokens / Secrets im User-Prompt. |
 | `memory_delta_watch.py` | `—` | 10 | UserPromptSubmit Hook: erkennt Setup-Aenderungen anderer Sessions mid-session. |
-| `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse Hook: stellt Nachrichten von Codex (und anderen Agents) zu. |
+| `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse (+ optional SessionStart) Hook: stellt Nachrichten zu. |
 | `ultracode_advisor.py` | `—` | 10 | UserPromptSubmit-Hook: erinnert an ultracode/Multi-Agent-Schwarm wenn ein Task |
 | `fastmode_hint.py` | `—` | 10 | UserPromptSubmit-Hook: weist auf Fast Mode (/fast) hin wenn sinnvoll. |
 | `wissen_hook.py` | `—` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
@@ -54,7 +54,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | Hook | Matcher | Timeout | Zweck |
 |---|---|---|---|
 | `review_reminder.py` | `Edit|Write` | 10 | PostToolUse Hook (Edit/Write): Review-Reminder bei sicherheits-/integritäts- |
-| `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse Hook: stellt Nachrichten von Codex (und anderen Agents) zu. |
+| `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse (+ optional SessionStart) Hook: stellt Nachrichten zu. |
 
 ## PostToolUseFailure
 

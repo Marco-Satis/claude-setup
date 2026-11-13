@@ -158,6 +158,11 @@ CRON_ROUTINES = [
     {"name": "wissen_vorschlaege", "plan": "woechentlich So 05:40", "kind": "append",
      "path": HOME / ".claude/logs/wissen_vorschlaege.log", "max_h": 8 * 24, "since": "2026-11-15",
      "note": "~/.claude/scripts/wissen/wz_vorschlaege.py; setzt keine Links, Deckel 15 Vorschlaege"},
+    # 2026-11-13 (der Nutzer-Auftrag Postfach ChatGPT -> Claude): claude -p nur lesend im Projekt Personal_Agent_OSS,
+    # genau ein naechster Schritt, Ergebnis per Postfach an agent-os. Cron setzt der Nutzer (Zeile im Bericht).
+    {"name": "agent_os_montag", "plan": "woechentlich Mo 10:30", "kind": "append",
+     "path": HOME / ".claude/logs/agent_os_montag.log", "max_h": 8 * 24, "since": "2026-11-16",
+     "note": "~/.claude/scripts/agent_os_montag.sh; Schritte in Skills_&_Co/AGENT_OS_SCHRITTE.md"},
     {"name": "agent_msg_notify", "plan": "alle 10 min", "kind": "event_only",
      "path": HOME / ".claude/logs/agent_msg_notify.log",
      "note": "loggt nur, wenn Codex-Nachrichten >10 min unabgeholt sind (seit 2026-09-29)"},
