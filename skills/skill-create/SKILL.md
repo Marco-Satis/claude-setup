@@ -157,7 +157,9 @@ bei reinen Referenz-Skills optional.
    ~/.claude/scripts/skill_trigger_eval.sh evals/trigger.json <skill-dir> --runs-per-query 3
    ```
    Das Skript nutzt `run_eval.py` aus dem installierten skill-creator-Marketplace, schaltet für die
-   `claude -p`-Läufe Hooks und Session-Persistenz ab und räumt danach auf. **Vor der Installation
+   `claude -p`-Läufe Hooks und Session-Persistenz ab und räumt danach auf. **Nur auf netcup:** Am PC
+   startet `run_eval.py` `claude` ohne Shell, das scheitert dort mit `WinError 2`; außerdem gibt es seit
+   2026-11-13 am PC keine Terminal-CLI mehr. Dann die Trigger-Eval über „Setup Server“ laufen lassen. **Vor der Installation
    testen** — ein bereits installierter gleichnamiger Skill stiehlt sonst Treffer.
    Zu einfache Anfragen („lies Datei X") lösen nie aus, egal wie gut die Description ist.
    Ziel: alle Soll-Treffer ≥ 2/3, alle Beinahe-Treffer ≤ 1/3. Sonst Description schärfen, erneut messen.
