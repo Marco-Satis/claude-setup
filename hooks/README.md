@@ -35,6 +35,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse (+ optional SessionStart) Hook: stellt Nachrichten zu. |
 | `ultracode_advisor.py` | `—` | 10 | UserPromptSubmit-Hook: erinnert an ultracode/Multi-Agent-Schwarm wenn ein Task |
 | `fastmode_hint.py` | `—` | 10 | UserPromptSubmit-Hook: weist auf Fast Mode (/fast) hin wenn sinnvoll. |
+| `zeit_kontext.py` | `—` | 5 | zeit_kontext.py - UserPromptSubmit hook: active time awareness (der Nutzer 2026-11-13). |
 | `wissen_hook.py` | `—` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
 
 ## PreToolUse

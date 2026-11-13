@@ -54,3 +54,13 @@ Die netcup-Session **„Setup Server“** (Rolle Setup-Zentrale, RC-Host `claude
 - Andere Sessions melden Setup-Befunde und projektübergreifende Themen an „Setup Server“. Ihr PC-Gegenstück heißt „Setup PC“ (Windows-Setup, PC-globale `CLAUDE.md`).
 - Damit nichts verloren geht: Entscheidungen und Fakten landen im Wissensspeicher (`wz`), Laufendes in
   `~/projects/Skills_&_Co/PROGRESS.md`.
+
+## Empfang bestätigen (der Nutzer 2026-11-13)
+
+Nachrichten über Remote Control (PC ↔ netcup) melden dem Absender keine Zustellung („not confirmed read“). Deshalb:
+- Wer eine Nachricht einer anderen Session bekommt, **antwortet sofort mit einer Zeile** an den `from=`-Absender:
+  `Empfangen: <Stichwort der Nachricht> – <übernommen | erledigt | an der Nutzer-Block | abgelehnt: Grund>`.
+  Folgt die inhaltliche Antwort ohnehin im selben Zug, ersetzt sie die Quittung.
+- Ausgenommen sind reine Quittungen und Abschlussmeldungen ohne Frage (keine Quittung auf eine Quittung, sonst Schleife).
+- Der Absender wertet eine fehlende Quittung nach 30 min als „nicht angekommen“ und schickt einmal erneut bzw. über
+  „Setup PC“ oder „Setup Server“ als Relais.
