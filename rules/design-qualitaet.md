@@ -23,9 +23,9 @@
 3. **Von echten Vorbildern ausgehen**, wenn Qualität zählt: fremde Seiten mit `site-anatomy` zerlegen, Technik mit
    `leanrea`, dann im eigenen Design umsetzen (keine Marken- oder Logoübernahme). Bei Stufe V ist ein Vorbild
    Standard; ohne Vorbild nur auf des Nutzers ausdrückliches „ohne Vorbild“.
-4. **Bewegung:** Status- und Daueranimationen folgen WCAG 2.2.2 (über 5 s → Pause/Stopp-Möglichkeit) und
-   `prefers-reduced-motion`; dafür gehen WCAG und `impeccable` vor `design-taste-frontend` (entschieden 13.11., MB84).
-   Endlos-Schleifen und Overshoot nur als Deko und immer mit Reduced-Motion-Variante.
+4. **Bewegung:** Kein Überschwingen oder Federn (Anti-KI A12, hart). Dauerbewegung nur als ein benannter
+   Signaturmoment, über 5 s mit Pause- oder Stopp-Möglichkeit (WCAG 2.2.2) und immer mit Reduced-Motion-Variante;
+   dafür gehen WCAG und `impeccable` vor `design-taste-frontend` (MB84; Fassung von der Nutzer am 14.11. bestätigt, MB133).
 5. Erst danach der Nutzer zeigen, mit einem Satz, was geprüft wurde.
 
 Ausbau: Kontaktbogen für Animationen ist umgesetzt (G246, Punkt 1; Checkliste `~/.claude/scripts/visual_sheet_checkliste.md`,
