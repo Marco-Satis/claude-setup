@@ -164,7 +164,7 @@ CRON_ROUTINES = [
     # Drift in Skills/Rules/Templates, wz-Faktenalter, Claude-Code-Neuerungen, gesperrte Werkzeuge. Ohne claude -p.
     {"name": "setup_aktualitaet", "plan": "woechentlich So 06:30", "kind": "append",
      "path": HOME / ".claude/logs/setup_aktualitaet.log", "max_h": 8 * 24, "since": "2026-11-15",
-     "note": "~/.claude/scripts/setup_aktualitaet.py ueber routine_wrap.sh; Bedarf als BRAUCHT-Zeilen"},
+     "note": "~/.claude/scripts/setup_aktualitaet.py ueber routine_wrap.sh (Stufe 1 mechanisch, Stufen 2/2b/3 per claude -p + Codex in setup_pruefung_modell.py); Bedarf als BRAUCHT-Zeilen, Gesamtbericht ROUTINE_REPORTS/SETUP_PRUEFUNG_<datum>.md"},
     # 2026-11-13 (Wissenssystem Stufe 2, V6): woechentlicher Vorschlagslauf, meldet nur (Drift, Widersprueche,
     # kaputte Kanten, Ausmustern, Waisen). Schreibt seinen Report selbst; Cron setzt der Nutzer (Zeile im Bericht).
     {"name": "wissen_vorschlaege", "plan": "woechentlich So 05:40", "kind": "append",
