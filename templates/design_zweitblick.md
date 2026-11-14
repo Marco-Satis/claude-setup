@@ -28,7 +28,9 @@ Fällt Codex aus (Limit, Fehler, ungültige Antwort), schaut nur Claude; im Prot
    Reduced-Motion- und kein `--nojs`-Lauf: das prüfen die Checklisten.
 3. **Neutralisieren:** in einen frischen Ordner kopieren, `<Z>/bilder/bild_01.png` … `bild_NN.png`, mit
    `Z=$(mktemp -d "<scratchpad>/zweitblick.XXXXXX")`. Die Zuordnung zum Original steht in `<Z>/zuordnung.txt`,
-   außerhalb von `bilder/`, weil Codex sein Arbeitsverzeichnis lesen kann.
+   außerhalb von `bilder/`, damit sie nicht im Arbeitsverzeichnis der Prüfer liegt. **Das ist keine Sperre:** Beide
+   Prüfer können technisch alles lesen, was des Nutzers Konto lesen darf (Abschnitt 6). Blind sind sie nur, weil der
+   Auftrag es verlangt und Abschnitt 5 jeden Werkzeugaufruf außerhalb der Bilder als Ausfall wertet.
 4. **Kopfzeile der Bögen abschneiden.** Sie nennt Dateiname, Chrome-Version und Laborwerte. Im Probelauf B0 nannte
    Codex „Kopfzeile und Karteninhalte“ als Indiz für eine Test- oder Debug-Oberfläche. Die erste Bildreihe beginnt
    bei y = 58 (gemessen 13.11. an Bögen mit 930 und 1566 px Breite); geschnitten wird bei 56, damit der Rahmen
@@ -59,7 +61,7 @@ printf '\nBeigelegte Bilder in dieser Reihenfolge: %s\n' \
 ## 3. Auftrag (wörtlich an beide Prüfer)
 
 <!-- AUFTRAG:START -->
-Du prüfst blind als erfahrene Art-Direktorin und Frontend-Entwicklerin. Beigelegt sind nur Bilder einer Oberfläche: Ganzseiten-Aufnahmen (1280 px Desktop, 390 px Handy) und gegebenenfalls Bewegungsbögen. In einem Bogen ist jede Zeile ein Zustand und jede Spalte ein Zeitpunkt; die Beschriftung unter jedem Bild lautet „Zustand · +Sekunden seit dem Auslöser“, rechts steht die Bildnummer.
+Du prüfst blind als erfahrene Art-Direktorin und Frontend-Entwicklerin. Beigelegt sind nur Bilder einer Oberfläche: Ganzseiten-Aufnahmen (1280 px Desktop, 390 px Handy) und gegebenenfalls Bewegungsbögen. In einem Bogen ist jede Zeile ein Zustand und jede Spalte ein Zeitpunkt; die Beschriftung unter jedem Bild lautet „Zustand · +Sekunden seit dem Auslöser“ (bei Scroll-Bögen ist der Zustand die Scroll-Position, etwa „Scroll 2 · y 675“), rechts steht die Bildnummer. Schrittbögen haben nur eine Zeile: Dort lautet die Beschriftung „Anteil der Animationsdauer in % · Millisekunden“, jedes Bild zeigt dieselbe Animation angehalten an diesem Zeitpunkt.
 
 Regeln:
 - Bewerte nur die beigelegten Bilder. Führe keine Befehle aus, lies keine Dateien, suche nichts nach.
@@ -124,13 +126,43 @@ PY
 
 ### 5.1 Claude-Subagent (Agent-Tool)
 
-- Frischer Subagent (`subagent_type: "general-purpose"`), nie ein Fork oder die Fortsetzung eines früheren Prüfers:
-  Er darf weder Brief noch Verlauf noch eine Vorversion kennen.
+- Frischer Subagent, nie ein Fork oder die Fortsetzung eines früheren Prüfers: Er darf weder Brief noch Verlauf
+  noch eine Vorversion kennen. Agententyp: ein reiner Read-Agent, sobald es ihn gibt (offen, siehe Abschnitt 6).
+  Bis dahin `subagent_type: "general-purpose"`; `untrusted-reader` ist zwar nur Read, passt aber nicht (eigenes
+  Ausgabeformat, höchstens 4 Turns).
 - Prompt = Inhalt von `<Z>/auftrag.txt` plus diese Zeilen, sonst nichts:
   `Sieh dir diese Bilder mit dem Read-Tool an, in dieser Reihenfolge: <Z>/bilder/bild_01.png … Lies keine anderen
   Dateien und führe keine Befehle aus. Deine letzte Antwort ist nur das JSON.`
 - Nicht die ganze Vorlage übergeben: Abschnitt 5 nennt die Schlussregel und damit die erwartete Antwort.
 - Antwort nach `<Z>/claude.json` schreiben und mit dem Skript aus Abschnitt 4 prüfen.
+- **Werkzeugaufrufe prüfen:** Das Transkript des Prüfers liegt unter
+  `~/.claude/projects/<projekt-slug>/<session-id>/subagents/agent-<agentId>.jsonl` (`agentId` aus der Antwort des
+  Agent-Tools, sonst die neueste Datei dort). Jeder Aufruf außer Read auf `<Z>/bilder/bild_*.png` zählt als Ausfall
+  des Claude-Blicks: Antwort verwerfen, einmal mit einem frischen Prüfer wiederholen.
+
+```bash
+python3 -I - "<agent-…jsonl>" "$Z/bilder" <<'PY'
+import json, pathlib, sys
+bilder = pathlib.Path(sys.argv[2]).resolve()
+fremd, n = [], 0
+for zeile in open(sys.argv[1], encoding="utf-8"):
+    try:
+        e = json.loads(zeile)
+    except ValueError:
+        continue
+    inhalt = (e.get("message") or {}).get("content") if isinstance(e, dict) else None
+    for b in inhalt if isinstance(inhalt, list) else []:
+        if not (isinstance(b, dict) and b.get("type") == "tool_use"):
+            continue
+        n += 1
+        pfad = str((b.get("input") or {}).get("file_path", ""))
+        p = pathlib.Path(pfad).resolve() if pfad else None
+        if b.get("name") != "Read" or p is None or p.parent != bilder or not p.name.startswith("bild_"):
+            fremd.append(f"{b.get('name')} {pfad or json.dumps(b.get('input'), ensure_ascii=False)[:80]}")
+print(f"AUSFALL ({len(fremd)} von {n} Aufrufen): " + "; ".join(fremd[:5]) if fremd else f"werkzeuge ok ({n} Read auf bilder/)")
+sys.exit(1 if fremd or not n else 0)
+PY
+```
 
 ### 5.2 Codex (direkt, ohne `codex_call.py`)
 
@@ -138,11 +170,29 @@ PY
 
 ```bash
 args=(); for f in "$Z"/bilder/bild_*.png; do args+=(-i "$f"); done
-timeout 300 codex exec "${args[@]}" --ignore-user-config --skip-git-repo-check --sandbox read-only --ephemeral \
+timeout 300 codex exec "${args[@]}" --json --ignore-user-config --skip-git-repo-check --sandbox read-only --ephemeral \
   -C "$Z/bilder" -m "${ZWEITBLICK_MODELL:-gpt-5.6-sol}" -c "model_reasoning_effort=\"${ZWEITBLICK_EFFORT:-medium}\"" \
   --output-schema "$HOME/.claude/templates/design_zweitblick.schema.json" -o "$Z/codex.json" \
-  - < "$Z/auftrag.txt" > "$Z/codex.out" 2> "$Z/codex.err"
+  - < "$Z/auftrag.txt" > "$Z/codex.jsonl" 2> "$Z/codex.err"
 echo "rc=$?"
+
+# Werkzeugprobe: nur agent_message und reasoning erlaubt; command_execution (Codex liest Dateien per Shell),
+# file_change, mcp_tool_call, web_search usw. = Ausfall
+python3 -I - "$Z/codex.jsonl" <<'PY'
+import json, sys
+erlaubt = {"agent_message", "reasoning"}
+fremd, fertig = [], False
+for zeile in open(sys.argv[1], encoding="utf-8"):
+    if not zeile.startswith("{"):
+        continue
+    e = json.loads(zeile)
+    fertig |= e.get("type") == "turn.completed"
+    t = (e.get("item") or {}).get("type")
+    if t and t not in erlaubt:
+        fremd.append(t)
+print(f"AUSFALL, Werkzeug genutzt: {sorted(set(fremd))}" if fremd else "events ok" if fertig else "AUSFALL, kein turn.completed")
+sys.exit(1 if fremd or not fertig else 0)
+PY
 ```
 
 - **`--ignore-user-config`** lädt `~/.codex/config.toml` nicht und damit nicht den dort eingetragenen MCP-Server
@@ -156,8 +206,11 @@ echo "rc=$?"
   `ZWEITBLICK_MODELL=gpt-5.6-luna ZWEITBLICK_EFFORT=low`, um das Kontingent des Flaggschiffs zu schonen.
 - **Jedes Bild mit eigenem `-i`.** `-i <FILE>...` nimmt mehrere Werte; deshalb stehen danach weitere Optionen und
   der Prompt-Platzhalter `-` ganz am Ende.
-- **Ausfall:** `rc` ≠ 0, fehlende `codex.json` oder eine auch beim zweiten Versuch ungültige Antwort (Abschnitt 4)
-  zählt als Ausfall (Abschnitt 1). Nicht nach
+- **`--json`** schreibt die Ereignisse als JSONL nach `codex.jsonl` (`-o` liefert weiter die Antwort). Probe
+  14.11. (codex-cli 0.159.0): Ein normaler Zweitblick erzeugt nur `agent_message`; ein Auftrag mit Befehl erzeugt
+  `command_execution` (`/bin/bash -lc "pwd && … sed -n '1,120p' notiz.txt"`), also auch beim Dateilesen.
+- **Ausfall:** `rc` ≠ 0, fehlende `codex.json`, eine Werkzeugprobe mit „AUSFALL“ oder eine auch beim zweiten
+  Versuch ungültige Antwort (Abschnitt 4) zählt als Ausfall (Abschnitt 1). Nicht nach
   „rate limit“ im stderr suchen: Die CLI schreibt ihre Auslastung bei jedem Lauf dorthin (siehe `codex_call.py`).
 - Der direkte Aufruf läuft am Usage-Log `~/.claude/state/codex_usage.jsonl` vorbei.
 
@@ -183,6 +236,15 @@ KI-Wert je Blick: „ki“ → sicherheit, „mensch“ → 100 − sicherheit, 
 
 ## 6. Datenschutz und Vertrauen
 
+- **Isoliert wird nur per Anweisung, nicht technisch.** `--sandbox read-only` verbietet Codex das Schreiben, nicht
+  das Lesen: Probe 14.11. in einem leeren Ordner, `codex sandbox -c 'sandbox_mode="read-only"' -- wc -c
+  ~/.claude/templates/design_zweitblick.md ~/projects/Skills_&_Co/CLAUDE.md` → rc 0, beide lesbar (codex-cli
+  0.159.0). Codex könnte also Zuordnung, Originalbögen samt Dateinamen, diese Vorlage mit der Schlussregel und
+  Projektdaten lesen. Der Claude-Subagent hat Read (als `general-purpose` auch Bash) auf alles und bekommt
+  `CLAUDE.md` und die Rules, darunter `design-qualitaet.md`, automatisch in seinen Kontext; ganz ohne Vorwissen
+  ist er also nie. Deshalb gelten die Werkzeugproben in 5.1 und 5.2: Ein Werkzeugaufruf außerhalb der Bilder macht
+  den Blick ungültig. Für die Kalibrierung (T4) ist das eine bekannte Grenze. Offen für die Setup-Zentrale: ein
+  eigener Agent `zweitblick-pruefer` (`tools: Read`, `mcpServers: []`).
 - Codex bekommt nur eigene Entwürfe mit Dummy-Daten: keine echten Namen, Kunden- oder Kontodaten, keine Bilder aus
   Projekten anderer Sessions ohne des Nutzers Ja.
 - `--ephemeral`: keine Sitzungsdatei, aus der Codex' eigenes Gedächtnis lernen könnte. Ohne den `memory`-Server

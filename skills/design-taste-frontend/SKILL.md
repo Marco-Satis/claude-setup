@@ -1,8 +1,8 @@
 ---
 name: design-taste-frontend
 description: 'Anti-Slop-Frontend-Design BEIM Generieren — 3 Regler (DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY, Baseline 8/3/4) + Bias-Correction gegen generische AI-UIs (Lila-Ban, Reflex-Font-Ban, Anti-Center-Bias, Anti-3-Card-Row, AI-Tells wie "John Doe"/"Elevate"/99.99%). Nachrangig: impeccable und frontend-design gehen vor, Prüfung über die Anti-KI-Checkliste aus rules/design-qualitaet.md. React/Next+Tailwind+Framer-orientiert, ABER Typo-/Color-/Layout-/AI-Tell-Regeln sind stack-agnostisch (auch HTMX/vanilla). Invoke bei Frontend-/Dashboard-/Landing-Page-Arbeit für Design das nicht nach Standard-AI-Slop aussieht. Ergänzt /a11y-check + /ui-critique (kein WCAG-Fokus). Quelle: Leonxlnx/taste-skill v1, entgiftet in G247.'
-version: 1.1.0
-last-reviewed: 2026-11-13
+version: 1.1.1
+last-reviewed: 2026-11-14
 ---
 
 # High-Agency Frontend Skill
@@ -72,10 +72,10 @@ LLMs have statistical biases toward specific UI cliché patterns. Proactively co
 * **Forms:** Label MUST sit above input. Helper text is optional but should exist in markup. Error text below input. Use a standard `gap-2` for input blocks.
 
 ## 4. CREATIVE PROACTIVITY (Anti-Slop Implementation)
-To actively combat generic AI designs, systematically implement these high-end coding concepts as your baseline:
+Apply these only where MOTION_INTENSITY and the brief call for them (baseline 3 = no automatic animations, Section 6):
 * **Magnetic Micro-physics (If MOTION_INTENSITY > 5):** Implement buttons that pull slightly toward the mouse cursor. **CRITICAL:** NEVER use React `useState` for magnetic hover or continuous animations. Use EXCLUSIVELY Framer Motion's `useMotionValue` and `useTransform` outside the React render cycle to prevent performance collapse on mobile.
 * **Easing, no perpetual motion:** No continuous micro-animations in standard components (avatars, status dots, backgrounds). Interactive elements: ease-out (quart/quint/expo) or a critically damped spring (`type: "spring", stiffness: 100, damping: 20`), no linear easing, no bounce/overshoot.
-* **Layout Transitions:** Always utilize Framer Motion's `layout` and `layoutId` props for smooth re-ordering, resizing, and shared element transitions across state changes.
+* **Layout Transitions:** When elements re-order or resize on a state change and Framer Motion is in the stack, use its `layout` and `layoutId` props instead of animating `width`/`height`; otherwise change instantly or cross-fade.
 * **Staggered Orchestration (lists only):** Stagger only the items of one list, total at most 500 ms (e.g. `staggerChildren: 0.04` or `animation-delay: calc(min(var(--index), 10) * 40ms)`); never across sections, no load choreography in tools, content complete without the reveal. **CRITICAL:** For `staggerChildren`, the Parent (`variants`) and Children MUST reside in the identical Client Component tree. If data is fetched asynchronously, pass the data as props into a centralized Parent Motion wrapper.
 
 ## 5. PERFORMANCE GUARDRAILS
@@ -132,11 +132,11 @@ To guarantee a premium, non-generic output, you MUST strictly avoid these common
 * **shadcn/ui Customization:** You may use `shadcn/ui`, but NEVER in its generic default state. You MUST customize the radii, colors, and shadows to match the high-end project aesthetic.
 * **Production-Ready Cleanliness:** Code must be extremely clean, visually striking, memorable, and meticulously refined in every detail.
 
-## 8. THE CREATIVE ARSENAL (High-End Inspiration)
-Do not default to generic UI. Pull from this library of advanced concepts to ensure the output is visually striking and memorable. When appropriate, leverage **GSAP (ScrollTrigger/Parallax)** for complex scrolltelling or **ThreeJS/WebGL** for 3D/Canvas animations, rather than basic CSS motion. **CRITICAL:** Never mix GSAP/ThreeJS with Framer Motion in the same component tree. Default to Framer Motion for UI/Bento interactions. Use GSAP/ThreeJS EXCLUSIVELY for isolated full-page scrolltelling or canvas backgrounds, wrapped in strict useEffect cleanup blocks.
+## 8. THE CREATIVE ARSENAL (only if the brief asks for it)
+Everything in this section is an offer, not a quota, and only applies when the brief asks for it: at most one named signature moment per page, checked against the Anti-KI checklist (A6, A12, A13). **GSAP (ScrollTrigger/Parallax)** or **ThreeJS/WebGL** only at MOTION_INTENSITY >= 8 or on explicit request, never as a replacement for plain CSS state changes. **CRITICAL:** Never mix GSAP/ThreeJS with Framer Motion in the same component tree. Use GSAP/ThreeJS EXCLUSIVELY for isolated full-page scrolltelling or canvas backgrounds, wrapped in strict useEffect cleanup blocks. Anything moving longer than 5 s needs pause/stop and a reduced-motion variant (WCAG 2.2.2).
 
-### The Standard Hero Paradigm
-* Stop doing centered text over a dark image. Try asymmetric Hero sections: Text cleanly aligned to the left or right. The background should feature a high-quality, relevant image with a subtle stylistic fade (darkening or lightening gracefully into the background color depending on if it is Light or Dark mode).
+### Hero
+* No default hero recipe: neither centered text over a dark image nor a split hero with a faded background image. Derive the hero structure from the page's main task, the content and the reference (Rule 3).
 
 ### Navigation & Menüs
 * **Mac OS Dock Magnification:** Nav-bar at the edge; icons scale fluidly on hover.
@@ -150,7 +150,7 @@ Do not default to generic UI. Pull from this library of advanced concepts to ens
 ### Layout & Grids
 * **Bento Grid:** Asymmetric, tile-based grouping (e.g., Apple Control Center).
 * **Masonry Layout:** Staggered grid without fixed row heights (e.g., Pinterest).
-* **Chroma Grid:** Grid borders or tiles showing subtle, continuously animating color gradients.
+* **Chroma Grid:** Grid borders or tiles with subtle color shifts on interaction (no continuous animation).
 * **Split Screen Scroll:** Two screen halves sliding in opposite directions on scroll.
 * **Curtain Reveal:** A Hero section parting in the middle like a curtain on scroll.
 
@@ -204,9 +204,10 @@ Evaluate your code against this matrix before outputting. This is the **last** f
 - [ ] Do `useEffect` animations contain strict cleanup functions?
 - [ ] Are empty, loading, and error states provided?
 - [ ] Are cards omitted in favor of spacing where possible?
-- [ ] Did you strictly isolate CPU-heavy perpetual animations in their own Client Components?
+- [ ] Does every animation have a purpose (state, origin, feedback), and does anything running longer than 5 s have pause/stop and a `prefers-reduced-motion` variant?
 
 ## Changelog
 
-- 1.1.0 (2026-11-13): G247 Phase 1 B5 „entgiftet“ (der Nutzer wz `4bef`, MB98): Vorrang-Kopf (impeccable und frontend-design gehen vor, Anti-KI-Checkliste, Tor aus `rules/design-qualitaet.md`); MOTION_INTENSITY 6 → 3. Gestrichen: Pflicht für Geist/Outfit/Satoshi (jetzt selbst Reflex-Schriften), Split-Hero-Zwang, Liquid Glass, Dauer-Mikroanimationen in Standardkomponenten, `transition: all`, Zinc-950 als Off-Black, picsum, Abschnitt 9 „Bento 2.0“ samt Overshoot-Badge (Pre-Flight jetzt Abschnitt 9). Glitch, Scramble, Mesh und die Effekt-Gruppen in Abschnitt 8 nur auf Brief-Wunsch; Stagger nur innerhalb von Listen, insgesamt höchstens 500 ms. Backup `SKILL.md.bak.g247p1.1794609612`.
+- 1.1.1 (2026-11-14): Review G247 Phase 1, Reste der Entgiftung: Abschnitt 4 nur noch nach MOTION_INTENSITY und Brief (statt „as your baseline“), Layout-Transitions nicht mehr „always“; Abschnitt 8 insgesamt nur auf Brief-Wunsch, GSAP/ThreeJS erst ab MOTION_INTENSITY 8 oder auf Wunsch, „Standard Hero Paradigm“ durch „Hero aus Inhalt und Vorbild“ ersetzt, Chroma Grid ohne Daueranimation; Pre-Flight fragt nach Zweck und Pause statt Dauer-Animationen vorauszusetzen. Herkunft von 1.1.0 korrigiert. Backup `SKILL.md.bak.g247p1.1794615205`.
+- 1.1.0 (2026-11-13): G247 Phase 1 B5 „entgiftet“ (setzt des Nutzers Regel wz `4bef` um; Entscheidung MB98 als [D] von Setup Server unter der Vollmacht vom 13.11., des Nutzers eigene Bestätigung offen): Vorrang-Kopf (impeccable und frontend-design gehen vor, Anti-KI-Checkliste, Tor aus `rules/design-qualitaet.md`); MOTION_INTENSITY 6 → 3. Gestrichen: Pflicht für Geist/Outfit/Satoshi (jetzt selbst Reflex-Schriften), Split-Hero-Zwang, Liquid Glass, Dauer-Mikroanimationen in Standardkomponenten, `transition: all`, Zinc-950 als Off-Black, picsum, Abschnitt 9 „Bento 2.0“ samt Overshoot-Badge (Pre-Flight jetzt Abschnitt 9). Glitch, Scramble, Mesh und die Effekt-Gruppen in Abschnitt 8 nur auf Brief-Wunsch; Stagger nur innerhalb von Listen, insgesamt höchstens 500 ms. Backup `SKILL.md.bak.g247p1.1794609612`.
 - 1.0.0 (2026-07-21): Übernahme Leonxlnx/taste-skill v1 (lean, 226 Zeilen).

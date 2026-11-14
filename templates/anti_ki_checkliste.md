@@ -19,8 +19,7 @@ Jeder Punkt kommt ins Prüfprotokoll mit genau einem Wert:
 
 Prüfwege:
 - **Bild:** Read auf die PNG, bei 390 und 1280 px; Details am Einzelbild in voller Auflösung.
-- **Flag:** `visual_sheet.mjs --audit` bzw. `--motion`. Fehlt der Schalter noch in `--help`, am Code oder mit
-  `getComputedStyle` prüfen und „am Code“ vermerken. Der Punkt bleibt Pflicht.
+- **Flag:** `visual_sheet.mjs --audit` bzw. `--motion` (beide in `--pruefen`).
 - **Detektor:** der impeccable-Hook (meldet sich nach jedem Edit) oder `detect.mjs --json` (Exit 0 = sauber,
   Exit 2 = Funde).
 
@@ -150,7 +149,8 @@ Vorbild, nicht durch das nächste Standardmuster.
   im Ruhezustand. Hart, wenn es länger als 5 s neben Inhalt läuft und sich nicht pausieren oder stoppen lässt.
 - **Fix:** streichen oder an einen Status koppeln (Puls nur während „läuft“) und danach stoppen; über 5 s nur mit
   Pause- oder Stopp-Schalter und Reduced-Motion-Variante.
-- **Prüfung:** Flag (Iterationen), Bogen.
+- **Prüfung:** Flag `endless-loop` (steht bei jeder Schleife über 5 s, Pause-Kandidaten nur in der Evidenz), Bogen;
+  ein Pause-Schalter zählt erst, wenn seine Wirkung im Bogen belegt ist.
   **Quelle:** impeccable animate.md :187; WCAG 2.2 SC 2.2.2
 
 ### A14 · Qualitätsboden fehlt (H)

@@ -31,6 +31,8 @@ DENY = {
     "skills/synced",     # vom claude.ai-Konto synchronisierte Plugin-Kopien, nicht des Nutzers Werk
     # Art. 9 DSGVO: das ADHS-Regelwerk erlaubt Rueckschluesse auf Gesundheit; der Nutzer-Entscheid 2026-10-20: bleibt draussen
     "skills/i-have-adhd", "skills/knapp", "hooks/knapp_de.py",
+    # Laufzeit-Belege der Projekt-Reviews (Hashes, Projektdetails), Fund 2026-11-14 durch detect-secrets
+    "skills/review/evidence", "skills/review/review_outcomes.jsonl",
 }
 EXCLUDE = ["*.bak", "*.bak.*", "*.sync-conflict-*", "__pycache__", ".pytest_cache", "*.pyc", "_archive*",
            ".venv", "node_modules", "*.log", "*.jsonl", "MANIFEST.sha256*", "*.tmp", "*.orig", ".DS_Store",
