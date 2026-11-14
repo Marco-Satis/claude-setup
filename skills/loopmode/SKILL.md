@@ -87,6 +87,11 @@ Der Tick wählt pro Wake GENAU EINE Aktion. Ist ein Problem offen, ist diese Akt
 3. EINE minimale **offline** Code-Änderung (greift beim nächsten Loop-Reload). Nie mid-combat-Live-State editieren; Screencap nur in Lobby.
 4. **Gate vor Übernahme:** `selfcheck.py` + game-automation-reviewer müssen grün sein (keine Regression). Output in Datei, 1 Zeile zurück. Rot → Edit verwerfen (Backup zurückspielen), Versuch zählt als Fehlversuch.
 5. Ledger-Status `offen` → `behoben_pending_deploy` + **`canary`-Block** setzen (`deploy_ts`, `metric` aus `metrics.jsonl`, `baseline`, `direction` up/down, `backup`-Pfad, `target`-Pfad, optional `target_sha256` = sha256 der Zieldatei direkt nach dem Fix).
+   **Git-Stand vor dem Deploy (der Nutzer 2026-11-14, Bot-git):** aus `Games` heraus
+   `python -m _botcore.git_snapshot <dir> "fix <eid>: <kurz>" --trailer Ledger=<eid> --trailer Quelle=loop`.
+   Die `sha` aus dem JSON auf stdout kommt nach `canary.git_commit`; ein gefülltes `braucht` in die Tick-Zeile/MB.
+   Der Helfer wirft nie, ein Deploy scheitert nie an git. Ohne eingerichtetes Repo meldet er das nur. Nie `git clean`,
+   `reset --hard`, `checkout .` oder `restore .`; eine Datei zurück nur mit `git restore --source=<sha> -- <datei>`.
 6. **Verify nächster Tick (Canary):** `python canary.py <spiel>` misst gegen Baseline → besser/gleich = `behoben_validiert`, schlechter = **auto-REVERT** (Backup zurück) + `reopened`. Ausnahme **REVERT-BLOCKIERT** (Status `behoben_pending_revert_blockiert`): Die Zieldatei wurde nach dem Fix geändert (`target_sha256` bzw. mtime passt nicht mehr) oder das Zurückspielen schlug fehl. Dann rührt canary.py die Datei nicht an → **Fix von Hand prüfen**, nie das Backup blind zurückspielen. Bei `behoben_validiert`: **Regression-Assertion** an `<dir>/regression_assertions.json` anhängen (`must_absent`/`must_present` → `selfcheck.py` schützt dauerhaft gegen Rückfall). „Done" nur mit Diff + Reload + gemessenem Delta.
 7. **Attempt-Cap (= Ledger `eskalation_schwelle_S`, Default 3):** nach 3 Fehlversuchen → Status `BLOCKED`, `python ~/.claude/scripts/problem.py add --severity MEDIUM --project games-<spiel> --source loopmode-autofix --title "<kurz>" --fix "<konkret>"`, NICHT weiter retryen → nächstes Problem.
 

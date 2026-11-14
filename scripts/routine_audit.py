@@ -212,6 +212,12 @@ CRON_ROUTINES = [
     {"name": "codex_zombie_guard", "plan": "alle 15 min", "kind": "event_only",
      "path": HOME / ".claude/logs/codex_zombie_guard.log",
      "note": "loggt nur bei >500 Zombies unter dem Codex-app-server (Bug #43256) + Neustart"},
+    # 2026-11-14 (der Nutzer MB155-158): PC-Windows-Aufgabe GamebotGitBackup, Skript gamebot_git_backup.py.
+    # Laeuft am PC, der Report kommt per projects-sync -> Beleg ist der Report (wie cve_watch).
+    {"name": "gamebot_git_backup", "plan": "taeglich 03:20 (PC, Windows-Aufgabe)", "kind": "append",
+     "path": REPORTS / "gamebot_git_backup_*.md", "max_h": 30, "since": "2026-11-15",
+     "note": "Snapshot + Bundle der Gamebot-Repos nach F:\\GitBackup\\gamebots; vor BackupPrunePC 03:40. "
+             "Ohne Report > 30 h: PC aus oder Aufgabe defekt (Setup PC)"},
 ]
 
 TIMERS = [
