@@ -49,7 +49,7 @@ Vorbild, nicht durch das nächste Standardmuster.
 ### A3 · Template-Grammatik (H)
 - **Frage:** Tragen Ordnungszeichen Information, oder sind sie Dekor?
 - **Im Bild:** kleine gesperrte Versalienzeile (Eyebrow) über mehreren Überschriften; `01/02/03` ohne echte
-  Reihenfolge; Metazeilen „A · B · C“; Überschriften „WORT — Fragment“; „→“ an Links und Buttons; ein einzelnes Wort
+  Reihenfolge; Metazeilen „A · B · C“ (Flag ab 2) oder gehäuft „A · B“ (Flag ab 4); Überschriften „WORT — Fragment“; „→“ an Links und Buttons; ein einzelnes Wort
   der Headline farbig oder kursiv.
 - **Fix:** Eyebrows streichen oder nur dort lassen, wo sie navigieren; Nummern nur bei echter Abfolge; Headline als
   ganzer Satz ohne Hervorhebungswort; Pfeile nur für „weiter“ in Abläufen.
