@@ -78,7 +78,7 @@ def main():
                 if n:
                     text += (f" · [Rückkehr] der Nutzer war {dauer(luecke)} weg, {n} Einträge in der Sammelmappe. "
                              "Erst seine Nachricht beantworten, dann die Sammelmappe vorlegen (sammel.py --offen): "
-                             "3-5 Zeilen Kurzfassung, was er entscheiden muss, was erledigt ist; danach "
+                             "3-5 Zeilen Kurzfassung, was er entscheiden muss, was erledigt ist, dazu 2-3 offene Schnell-Punkte (höchstens 5 min, aus MARCO_BLOCK.md, Wunsch der Nutzer 14.11.); danach "
                              "python3 ~/.claude/scripts/sammel.py --vorgelegt.")
     except (OSError, ValueError):
         text += " · erste Nachricht dieser Session seit Einführung"

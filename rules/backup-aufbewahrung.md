@@ -20,6 +20,9 @@
    die Sicherung und wird nach Ablauf gelöscht.
 5. Ausgenommen: `_archive*`/`_archiv*`, `.git`, `.stversions`, Rotations-Backups ohne Zeitstempel, `~/wissen`
    (wz verwaltet seine Historie selbst).
+6. **Projekte ohne git** (der Nutzer 2026-11-14): Dort sind `.bak` die einzige Historie; die Routine löscht sie nicht, bis das
+   Projekt in git liegt (`backup_prune.py` prüft je Datei, ob ein `.git` darüber liegt; `~/.claude` zählt als versioniert).
+   Anlass: Gamebots ohne git verloren freigegebene Funktionen, weil ältere Stände nach 14 Tagen gelöscht waren.
 
 ## Weitere Altdateien
 

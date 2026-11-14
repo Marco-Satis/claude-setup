@@ -36,6 +36,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `ultracode_advisor.py` | `—` | 10 | UserPromptSubmit-Hook: erinnert an ultracode/Multi-Agent-Schwarm wenn ein Task |
 | `fastmode_hint.py` | `—` | 10 | UserPromptSubmit-Hook: weist auf Fast Mode (/fast) hin wenn sinnvoll. |
 | `zeit_kontext.py` | `—` | 5 | zeit_kontext.py - UserPromptSubmit hook: active time awareness (der Nutzer 2026-11-13). |
+| `wiederholungssperre.py` | `—` | 5 | Wiederholungssperre nach Ablehnung (der Nutzer 2026-11-14 10:46, „1 bis 5 ja“, Punkt 2). |
 | `wissen_hook.py` | `—` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
 
 ## PreToolUse
@@ -44,11 +45,13 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 |---|---|---|---|
 | `destructive_command_blocker.py` | `Bash` | 5 | PreToolUse-Hook (Bash): blockt destruktive Kommandos via exit 2. |
 | `grep_complexity_guard.py` | `Bash` | 5 | grep_complexity_guard.py — blockt das grep-Muster, das den Server lahmgelegt hat. |
+| `wiederholungssperre.py` | `Bash` | 5 | Wiederholungssperre nach Ablehnung (der Nutzer 2026-11-14 10:46, „1 bis 5 ja“, Punkt 2). |
 | `important_edit_reminder.py` | `Edit|Write` | 5 | PreToolUse Hook (Edit/Write): Backup-Reminder bei wichtigen Files. |
 | `secret_write_guard.py` | `Write|Edit|MultiEdit|Bash` | 5 | PreToolUse Hook: blockt Secrets die CLAUDE in Dateien/Commands schreiben will. |
 | `git_push_reminder.py` | `Bash` | 5 | PreToolUse Hook (Bash): Reminder bei git push wegen Token-Push-Verbot. |
 | `enforce_read_tool.py` | `Bash` | 5 | PreToolUse-Hook (Bash): blockt REINE Datei-Reads via Shell und erzwingt das Read-Tool. |
 | `wissen_hook.py` | `Bash|Edit|Write|MultiEdit|NotebookEdit` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
+| `auto_backup.py` | `Edit|Write|MultiEdit` | 10 | PreToolUse-Hook (Edit/Write/MultiEdit): Auto-Backup fuer Dateien ohne git. |
 
 ## PostToolUse
 
@@ -70,6 +73,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 |---|---|---|---|
 | `session_logger.py` | `—` | 10 | Stop Hook: loggt Session-Statistiken + persistiert Tier-1-Session-Memory. |
 | `context_canary.py` | `—` | — | Stop-Hook: Context-Canary — erkennt stillen Instruktions-Drift vor der ersten Halluzination. |
+| `empfang_erinnerung.py` | `—` | 10 | Stop-Hook: Erinnerung an die Empfangsbestaetigung (rules/session-disziplin.md, „Empfang bestaetigen“). |
 
 ## StopFailure
 
@@ -102,6 +106,12 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 |---|---|---|---|
 | `discord_notify.py` | `^(?!agent_needs_input$)` | — | Notification Hook: wartende Sessions an die Zentrale melden (Dateiname bleibt aus Verdrahtungsgruenden). |
 | `bg_needs_input_notify.py` | `agent_needs_input` | 30 | Notification-Hook: Discord-Meldung, wenn eine Hintergrund-Session auf Eingabe wartet. |
+
+## PermissionDenied
+
+| Hook | Matcher | Timeout | Zweck |
+|---|---|---|---|
+| `wiederholungssperre.py` | `Bash` | 5 | Wiederholungssperre nach Ablehnung (der Nutzer 2026-11-14 10:46, „1 bis 5 ja“, Punkt 2). |
 
 ## Nicht in dieser Tabelle
 
