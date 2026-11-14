@@ -56,6 +56,9 @@ Die netcup-Session **„Setup Server“** (Rolle Setup-Zentrale, RC-Host `claude
 - Projektübergreifendes stößt sie bei den zuständigen Sessions an (Postfach, `SendMessage`, `session_anstoss.sh`),
   statt fremde Projekte selbst zu ändern. Die Session-Disziplin oben gilt weiter auch für sie.
 - Andere Sessions melden Setup-Befunde und projektübergreifende Themen an „Setup Server“. Ihr PC-Gegenstück heißt „Setup PC“ (Windows-Setup, PC-globale `CLAUDE.md`).
+- **Entscheidungen weiterreichen, ohne Auftrag (der Nutzer 2026-11-14):** Entscheidet der Nutzer in der Zentrale etwas, das andere
+  Sessions betrifft (Kanäle, Regeln, Werkzeuge, Prioritäten), gibt sie es von selbst an die betroffenen Sessions weiter:
+  Setup-weite Änderungen als `setup-change`-Memory (erreicht alle laufenden Sessions), Projektbezogenes per `SendMessage`.
 - Damit nichts verloren geht: Entscheidungen und Fakten landen im Wissensspeicher (`wz`), Laufendes in
   `~/projects/Skills_&_Co/PROGRESS.md`.
 

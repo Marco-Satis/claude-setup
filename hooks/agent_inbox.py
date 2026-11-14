@@ -91,6 +91,34 @@ def _postfach(data: dict) -> str:
         return ""
 
 
+ZENTRALE_CWD = Path.home() / "projects" / "Skills_&_Co"
+ZENTRALE_HINWEIS = Path.home() / ".claude" / "state" / "zentrale" / "inbox_hinweis.json"
+ZENTRALE_INTERVALL_S = 1800
+
+
+def _zentrale_eingang(data: dict) -> str:
+    """G252 1.11: nur in der Zentrale (cwd unter ~/projects/Skills_&_Co), hoechstens alle 30 min, nur wenn etwas offen ist."""
+    try:
+        cwd = Path(data.get("cwd") or os.getcwd()).resolve()
+        if cwd != ZENTRALE_CWD.resolve() and ZENTRALE_CWD.resolve() not in cwd.parents:
+            return ""
+        now = time.time()
+        st = _load(ZENTRALE_HINWEIS)
+        if now - float(st.get("last", 0)) < ZENTRALE_INTERVALL_S:
+            return ""
+        sys.path.insert(0, str(Path.home() / ".claude" / "scripts"))
+        import zentrale_eingang
+        c = zentrale_eingang.offene_zaehlen()
+        _save(ZENTRALE_HINWEIS, {"last": now})
+        if not c.get("neu"):
+            return ""
+        return (f"Eingang: {c['neu']} neu ({c.get('ALARM', 0) + c.get('UNKLASSIFIZIERT', 0)} ALARM, "
+                f"{c.get('ENTSCHEIDUNG', 0)} ENTSCHEIDUNG, {c.get('freigabe', 0)} Freigaben) - "
+                f"`python3 ~/.claude/scripts/zentrale_eingang.py liste`")
+    except Exception:
+        return ""
+
+
 def main() -> None:
     try:
         data = json.load(sys.stdin)
@@ -98,7 +126,8 @@ def main() -> None:
         sys.exit(0)
     event = data.get("hook_event_name", "UserPromptSubmit")
     parts = [p for p in (_postfach(data), "" if event == "SessionStart" or os.environ.get("AGENT_INBOX_NO_MCP") == "1"
-                         else _mcp_inbox(data)) if p]
+                         else _mcp_inbox(data),
+                         _zentrale_eingang(data) if event == "UserPromptSubmit" else "") if p]
     if parts:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": event,
                                                  "additionalContext": "\n\n".join(parts)}}))

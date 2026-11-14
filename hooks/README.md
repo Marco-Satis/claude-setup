@@ -100,7 +100,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 
 | Hook | Matcher | Timeout | Zweck |
 |---|---|---|---|
-| `discord_notify.py` | `^(?!agent_needs_input$)` | — | Notification Hook: Claude-Benachrichtigungen in den kanonischen Discord-Kanal. |
+| `discord_notify.py` | `^(?!agent_needs_input$)` | — | Notification Hook: wartende Sessions an die Zentrale melden (Dateiname bleibt aus Verdrahtungsgruenden). |
 | `bg_needs_input_notify.py` | `agent_needs_input` | 30 | Notification-Hook: Discord-Meldung, wenn eine Hintergrund-Session auf Eingabe wartet. |
 
 ## Nicht in dieser Tabelle

@@ -93,6 +93,13 @@ CRON_ROUTINES = [
     {"name": "memory_pressure_watch", "plan": "alle 5 min", "kind": "event_only",
      "path": HOME / ".claude/logs/memory_pressure.log",
      "note": "meldet nur bei Druck; Stille = Slice unter der Drossel"},
+    # G252 Phase 1 (14.11.2026): Eingang der Zentrale. Cron-Zeilen setzt die Zentrale (Bericht G252_PHASE1).
+    {"name": "zentrale_fegen", "plan": "taeglich 03:50", "kind": "append",
+     "path": HOME / ".claude/logs/zentrale_fegen.log", "max_h": 30, "since": "2026-11-14",
+     "note": "Ablauf + Rotation des Eingangs, eine Statuszeile je Lauf"},
+    {"name": "zentrale_buendel", "plan": "alle 5 min", "kind": "event_only",
+     "path": HOME / ".claude/logs/zentrale_buendel.log",
+     "note": "liefert wartende ENTSCHEIDUNG-Pushes nach; loggt nur bei Versand/Fehler"},
     {"name": "pipeline_selfcheck", "plan": "alle 30 min", "kind": "event_only",
      "path": HOME / "n8n_stack/logs/selfcheck.log",
      "note": "--quiet: loggt nur Warnungen, Stille = gesund"},
@@ -264,10 +271,14 @@ def age_str(dt: datetime) -> str:
 
 
 def _show(unit: str, prop: str, scope: str = "user") -> str:
+    # Unter cron fehlt XDG_RUNTIME_DIR; `systemctl --user` scheitert dann mit "Failed to connect to bus" und liefert
+    # nichts. Folge am 14.11.: 6 Fehlalarme "kein LastTrigger" im Projekt-Kompass, obwohl alle Timer liefen.
+    env = dict(os.environ)
+    env.setdefault("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
     try:
         return subprocess.run(
             ["systemctl"] + (["--user"] if scope == "user" else []) + ["show", unit, "-p", prop, "--value"],
-            capture_output=True, text=True, timeout=10).stdout.strip()
+            capture_output=True, text=True, timeout=10, env=env).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return ""
 

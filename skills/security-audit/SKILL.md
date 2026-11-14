@@ -108,7 +108,7 @@ candidate", vereinfacht auf unseren Read-only-Rahmen. Grund: Phase 1 meldet bewu
    - CRITICAL ohne CWE-Mapping → Subagent nachfragen
    - Token-Finding ohne SHA256-Hash (nur Pattern) → ok, kein Wert leaken
    - Permission-Findings → mit `.claude/rules/server-edits.md`-Standards abgleichen
-4. **Discord-Notify** bei CRITICAL/HIGH über `~/.claude/rc-notify.sh "<Titel>" "<Text>"` (kanonischer Kanal, siehe [`rules/discord-notify-channel.md`](../../rules/discord-notify-channel.md)). Auf dem PC ist der Wrapper ein No-op — dort `CLAUDE_DISCORD_BOT_TOKEN`/`CLAUDE_DISCORD_CHANNEL_ID`. Kein Weg verfügbar → Notify skippen **mit Notiz im Report**. <!-- korrigiert 2026-08-02: stand `DISCORD_NOTIFY_WEBHOOK`, die Variable existiert im Setup nirgends → Notify war ein stiller No-op -->
+4. **Meldung an der Nutzer** bei CRITICAL/HIGH über `~/.claude/rc-notify.sh "<Titel>" "<Text>" ENTSCHEIDUNG` (Eingang der Zentrale + ntfy, siehe [`rules/zentrale-meldungen.md`](../../rules/zentrale-meldungen.md)). Auf dem PC ist der Wrapper ein No-op — dort `CLAUDE_DISCORD_BOT_TOKEN`/`CLAUDE_DISCORD_CHANNEL_ID`. Kein Weg verfügbar → Notify skippen **mit Notiz im Report**. <!-- korrigiert 2026-08-02: stand `DISCORD_NOTIFY_WEBHOOK`, die Variable existiert im Setup nirgends → Notify war ein stiller No-op -->
    Niemals den Webhook-Wert loggen oder in den Report schreiben.
 
 ## Phase 3 — der Nutzer-Bericht (Chat, max 30 Zeilen)

@@ -117,13 +117,79 @@ Jetzt in Ruhe erneuern: ssh netcup -> 'claude auth login' -> URL in CHROME (nich
   fi
 fi
 
+# --- G252 1.13 (14.11.2026): Zentrale ueberwachen -------------------------------------------
+# Laeuft vor dem Wartungsfenster-Zweig, damit es auch dort gilt. Jede Meldung hoechstens 1x je Stunde
+# (Digest-Totmann 1x je Tag). ALARM ueber rc-notify (pusht sofort per ntfy), Totmann direkt per rc-mail.
+ZDIR="${ZENTRALE_DIR:-$HOME/.claude/state/zentrale}"
+mkdir -p "$ZDIR" 2>/dev/null && chmod 700 "$ZDIR" 2>/dev/null
+z_now="$(date +%s)"
+z_drossel() {   # z_drossel <name> <sekunden> -> 0 = jetzt melden (und merken), 1 = still
+  local f="$ZDIR/watchdog_$1.last" last=0
+  [ -r "$f" ] && read -r last <"$f" 2>/dev/null
+  [[ "${last:-0}" =~ ^[0-9]+$ ]] || last=0
+  [ $((z_now - last)) -ge "$2" ] || return 1
+  echo "$z_now" >"$f"; return 0
+}
+# (a) Digest-Totmann: letzter erfolgreicher Digest aelter als 26 h. Fehlt die Datei, startet die Uhr jetzt.
+if [ ! -e "$ZDIR/digest_letzter" ]; then
+  echo "$z_now" >"$ZDIR/digest_letzter"
+else
+  read -r z_dig <"$ZDIR/digest_letzter" 2>/dev/null
+  if [[ "${z_dig:-}" =~ ^[0-9]+$ ]] && [ $((z_now - z_dig)) -gt 93600 ] && z_drossel digest_totmann 86400; then
+    "$MAIL" "Digest ausgeblieben" "Der 07:45-Digest kam seit $(( (z_now - z_dig) / 3600 )) h nicht an. Kompass-Report und Log beim Setup Server pruefen."
+  fi
+fi
+# (b) neue Zeilen in den Fehlerdateien des Eingangs (Phase 2: freigabe_eingang.err)
+for z_err in "$HOME/.claude/logs/zentrale_eingang.err" "$HOME/.claude/logs/freigabe_eingang.err"; do
+  z_key="$(basename "$z_err" .err)"
+  z_size=0; [ -r "$z_err" ] && z_size="$(stat -c %s "$z_err" 2>/dev/null || echo 0)"
+  z_prev=""; [ -r "$ZDIR/watchdog_${z_key}.size" ] && read -r z_prev <"$ZDIR/watchdog_${z_key}.size"
+  echo "$z_size" >"$ZDIR/watchdog_${z_key}.size"
+  if [[ "${z_prev:-}" =~ ^[0-9]+$ ]] && [ "$z_size" -gt "$z_prev" ] && z_drossel "err_$z_key" 3600; then
+    "$NOTIFY" "Zentrale: Eingang gestoert" "Neue Zeilen in $(basename "$z_err") (+$((z_size - z_prev)) Bytes)." ALARM
+  fi
+done
+# (c) Plattenplatz unter ~/.claude/state (< 200 MB frei)
+z_frei_kb="$(df -Pk "$HOME/.claude/state" 2>/dev/null | awk 'NR==2 {print $4}')"
+if [[ "${z_frei_kb:-}" =~ ^[0-9]+$ ]] && [ "$z_frei_kb" -lt 204800 ] && z_drossel platz 3600; then
+  "$NOTIFY" "Zentrale: wenig Platz" "Unter ~/.claude/state sind nur noch $((z_frei_kb / 1024)) MB frei." ALARM
+fi
+# (d) Eingangs-Lock: wird gehalten und die Info-Datei ist aelter als 60 s
+if [ -e "$ZDIR/eingang.lock.info" ] && [ $((z_now - $(stat -c %Y "$ZDIR/eingang.lock.info" 2>/dev/null || echo "$z_now"))) -gt 60 ]; then
+  if ! flock -n "$ZDIR/eingang.lock" true 2>/dev/null && z_drossel lock 3600; then
+    "$NOTIFY" "Zentrale: Eingangs-Lock haengt" "eingang.lock wird seit ueber 60 s gehalten." ALARM
+  fi
+fi
+
 now="$(date +%s)"
 # State-Datei: "state ts badcount lastmail" — aeltere 2-Feld-Form liest sich mit Defaults.
 prev_state="none"; prev_ts=0; badcount=0; lastmail=0
 [ -r "$LAST" ] && read -r prev_state prev_ts badcount lastmail <"$LAST"
 : "${prev_ts:=0}"; : "${badcount:=0}"; : "${lastmail:=0}"
 
+nhosts=$(echo $HOSTS | wc -w)
+
+# G252 1.1 (der Nutzer 14.11., Frage 2b): Wartungsfenster nach dem 04:30-Update. rc-autoupdate.sh schreibt
+# "jetzt + 15 min". Im Fenster nur loggen, State nicht anfassen (danach meldet er sofort, nicht erst nach REALERT).
+# Ein Wert mehr als 20 min in der Zukunft ist ungueltig -> ALARM, damit nichts den Watchdog dauerhaft stummschaltet.
+WARTUNG="$HOME/.claude/state/rc-wartung.until"
+in_wartung=0
+if [ -r "$WARTUNG" ]; then
+  read -r wbis <"$WARTUNG" 2>/dev/null
+  if [[ "${wbis:-}" =~ ^[0-9]+$ ]] && [ "$wbis" -gt "$now" ]; then
+    if [ $((wbis - now)) -le 1200 ]; then
+      in_wartung=1
+    else
+      "$MAIL" "Wartungsfenster ungueltig" "rc-wartung.until liegt $(( (wbis - now) / 60 )) min in der Zukunft (erlaubt: 20). Watchdog meldet normal weiter."
+    fi
+  fi
+fi
+
 if [ -n "$bad" ] || [ "$authfails" -gt 3 ] || [ -n "$loud" ] || [ -n "$hung" ]; then
+  if [ "$in_wartung" -eq 1 ]; then
+    echo "[$(date -Is)] rc-watchdog: Wartungsfenster bis $(date -d "@$wbis" +%H:%M), nur geloggt: nicht running:${bad:- -} auth:$authfails" >>"$LOG"
+    exit 0
+  fi
   state="bad"
   badcount=$((badcount + 1))
   reason="nicht running:${bad:- -} | 'must be logged in' letzte 6min: $authfails${loud:+ | crash-loop:$loud}${hung:+
@@ -139,6 +205,11 @@ Fix: ssh netcup -> 'claude' -> /login -> URL in CHROME (nicht Opera GX, PKCE-400
     else
       "$NOTIFY" "RC-Hosts DOWN" "$reason
 Pruefen: systemctl --user status claude-rc-<name> ; journalctl --user -u claude-rc-<name> -n 25"
+    fi
+    # G252 Frage 2a (der Nutzer 14.11.): Alarm sofort aufs Handy (rc-mail.sh = ntfy, Rueckfall SMTP), nicht erst nach 15 min.
+    if [ $((now - lastmail)) -ge "$REMAIL" ]; then
+      "$MAIL" "RC-Hosts DOWN" "$reason"
+      lastmail="$now"
     fi
     prev_ts="$now"
   fi
@@ -164,9 +235,9 @@ ${hints:-Keine Fix-Hinweise ermittelbar — bitte manuell nachsehen:
 else
   state="ok"
   if [ "$prev_state" = "bad" ]; then
-    "$NOTIFY" "RC-Hosts wieder OK" "Alle 7 claude-rc-*-Services running, keine Auth-Fehler."
+    "$NOTIFY" "RC-Hosts wieder OK" "Alle $nhosts claude-rc-*-Services running, keine Auth-Fehler."
     # Entwarnung auch per Mail — aber nur, wenn vorher eine Mail rausging.
-    [ "$lastmail" -gt 0 ] && "$MAIL" "RC-Hosts wieder OK" "Alle 7 claude-rc-*-Services running. Ausfall dauerte ca. $((badcount * 5)) min ($badcount Checks)."
+    [ "$lastmail" -gt 0 ] && "$MAIL" "RC-Hosts wieder OK" "Alle $nhosts claude-rc-*-Services running. Ausfall dauerte ca. $((badcount * 5)) min ($badcount Checks)."
   fi
   echo "$state $now 0 0" >"$LAST"
 fi

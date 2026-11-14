@@ -3,7 +3,9 @@
 # Zweiter Kanal NEBEN rc-notify.sh (Discord): fuer den Fall, dass Discord selbst
 # der ausgefallene/unbemerkte Kanal ist. Kein sudo, kein msmtp — python3 smtplib.
 #
-# Aufruf:  rc-mail.sh "<Betreff>" "<Text>"
+# Aufruf:  rc-mail.sh "<Betreff>" "<Text>" [<ntfy-Prioritaet 1-5, Standard 4>]
+#          RC_MAIL_STATUS=1 -> Exit 1, wenn weder ntfy noch SMTP angenommen hat (G252, 14.11.;
+#          ohne die Variable bleibt es beim alten Verhalten: immer Exit 0).
 # Secrets: ~/.claude/secrets/mail.env (Permission 600, synct NICHT — netcup-only,
 #          wie routine_webhook.env). Noetig: SMTP_USER, SMTP_APP_PASSWORD, MAIL_TO.
 #          Gmail: App-Passwort unter https://myaccount.google.com/apppasswords
@@ -14,6 +16,9 @@ ENV_FILE="$HOME/.claude/secrets/mail.env"
 LOG="$HOME/.claude/logs/rc-health.log"
 SUBJECT="${1:-RC-Alarm}"
 BODY="${2:-}"
+PRIO="${3:-4}"
+case "$PRIO" in [1-5]) ;; *) PRIO=4 ;; esac
+fail_exit() { if [ "${RC_MAIL_STATUS:-0}" = "1" ]; then exit 1; fi; exit 0; }
 
 log() { echo "[$(date -Is)] rc-mail: $*" >> "$LOG"; }
 
@@ -25,10 +30,11 @@ if [ -r "$NTFY_ENV" ]; then
   NTFY_TOPIC=$(sed -n 's/^NTFY_TOPIC=//p' "$NTFY_ENV" | head -1)
   NTFY_SERVER=$(sed -n 's/^NTFY_SERVER=//p' "$NTFY_ENV" | head -1)
   if [ -n "$NTFY_TOPIC" ] && SUBJ="$SUBJECT" BODY="$BODY" TOPIC="$NTFY_TOPIC" \
-       SERVER="${NTFY_SERVER:-https://ntfy.sh}" /usr/bin/python3 - <<'PY'
+       SERVER="${NTFY_SERVER:-https://ntfy.sh}" PRIO="$PRIO" /usr/bin/python3 - <<'PY'
 import json, os, sys, urllib.request
 d = {"topic": os.environ["TOPIC"], "title": "[netcup] " + os.environ.get("SUBJ", "RC-Alarm"),
-     "message": (os.environ.get("BODY") or "-")[:3500], "priority": 4, "tags": ["rotating_light"]}
+     "message": (os.environ.get("BODY") or "-")[:3500], "priority": int(os.environ.get("PRIO", "4")),
+     "tags": ["rotating_light"] if int(os.environ.get("PRIO", "4")) >= 4 else ["inbox_tray"]}
 req = urllib.request.Request(os.environ["SERVER"], data=json.dumps(d).encode(),
                              headers={"Content-Type": "application/json"}, method="POST")
 try:
@@ -47,12 +53,12 @@ fi
 
 if [ ! -r "$ENV_FILE" ]; then
   log "keine $ENV_FILE — Mail '$SUBJECT' uebersprungen (no-op)"
-  exit 0
+  fail_exit
 fi
 set -a; . "$ENV_FILE"; set +a
 if [ -z "${SMTP_USER:-}" ] || [ -z "${SMTP_APP_PASSWORD:-}" ] || [ -z "${MAIL_TO:-}" ]; then
   log "mail.env unvollstaendig (SMTP_USER/SMTP_APP_PASSWORD/MAIL_TO) — '$SUBJECT' uebersprungen"
-  exit 0
+  fail_exit
 fi
 # Relay-Kennung als Absender ist der Fall, der still scheitert: SMTP sagt 250,
 # der Relay verwirft danach. Laut melden statt hoffen (Befund 2026-08-17).
@@ -91,5 +97,5 @@ except Exception as e:
     sys.exit(1)
 PY
 rc=$?
-if [ "$rc" -eq 0 ]; then log "gesendet: '$SUBJECT' an $MAIL_TO"; else log "SENDEN FEHLGESCHLAGEN: '$SUBJECT' (rc=$rc)"; fi
+if [ "$rc" -eq 0 ]; then log "gesendet: '$SUBJECT' an $MAIL_TO"; else log "SENDEN FEHLGESCHLAGEN: '$SUBJECT' (rc=$rc)"; fail_exit; fi
 exit 0

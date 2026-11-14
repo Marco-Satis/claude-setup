@@ -588,8 +588,8 @@ Bei `clean`: Negative-Evidence-Liste ist PFLICHT (≥3 konkrete Checks) — sons
 ### Session-Marker (Pflicht)
 Nach Synthese, vor Lock-Loeschung: in `.chat_review_marker.json` `"<session_id>": {"ts":"<jetzt-iso>","sha":"<git HEAD oder null>","findings":"<abs-pfad zu findings.json dieses Runs>"}` setzen (Map laden, Key updaten, atomic `.tmp`+`os.replace`). **Setzen des Markers macht den naechsten Call der Session zu Modus INKREMENTELL** (Delta ab diesem SHA + Phase-1D-Re-Verify aus `findings`). Auch bei Override UND beim ersten Full-Run setzen — sonst bleibt jeder Run ein Full-Scan.
 
-### Discord-Notify (bei CRITICAL/HIGH)
-**Kanonischer Weg (korrigiert 2026-08-02):** `~/.claude/rc-notify.sh "<Titel>" "<Text>"` — der Wrapper aus [`rules/discord-notify-channel.md`](../../rules/discord-notify-channel.md). Er ist no-op-sicher und loggt zusaetzlich nach `logs/rc-health.log`.
+### Meldung an der Nutzer (bei CRITICAL/HIGH)
+**Kanonischer Weg (korrigiert 2026-08-02):** `~/.claude/rc-notify.sh "<Titel>" "<Text>" ENTSCHEIDUNG` — der Wrapper aus [`rules/zentrale-meldungen.md`](../../rules/zentrale-meldungen.md) (seit G252, 14.11.2026: Eingang der Zentrale + ntfy statt Discord). Er ist no-op-sicher und loggt zusaetzlich nach `logs/rc-health.log`.
 
 > Bis v4.4 stand hier `DISCORD_NOTIFY_WEBHOOK` — **diese Variable existiert in des Nutzers Setup nirgends** (verifiziert 2026-08-02: kein Treffer in `~/.claude`). Jedes Review-Notify war damit ein stiller No-op. Kanonisch ist `CLAUDE_NOTIFY_WEBHOOK` in `~/.claude/secrets/routine_webhook.env`, angesprochen ueber `rc-notify.sh`.
 

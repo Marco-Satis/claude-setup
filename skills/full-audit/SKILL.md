@@ -270,7 +270,7 @@ Top-3 SOFORT-Aktionen:
 Naechster Schritt: der Nutzer priorisiert in MASTER_REPORT.md
 ```
 
-**Discord-Notify** über `~/.claude/rc-notify.sh "<Titel>" "<Text>"` (kanonischer Kanal, [`rules/discord-notify-channel.md`](../../rules/discord-notify-channel.md)): Titel, Severity-Counts, Top-3 Findings, Master-Pfad. Auf dem PC ist der Wrapper ein No-op → dort `CLAUDE_DISCORD_BOT_TOKEN`/`CLAUDE_DISCORD_CHANNEL_ID`; kein Weg verfügbar → skippen **mit Notiz im Master**. <!-- korrigiert 2026-08-02: stand `DISCORD_NOTIFY_WEBHOOK` — existiert im Setup nirgends, Notify war ein stiller No-op -->
+**Meldung an der Nutzer** über `~/.claude/rc-notify.sh "<Titel>" "<Text>" ENTSCHEIDUNG` (Eingang der Zentrale + ntfy, [`rules/zentrale-meldungen.md`](../../rules/zentrale-meldungen.md)): Titel, Severity-Counts, Top-3 Findings, Master-Pfad. Auf dem PC ist der Wrapper ein No-op → dort `CLAUDE_DISCORD_BOT_TOKEN`/`CLAUDE_DISCORD_CHANNEL_ID`; kein Weg verfügbar → skippen **mit Notiz im Master**. <!-- korrigiert 2026-08-02: stand `DISCORD_NOTIFY_WEBHOOK` — existiert im Setup nirgends, Notify war ein stiller No-op -->
 Webhook-Wert nie loggen oder in den Report schreiben.
 
 ## Constraints
