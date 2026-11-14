@@ -74,6 +74,8 @@ def ist_auftrag(body: str) -> bool:
         return False
     # Hinweis-Anhang der Harness nicht als Auftrag werten
     b = re.split(r"<artifact-content-authored-by-others", b)[0]
+    if re.search(r"keine (Antwort|Quittung|Rückmeldung) nötig", b, re.I):
+        return False
     # Ergebnis-/Abschlussmeldung ohne Frage (Fehlalarme 14.11.: „MB144 ausgeführt …“, „Kaufschutz-Fix MB142 live …“)
     if "?" not in b and ABSCHLUSS.search(b.splitlines()[0][:120] if b.splitlines() else ""):
         return False

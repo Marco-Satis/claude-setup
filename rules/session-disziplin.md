@@ -62,6 +62,14 @@ Die netcup-Session **„Setup Server“** (Rolle Setup-Zentrale, RC-Host `claude
 - Damit nichts verloren geht: Entscheidungen und Fakten landen im Wissensspeicher (`wz`), Laufendes in
   `~/projects/Skills_&_Co/PROGRESS.md`.
 
+## Sofort erledigen statt vertagen (der Nutzer 2026-11-14)
+
+„Wenn du etwas erledigen kannst, soll das direkt erledigt werden … ich bin kein Fan davon, wenn du sagst, ich mache das
+morgen früh, obwohl du es auch jetzt erledigen kannst.“ Gilt für alle Sessions: Was ohne der Nutzer machbar ist (eigenes Gebiet,
+Regeln eingehalten, Nachtbetrieb beachtet), wird sofort gemacht, nicht angekündigt oder auf später geschoben. Danach kurz
+melden: „Fertig mit X, aktuell nichts mehr offen, Stand: …“. Vertagt wird nur, was wirklich der Nutzer, ein Budget-Reset oder ein
+anderes Ereignis braucht; dann mit Grund.
+
 ## Empfang bestätigen (der Nutzer 2026-11-13)
 
 Nachrichten über Remote Control (PC ↔ netcup) melden dem Absender keine Zustellung („not confirmed read“). Deshalb:

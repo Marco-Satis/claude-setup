@@ -160,6 +160,11 @@ CRON_ROUTINES = [
     {"name": "claude_md_konsistenz", "plan": "woechentlich Mo 07:20", "kind": "append",
      "path": HOME / ".claude/logs/claude_md_konsistenz.log", "max_h": 8 * 24, "since": "2026-11-16",
      "note": "rules/setup-konsistenz.md; Funde = veraltete Setup-Aussagen in Projekt-CLAUDE.md"},
+    # 2026-11-15 (der Nutzer 14.11. 23:42: Setup woechentlich auf Aktualitaet pruefen, Anlass 5h-Fenster in Skills):
+    # Drift in Skills/Rules/Templates, wz-Faktenalter, Claude-Code-Neuerungen, gesperrte Werkzeuge. Ohne claude -p.
+    {"name": "setup_aktualitaet", "plan": "woechentlich So 06:30", "kind": "append",
+     "path": HOME / ".claude/logs/setup_aktualitaet.log", "max_h": 8 * 24, "since": "2026-11-15",
+     "note": "~/.claude/scripts/setup_aktualitaet.py ueber routine_wrap.sh; Bedarf als BRAUCHT-Zeilen"},
     # 2026-11-13 (Wissenssystem Stufe 2, V6): woechentlicher Vorschlagslauf, meldet nur (Drift, Widersprueche,
     # kaputte Kanten, Ausmustern, Waisen). Schreibt seinen Report selbst; Cron setzt der Nutzer (Zeile im Bericht).
     {"name": "wissen_vorschlaege", "plan": "woechentlich So 05:40", "kind": "append",
