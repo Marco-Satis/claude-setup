@@ -115,8 +115,8 @@ def main():
             check(f"14. robust {raw[:20]!r}", run(root, None, raw=raw)[0] == 0)
 
         # backup_prune erfasst das Muster (Gruppe = Originaldatei, Zeitstempel erkannt).
-        # Seit 14.11. 10:58 (der Nutzer, andere Session): ausserhalb von git und ausserhalb ~/.claude loescht
-        # backup_prune NICHTS mehr ("ohne git (geschuetzt)") — dort bleiben auch .bak.auto liegen.
+        # Seit 14.11.: ohne git schuetzt backup_prune manuelle .bak; .bak.auto folgen immer der Normalregel
+        # (KEEP=2, 14 Tage), sonst wuechsen sie ohne git endlos.
         sys.path.insert(0, PRUNE_DIR)
         import backup_prune as bp
         bp.ROOTS = [root]
@@ -132,8 +132,8 @@ def main():
               [os.path.basename(w) for w in weg if "untracked.py.bak.auto." in w] == [f"untracked.py.bak.auto.{T0}"])
         if hasattr(bp, "in_git"):
             weg2, _, _, _ = bp.plan(now=T0 + 15 * 86400 + 9000)
-            check("17. backup_prune ohne git ausserhalb ~/.claude: nichts geloescht (Regel 14.11.)",
-                  not [w for w in weg2 if "notiz.md.bak.auto." in w])
+            check("17. backup_prune ohne git: .bak.auto aelter als 14 Tage werden trotzdem geloescht",
+                  bool([w for w in weg2 if "notiz.md.bak.auto." in w]))
     print(f"auto_backup: {total - fails}/{total} ok")
     return 1 if fails else 0
 

@@ -41,6 +41,7 @@ TASKY = re.compile(r"\?|\bbitte\b|\bkannst\b|\bkönntest\b|\bsoll(?:st)?\b|\bpr�
 QUIT = re.compile(r"^\s*(Empfangen:|Erledigt:|Quittung|OK\b|Danke)", re.I)
 ERGEBNIS = re.compile(r"^(Ergebnis|MB\d+ erledigt|G\d+ erledigt|Nachtbetrieb quittiert|"
                       r"[\w ._-]{0,30}: Nachtbetrieb quittiert|ARBEITSBLOCK \(geplanter Anstoß)")
+ABSCHLUSS = re.compile(r"\b(erledigt|ausgeführt|ausgefuehrt|live|fertig|deployt|abgeschlossen|Ergebnis)\b", re.I)
 
 
 def _now() -> float:
@@ -73,6 +74,9 @@ def ist_auftrag(body: str) -> bool:
         return False
     # Hinweis-Anhang der Harness nicht als Auftrag werten
     b = re.split(r"<artifact-content-authored-by-others", b)[0]
+    # Ergebnis-/Abschlussmeldung ohne Frage (Fehlalarme 14.11.: „MB144 ausgeführt …“, „Kaufschutz-Fix MB142 live …“)
+    if "?" not in b and ABSCHLUSS.search(b.splitlines()[0][:120] if b.splitlines() else ""):
+        return False
     return bool(TASKY.search(b))
 
 
