@@ -93,11 +93,39 @@ def _guard_off(cwd, target):
     return False
 
 
-def decide(tool_name, tool_input, cwd):
+# Session-Titel der Desktop-App (Setup PC 15.11.2026): Alle Bot-Sessions laufen mit cwd=Games, der cwd allein
+# erkennt die Kern-Session deshalb nicht (Befund Bot_Core 15.11.). Mit bekanntem Titel gilt: nur diese Titel
+# duerfen den Kern schreiben, jede andere Session mit cwd unter Games nicht.
+CORE_TITLES = {"bot_core", "bot-kern verwaltung"}
+
+
+def _desktop_titel():
+    """Titel der Desktop-Session (PC) oder "" (netcup, unbekannt, Fehler)."""
+    hid = os.environ.get("CLAUDE_CODE_HOST_SESSION_ID", "")
+    if os.name != "nt" or not re.fullmatch(r"local_[0-9a-f-]{36}", hid):
+        return ""
+    import glob
+    base = os.path.join(os.environ.get("APPDATA", ""), "Claude", "claude-code-sessions")
+    for p in glob.glob(os.path.join(base, "*", "*", hid + ".json")):
+        try:
+            with open(p, encoding="utf-8") as fh:
+                return str(json.load(fh).get("title") or "").strip()
+        except Exception:
+            return ""
+    return ""
+
+
+def decide(tool_name, tool_input, cwd, titel=None):
     """-> (block: bool, reason: str). Reine Funktion, fuer den Selbsttest."""
-    if _is_core_session(cwd):
+    unter_games = "/games/" in _norm(cwd) + "/"
+    if titel and unter_games:
+        if titel.strip().lower() in CORE_TITLES:
+            return False, "kern-session (titel)"
+    elif _is_core_session(cwd):
         return False, "kern-session"
-    if not _is_bot_session(cwd):
+    elif not _is_bot_session(cwd):
+        return False, "ausserhalb-games"
+    if not unter_games:
         return False, "ausserhalb-games"
 
     target = ""
@@ -142,9 +170,21 @@ def _selftest():
         ("Bash", {"command": "sed -i s/a/b/ ../_bots_control.py"}, games + "/Survivor_io", True),
         ("Edit", {"file_path": games + "/IdleSlayer/_bots_control_notes.md"}, games + "/IdleSlayer", False),
     ]
+    # Titel-Faelle (15.11.): cwd=Games, Name aus der Desktop-App
+    tcases = [
+        ("Edit", {"file_path": games + "/_botcore/core.py"}, games, "Cell Survivor", True),
+        ("Edit", {"file_path": games + "/_botcore/core.py"}, games, "Bot_Core", False),
+        ("Write", {"file_path": games + "/BOTS_START.bat"}, games, "Survivor.io_Bot", True),
+        ("Edit", {"file_path": games + "/CellSurvivor/cs_bot.py"}, games, "Cell Survivor", False),
+        ("Bash", {"command": "cat _botcore/core.py"}, games, "IdleSlayer_bot", False),
+        ("Bash", {"command": "sed -i s/a/b/ _botcore/core.py"}, games, "TCG_Mods", True),
+        ("Edit", {"file_path": "C:/tmp/x.py"}, "C:/tmp", "Cell Survivor", False),
+    ]
+    cases = [c + (None,) for c in cases]
+    cases = [(t, i, c, ti, w) for (t, i, c, w, ti) in cases] + tcases
     bad = 0
-    for tool, ti, cwd, want in cases:
-        got, why = decide(tool, ti, cwd)
+    for tool, ti, cwd, titel, want in cases:
+        got, why = decide(tool, ti, cwd, titel)
         ok = got == want
         bad += 0 if ok else 1
         print("%s %-6s %-28s cwd=%-18s -> block=%s (%s)" % (
@@ -166,7 +206,7 @@ def main():
         tool_name = data.get("tool_name") or ""
         tool_input = data.get("tool_input") or {}
         cwd = data.get("cwd") or os.getcwd()
-        block, _why = decide(tool_name, tool_input, cwd)
+        block, _why = decide(tool_name, tool_input, cwd, _desktop_titel())
         if block:
             sys.stderr.write(MSG)
             return 2
