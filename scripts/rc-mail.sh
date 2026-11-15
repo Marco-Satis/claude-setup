@@ -53,7 +53,8 @@ try:
     deny = json.loads((home / ".claude/scripts/meldungs_klassen.json").read_text(encoding="utf-8"))["projekte"]["denylist"]
 except Exception:
     deny = ["uym", "politik", "bewerbung", "finanz"]
-rx = re.compile("|".join(re.escape(d) for d in deny if d), re.I)
+# Ganze Woerter, Gross/Klein wie in der Liste (sonst traf "Privat" jedes "privat" im Fliesstext, 15.11.)
+rx = re.compile(r"(?<![\w-])(?:" + "|".join(re.escape(d) for d in deny if d) + r")(?![\w-])")
 def sauber(t: str) -> str:
     zeilen, weg = [], 0
     for z in schwaerzen(t).splitlines():
