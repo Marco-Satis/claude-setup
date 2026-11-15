@@ -191,10 +191,34 @@ def _arg(cmd: list[str], name: str) -> str:
     return ""
 
 
+def _desktop_titel() -> tuple[str, bool]:
+    """PC/Desktop-App: (Titel, von der Nutzer benannt). Quelle Setup PC 15.11.2026:
+    %APPDATA%/Claude/claude-code-sessions/<konto>/<org>/<CLAUDE_CODE_HOST_SESSION_ID>.json, Feld title;
+    titleSource fehlt bei Desktop-Routinen. Ohne Treffer ("", False)."""
+    hid = os.environ.get("CLAUDE_CODE_HOST_SESSION_ID", "")
+    if os.name != "nt" or not re.fullmatch(r"local_[0-9a-f-]{36}", hid):
+        return "", False
+    base = Path(os.environ.get("APPDATA", "")) / "Claude" / "claude-code-sessions"
+    for p in base.glob(f"*/*/{hid}.json"):
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+            t = str(d.get("title") or "").strip()[:60]
+            return t, bool(t) and d.get("titleSource") == "user"
+        except Exception:
+            return "", False
+    return "", False
+
+
 def umgebung(cwd: str) -> dict:
     """-> {name, rc, link, headless}."""
     vf = _vorfahren() if os.name != "nt" else []
     name, sid, headless, rc = os.environ.get("CLAUDE_SESSION_NAME", "").strip(), "", False, False
+    if os.name == "nt" and not name:
+        titel, benannt = _desktop_titel()
+        if titel and not benannt:      # Desktop-Routine (kein von der Nutzer vergebener Titel): kein Snapshot
+            headless = True
+        elif titel:
+            name = titel
     for cmd in vf:
         if not cmd:
             continue
