@@ -107,3 +107,10 @@ standardmäßig an). der Nutzer sieht den Fortschritt nur, wenn sie benutzt werd
 Schritten oder mehreren Aufträgen von der Nutzer bekommt sofort eine Aufgabenliste; eine Aufgabe steht auf `in_progress`,
 bevor daran gearbeitet wird, und auf `completed`, sobald sie belegt fertig ist. Fehlen die Werkzeuge in einer Session
 (nur über `ToolSearch` als „deferred“ sichtbar), lädt die Session sie per `ToolSearch select:TaskCreate,TaskUpdate,TaskList`.
+
+## Fragen an der Nutzer laufen über die Zentrale (der Nutzer 2026-11-15, 09:07)
+
+„Melde bitte deine Antworten, wenn du mich brauchst oder Fragen hast, an mich immer direkt an die Setup-Session vom
+Server, da ich kaum hier die Sessions mitlese.“ Jede Session (PC und netcup) schickt Fragen, Freigabe-Wünsche und
+Ergebnisse, die der Nutzer sehen soll, per `SendMessage` an „Setup Server“ (Format `MB: <projekt> | Frage/Freigabe | <dauer> |
+<warum>`), nicht nur in den eigenen Chat. Die Zentrale legt sie der Nutzer vor und reicht seine Antwort wörtlich zurück (MB118).
