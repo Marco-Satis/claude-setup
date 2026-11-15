@@ -7,8 +7,14 @@
 
 ## Pflicht 1 — jede Routine schreibt am Ende eine MD
 
-Gilt für **jede** Routine auf dem Server, bestehende wie künftige. Ziel:
+Gilt für **jede** Routine auf dem Server (netcup), bestehende wie künftige. Ziel:
 `~/projects/Skills_&_Co/ROUTINE_REPORTS/<name>_<YYYY-MM-DD>.md` (synct zum PC).
+
+> **PC-Stand (Hinweis, Gebiet von Setup PC):** Die Regel gilt bisher nur für netcup. Laut PC-Wochenprüfung
+> (Setup PC 15.11.2026) schreiben 6 PC-Aufgaben weder Report noch stehen sie in `routine_audit.py`:
+> ClaudeConfigBackup, plugin-hash-check-monthly, NetcupMemoryBackupPull, BackupPrunePC, MemoryOutboxFlush,
+> SkillsCo-Sync. Eingetragen sind am PC `gamebot_git_backup` und `setup_pruefung_pc`. Ob und wie die Pflicht
+> auf PC-Aufgaben ausgeweitet wird, klärt Setup PC (Reports dann über projects-sync nach netcup).
 
 Nicht selbst formatieren — Helper nutzen:
 

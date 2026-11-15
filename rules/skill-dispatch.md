@@ -47,11 +47,16 @@ Maschine falsch wäre.
 | `document-skills` | **aktiv** | aus (29.09., doppelt mit `anthropic-skills` aus dem Konto) |
 | `parseltongue` | aus (29.09.) | aus (29.09.) |
 | `static-analysis`, `differential-review`, `sharp-edges` | aus (29.09.) | aus (29.09.) |
+| `mcp-memory-service` | nicht installiert | aus (Setup PC 15.11.: `settings.json` `false`) |
+| `typescript-lsp`, `claude-code-setup` | nicht installiert | **aktiv** (Setup PC 15.11.) |
+| `herald` (claude-night-market) | nicht installiert | **aktiv**, ohne Skills/Hooks/Commands (Setup PC 15.11.) |
 
-Stand 29.09. nach des Nutzers Aufräum-Entscheid. Grundlage: In 1.424 PC- und 469 netcup-Verläufen hatte
-keines dieser Plugins einen einzigen Aufruf. Aktiv bleiben auf beiden Maschinen `caveman`, `claude-hud`,
-`claude-md-management`, `council`, `frontend-design`, `impeccable`, `pyright`, `safety-net`; nur am PC
-zusätzlich `mcp-memory-service` und `security-guidance`. Rückweg: Wert in `settings.json` auf `true`.
+Stand 29.09. nach des Nutzers Aufräum-Entscheid, PC-Zeilen nachgezogen am 15.11.2026 (Quelle: Setup PC 15.11.,
+PC-Wochenprüfung `SETUP_SPIEGEL/PC_PRUEFUNG_2026-11-15_details.md`). Grundlage 29.09.: In 1.424 PC- und
+469 netcup-Verläufen hatte keines der abgeschalteten Plugins einen einzigen Aufruf. Aktiv auf beiden
+Maschinen: `caveman`, `claude-hud`, `claude-md-management`, `council`, `frontend-design`, `impeccable`,
+`pyright`, `safety-net`; nur netcup zusätzlich `document-skills`; nur am PC zusätzlich `security-guidance`,
+`typescript-lsp`, `claude-code-setup`, `herald`. Rückweg: Wert in `settings.json` auf `true`.
 
 **Cowork-Plugins** (Marketplace `knowledge-work-plugins`) sind ein eigener Kanal: Sie hängen am
 claude.ai-Konto (Desktop-App → Customize) und laden als `<name>@synced` in jede Code-Session, auf netcup

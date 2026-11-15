@@ -24,11 +24,16 @@
 
 ## Technik (netcup)
 
-- Codex erreicht mcp-memory ausschließlich über den Adapter
-  `~/.local/share/marco-mcp-readonly/2026-09-29_codex_v1/memory_codex.py` (stdio): vier Lesetools
-  + `memory_store`. Der Adapter **erzwingt** `owner:codex` + `scope:shared` und verwirft
-  mitgegebene `owner:`/`scope:`-Tags. Löschen/Ändern gibt es dort nicht.
+- Codex erreicht mcp-memory und den Wissensspeicher ausschließlich über den Adapter
+  `~/.local/share/marco-mcp-readonly/2026-11-12_codex_v2/memory_codex.py` (stdio, seit 12.11.; v1 vom 29.09.
+  liegt daneben, ist nicht mehr eingebunden): vier Lesetools + `memory_store`, dazu `wissen_suchen`,
+  `wissen_lesen`, `wissen_neu`, `wissen_set`, `wissen_archiv` über `wz`. Der Adapter **erzwingt** `owner:codex`
+  + `scope:shared` und verwirft mitgegebene `owner:`/`scope:`-Tags; in wz ändert/archiviert Codex nur
+  eigene Einträge (owner codex), Löschen gibt es nicht.
 - Die Nur-Lese-Variante `2026-09-29_v1/memory_readonly.py` (vorbereitet für einen ChatGPT-Tunnel,
   nicht aktiv) bleibt unverändert.
-- Am PC hat Codex nur Lesezugriff; die Memory-Hooks und das Plugin `mcp-memory-service` sind dort
-  seit 2026-09-29 aus.
+- **PC (Stand Setup PC 15.11.2026, PC-Wochenprüfung):** Codex hat am PC zwei Wege. `[mcp_servers.memory]` ist
+  auf vier Lesetools begrenzt; `[mcp_servers.memory-netcup]` startet per `ssh -T netcup-marco` denselben
+  v2-Adapter und kann damit schreiben (mit den Grenzen oben). Ob das so bleiben soll, entscheidet der Nutzer
+  (offen, PC_PRUEFUNG_2026-11-15). Das Plugin `mcp-memory-service` ist am PC aus; die Claude-Hooks
+  `session_logger.py` und `memory_delta_watch.py` sind dort verdrahtet.

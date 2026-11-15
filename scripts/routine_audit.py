@@ -223,6 +223,12 @@ CRON_ROUTINES = [
      "path": REPORTS / "gamebot_git_backup_*.md", "max_h": 30, "since": "2026-11-15",
      "note": "Snapshot + Bundle der Gamebot-Repos nach F:\\GitBackup\\gamebots; vor BackupPrunePC 03:40. "
              "Ohne Report > 30 h: PC aus oder Aufgabe defekt (Setup PC)"},
+    # 2026-11-15 (der Nutzer 14.11. 23:52 über Setup Server): PC-Windows-Aufgabe SetupPruefungPC, Skript
+    # setup_pruefung_pc.py, Antwort auf SETUP_SPIEGEL/PC_AUFTRAG_<datum>.md. Beleg ist der Report (wie cve_watch).
+    {"name": "setup_pruefung_pc", "plan": "So 07:10 (PC, Windows-Aufgabe)", "kind": "append",
+     "path": REPORTS / "setup_pruefung_pc_*.md", "max_h": 8 * 24, "since": "2026-11-15",
+     "note": "Wochenpruefung PC-Seite; Bericht SETUP_SPIEGEL/PC_PRUEFUNG_<datum>.md, den setup_aktualitaet "
+             "Pruefung 15 liest. Ohne Report > 8 Tage: PC aus oder Aufgabe defekt (Setup PC)"},
 ]
 
 TIMERS = [

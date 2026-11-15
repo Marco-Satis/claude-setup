@@ -48,8 +48,10 @@ Bei jeder neuen/geänderten wiederverwendbaren `_botcore`-Funktion sofort `mcp__
 - **Tags:** `gamebot-framework,global` (+ optional Bot-Name)
 - **Inhalt:** Funktionsname · Zweck (1 Satz) · Ort (`datei:symbol`) · Signatur · kurze Nutzungsnotiz
 
-Zweck: async-Kanal zwischen den parallel laufenden Bot-Sessions — die Sessions können nicht live
-miteinander reden, aber `memory_delta_watch` pusht neue Memories mid-session in die anderen.
+Zweck: Nachschlagekanal zwischen den parallel laufenden Bot-Sessions. **Einen Mid-Session-Push gibt es dafür
+nicht:** `memory_delta_watch` beobachtet nur den Tag `setup-change` (`WATCH_TAGS`, geprüft 15.11.2026). Neue
+Funktionen sehen die anderen Sessions beim nächsten Start (SessionStart-Hook `gamebot_framework_inventory.py`
+liest `_botcore` ein) oder per `memory_search` mit Tag `gamebot-framework` vor dem Bauen.
 
 ## Parallel-Session-Disziplin (wichtig)
 
