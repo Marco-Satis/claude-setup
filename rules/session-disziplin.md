@@ -99,3 +99,11 @@ oder „Setup Server“, sonst ab 10 min ohne Antwort spät abends):
 Auch tagsüber gilt: Rückfragen nur, wenn sie etwas schützen. Die häufigsten vermeidbaren (Freigabe-Audit 13.11., netcup
 und PC): `curl` (am PC Ask-Regel) → Webseiten mit WebFetch, Memory mit den `mcp__memory__*`-Tools; `rm` → Scratchpad;
 `git push` → gebündelt; `AskUserQuestion` nur bei echten Entscheidungen, alles andere als MB-Zeile an „Setup Server“.
+
+## Aufgabenliste sichtbar führen (der Nutzer 2026-11-15)
+
+Seit 14.11. sind die Aufgaben-Werkzeuge (`TaskCreate`/`TaskUpdate`/`TaskList`) in allen Sessions an (neue Werkzeuge
+standardmäßig an). der Nutzer sieht den Fortschritt nur, wenn sie benutzt werden. Deshalb: Jede Arbeit mit drei oder mehr
+Schritten oder mehreren Aufträgen von der Nutzer bekommt sofort eine Aufgabenliste; eine Aufgabe steht auf `in_progress`,
+bevor daran gearbeitet wird, und auf `completed`, sobald sie belegt fertig ist. Fehlen die Werkzeuge in einer Session
+(nur über `ToolSearch` als „deferred“ sichtbar), lädt die Session sie per `ToolSearch select:TaskCreate,TaskUpdate,TaskList`.
