@@ -196,6 +196,9 @@ CRON_ROUTINES = [
      "path": REPORTS / "cve_watch_*.md", "max_h": 30, "since": "2026-10-22",
      "note": "dpkg/npm/PyPI/Go gegen api.osv.dev; Discord nur bei neuem HIGH/CRITICAL "
              "oder gescheitertem Scan; Zustand ~/.local/share/cve_watch/state.json"},
+    # 2026-11-15: E4 Off-Host-Sicherung nach Google Drive (gdrive_crypt:)
+    {"name": "gdrive_offsite", "plan": "taeglich 04:20", "kind": "append",
+     "path": HOME / ".claude/logs/gdrive_offsite.log", "max_h": 30, "since": "2026-11-15"},
     # 2026-11-13: Aufbewahrung .bak (rules/backup-aufbewahrung.md), cron by der Nutzer
     {"name": "backup_prune", "plan": "taeglich 04:50", "kind": "append",
      "path": HOME / ".claude/logs/backup_prune.log", "max_h": 30, "since": "2026-11-14"},
