@@ -34,6 +34,6 @@
   nicht aktiv) bleibt unverändert.
 - **PC (Stand Setup PC 15.11.2026, PC-Wochenprüfung):** Codex hat am PC zwei Wege. `[mcp_servers.memory]` ist
   auf vier Lesetools begrenzt; `[mcp_servers.memory-netcup]` startet per `ssh -T netcup-marco` denselben
-  v2-Adapter und kann damit schreiben (mit den Grenzen oben). Ob das so bleiben soll, entscheidet der Nutzer
-  (offen, PC_PRUEFUNG_2026-11-15). Das Plugin `mcp-memory-service` ist am PC aus; die Claude-Hooks
+  v2-Adapter und kann damit schreiben (mit den Grenzen oben). der Nutzer hat das am 15.11.2026 bestätigt (MB173: „Codex darf am PC
+  ins Gedächtnis schreiben.“). Das Plugin `mcp-memory-service` ist am PC aus; die Claude-Hooks
   `session_logger.py` und `memory_delta_watch.py` sind dort verdrahtet.

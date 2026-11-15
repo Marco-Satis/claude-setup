@@ -74,6 +74,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `session_logger.py` | `—` | 10 | Stop Hook: loggt Session-Statistiken + persistiert Tier-1-Session-Memory. |
 | `context_canary.py` | `—` | — | Stop-Hook: Context-Canary — erkennt stillen Instruktions-Drift vor der ersten Halluzination. |
 | `empfang_erinnerung.py` | `—` | 10 | Stop-Hook: Erinnerung an die Empfangsbestaetigung (rules/session-disziplin.md, „Empfang bestaetigen“). |
+| `session_snapshot.py` | `—` | 5 | session_snapshot.py — Stop-Hook: Stand jeder Session am Zugende (der Nutzer 15.11.2026 06:34, G252-Ausbau). |
 
 ## StopFailure
 

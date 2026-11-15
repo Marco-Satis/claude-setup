@@ -26,6 +26,34 @@ NOTIFY = HOME / ".claude" / "rc-notify.sh"
 SSH_HOST = os.environ.get("CLAUDE_NOTIFY_SSH_HOST", "netcup-marco")
 
 
+def snapshot_senden(snap: dict, timeout: float = 20) -> bool:
+    """Session-Snapshot (Stop-Hook session_snapshot.py, 15.11.2026) an den Eingang der Zentrale.
+    netcup: direkt `zentrale_eingang.py snapshot`. PC: per SSH an netcup, im Hintergrund (blockiert den Zug nicht),
+    JSON ueber stdin. Not-Aus wie send(). True = Weg ausgeloest."""
+    try:
+        if (HOME / ".claude" / "flags" / "discord_notify.off").exists():
+            return False
+        payload = json.dumps(snap, ensure_ascii=False).encode("utf-8")[:8000]
+        lokal = HOME / ".claude" / "scripts" / "zentrale_eingang.py"
+        if os.name != "nt" and NOTIFY.exists() and lokal.exists():
+            cmd = ["python3", "-I", str(lokal), "snapshot"]
+        else:
+            cmd = ["ssh", "-o", "BatchMode=yes", "-o", f"ConnectTimeout={min(6, int(timeout))}", SSH_HOST,
+                   "python3 -I ~/.claude/scripts/zentrale_eingang.py snapshot"]
+        kw = {"stdin": subprocess.PIPE, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+        if os.name == "nt":
+            kw["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0) | getattr(
+                subprocess, "DETACHED_PROCESS", 0)
+        else:
+            kw["start_new_session"] = True
+        proc = subprocess.Popen(cmd, **kw)
+        proc.stdin.write(payload)
+        proc.stdin.close()
+        return True
+    except Exception:
+        return False
+
+
 def send(title: str, text: str, timeout: float = 20, klasse: str = "") -> bool:
     try:
         if (HOME / ".claude" / "flags" / "discord_notify.off").exists():
