@@ -194,7 +194,7 @@ def _arg(cmd: list[str], name: str) -> str:
 def _desktop_titel() -> tuple[str, bool]:
     """PC/Desktop-App: (Titel, von der Nutzer benannt). Quelle Setup PC 15.11.2026:
     %APPDATA%/Claude/claude-code-sessions/<konto>/<org>/<CLAUDE_CODE_HOST_SESSION_ID>.json, Feld title;
-    titleSource fehlt bei Desktop-Routinen. Ohne Treffer ("", False)."""
+    Desktop-Routinen tragen scheduledTaskId. Ohne Treffer ("", False)."""
     hid = os.environ.get("CLAUDE_CODE_HOST_SESSION_ID", "")
     if os.name != "nt" or not re.fullmatch(r"local_[0-9a-f-]{36}", hid):
         return "", False
@@ -203,7 +203,7 @@ def _desktop_titel() -> tuple[str, bool]:
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
             t = str(d.get("title") or "").strip()[:60]
-            return t, bool(t) and d.get("titleSource") == "user"
+            return t, bool(t) and not d.get("scheduledTaskId")   # Routine = scheduledTaskId (Setup PC 15.11.: titleSource auto/fehlend auch bei echten Sessions)
         except Exception:
             return "", False
     return "", False
@@ -215,7 +215,7 @@ def umgebung(cwd: str) -> dict:
     name, sid, headless, rc = os.environ.get("CLAUDE_SESSION_NAME", "").strip(), "", False, False
     if os.name == "nt" and not name:
         titel, benannt = _desktop_titel()
-        if titel and not benannt:      # Desktop-Routine (kein von der Nutzer vergebener Titel): kein Snapshot
+        if titel and not benannt:      # Desktop-Routine (scheduledTaskId): kein Snapshot
             headless = True
         elif titel:
             name = titel
