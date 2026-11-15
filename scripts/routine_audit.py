@@ -233,6 +233,9 @@ CRON_ROUTINES = [
 
 TIMERS = [
     ("claude-rc-watchdog.timer", "alle 5 min", 1),
+    # 2026-11-15 eigener ntfy-Server: holt des Nutzers Antworten (Antwort-Topic) in den Eingang. Ausfall des
+    # Servers selbst meldet rc-watchdog (e) als ALARM; hier nur, ob der Abhol-Timer laeuft. Kein MD je Lauf.
+    ("ntfy-eigen-antwort.timer", "jede Minute", 1),
     # 2026-11-12 (FritzBox-Session, der Nutzer richtete ihn per sudo ein): löst den wg0-Endpoint der
     # FRITZ!Box neu auf, sonst stirbt der Tunnel bei jeder neuen Box-IP (wz netcup-infra/…-7dfe).
     ("wg-reresolve-dns@wg0.timer", "alle 2 min", 1, "system"),

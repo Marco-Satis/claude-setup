@@ -140,7 +140,7 @@ else
   fi
 fi
 # (b) neue Zeilen in den Fehlerdateien des Eingangs (Phase 2: freigabe_eingang.err)
-for z_err in "$HOME/.claude/logs/zentrale_eingang.err" "$HOME/.claude/logs/freigabe_eingang.err"; do
+for z_err in "$HOME/.claude/logs/zentrale_eingang.err" "$HOME/.claude/logs/freigabe_eingang.err" "$HOME/.claude/logs/ntfy_eigen.err"; do
   z_key="$(basename "$z_err" .err)"
   z_size=0; [ -r "$z_err" ] && z_size="$(stat -c %s "$z_err" 2>/dev/null || echo 0)"
   z_prev=""; [ -r "$ZDIR/watchdog_${z_key}.size" ] && read -r z_prev <"$ZDIR/watchdog_${z_key}.size"
@@ -158,6 +158,21 @@ fi
 if [ -e "$ZDIR/eingang.lock.info" ] && [ $((z_now - $(stat -c %Y "$ZDIR/eingang.lock.info" 2>/dev/null || echo "$z_now"))) -gt 60 ]; then
   if ! flock -n "$ZDIR/eingang.lock" true 2>/dev/null && z_drossel lock 3600; then
     "$NOTIFY" "Zentrale: Eingangs-Lock haengt" "eingang.lock wird seit ueber 60 s gehalten." ALARM
+  fi
+fi
+# (e) Eigener ntfy-Server (15.11.2026): nur wenn ntfy-eigen.service aktiviert ist. Zwei Fehlschlaege in Folge
+# -> ALARM. rc-mail.sh faellt dann selbst auf das oeffentliche Topic (neutraler Hinweis) und SMTP zurueck.
+if systemctl --user is-enabled --quiet ntfy-eigen.service 2>/dev/null; then
+  z_nf="$ZDIR/watchdog_ntfy_eigen.fails"; z_n=0
+  [ -r "$z_nf" ] && read -r z_n <"$z_nf" 2>/dev/null; [[ "${z_n:-}" =~ ^[0-9]+$ ]] || z_n=0
+  z_nurl="$(sed -n 's/^NTFY_EIGEN_LOKAL=//p' "$HOME/.claude/secrets/ntfy_eigen.env" 2>/dev/null | head -1)"
+  if [ -n "$z_nurl" ] && curl -s -m 5 "$z_nurl/v1/health" 2>/dev/null | grep -q '"healthy":true'; then
+    echo 0 >"$z_nf"
+  else
+    z_n=$((z_n + 1)); echo "$z_n" >"$z_nf"
+    if [ "$z_n" -ge 2 ] && z_drossel ntfy_eigen 3600; then
+      "$NOTIFY" "ntfy-eigen DOWN" "Eigener ntfy-Server antwortet seit ${z_n} Pruefungen nicht (systemctl --user status ntfy-eigen)." ALARM
+    fi
   fi
 fi
 

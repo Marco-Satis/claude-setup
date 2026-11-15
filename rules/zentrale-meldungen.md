@@ -28,8 +28,13 @@ Keine eigenen Webhooks, Bot-Token oder direkten ntfy-Aufrufe in neuen Skripten.
 - Die Klasse kommt aus dem 3. Argument oder per Titel aus `~/.claude/scripts/meldungs_klassen.json`
   (erste passende Regex). **Wer einen neuen Titel einführt, trägt ihn dort ein** (mit `kurz`-Label), sonst kommt er
   als „neu“ sofort aufs Handy. Prüfen: `python3 ~/.claude/scripts/zentrale_eingang.py titel-pruefen`.
-- Handy-Pushes und Digest enthalten nur Vorlagentext: `kurz`-Label, E-Nummern, Projektnamen aus der Allowlist
-  der Klassen-Datei. Denylist-Projekte (UYM, private) nur als Zahl. Keine Befehle, Pfade oder Freitext.
+- **Öffentliches Topic (ntfy.sh, ohne Flag):** Handy-Pushes und Digest enthalten nur Vorlagentext: `kurz`-Label,
+  E-Nummern, Projektnamen aus der Allowlist der Klassen-Datei. Denylist-Projekte (UYM, private) nur als Zahl. Keine
+  Befehle, Pfade oder Freitext.
+- **Eigener ntfy-Server (Flag `~/.claude/flags/ntfy_eigen.on`):** Die Vorlagentext-Pflicht entfällt, Volltext ist
+  erlaubt. Pflicht bleiben die Schwärzung und das Auslassen von Zeilen mit Denylist-Projekten; `rc-mail.sh` macht
+  beides selbst, bevor es sendet. Volltext geht nie an das öffentliche Topic: Fällt der eigene Server aus, sendet
+  `rc-mail.sh` dort nur einen neutralen Hinweis und schickt den Text per SMTP.
 - Schwärzung über `secret_patterns.json`, bevor irgendein Ziel etwas bekommt (auch `rc-health.log`).
 
 ## Eingang
@@ -39,8 +44,50 @@ Keine eigenen Webhooks, Bot-Token oder direkten ntfy-Aufrufe in neuen Skripten.
 und sind nicht verifiziert. Fehler landen in `~/.claude/logs/zentrale_eingang.err`; der rc-watchdog meldet neue
 Zeilen, wenig Platz, ein hängendes Lock und einen ausgebliebenen Digest (> 26 h).
 
+## Session-Stand am Zugende (seit 15.11.2026)
+
+der Nutzer-Auftrag 15.11. 06:34: Server-Sessions melden sich, wenn sie ihn brauchen. Der Stop-Hook
+`hooks/session_snapshot.py` schreibt nach jedem Zug einen Snapshot nach `~/.claude/state/zentrale/sessions/<name>.json`
+(Zeit, Projekt, Status, erste 600 Zeichen der Antwort geschwärzt, Session-Link bei RC-Sessions).
+
+- **Status:** `braucht-marco` · `arbeitet` · `wartet-auf-ereignis` · `fertig`, heuristisch aus der letzten Antwort.
+  Sessions treffen ihn am sichersten, wenn eine Bitte an der Nutzer als **letzter Absatz** steht und direkt formuliert ist
+  („Soll ich …?“, „Antworte mit …“, „„durch“ schreiben“). Gesammelte Punkte für später („liegt im der Nutzer-Block für
+  Sonntag“) zählen nicht als `braucht-marco`.
+- **Weiterleitung:** Wechsel auf `braucht-marco` → Eingang, Titel „Session wartet auf der Nutzer — <projekt>“ (ENTSCHEIDUNG,
+  `unterart: snapshot`) → gebündelter Push „<Session> braucht dich (Art)“. Keine Wiederholung bei gleichem Status, außer
+  der Nutzer hat seit der letzten Meldung in der Session geschrieben. Kein Push, wenn der Nutzer dort vor < 10 min schrieb
+  (Zustand von `zeit_kontext.py`). Verlässt die Session den Status, wird der Eingangseintrag `erledigt`.
+- **Übersicht:** `zentrale_eingang.py sessions [--alle]`. Der 07:45-Digest enthält die Tagesliste
+  (`zentrale_eingang.py tagesliste`): wartende Sessions, offene MB-Punkte (Sicherheit zuerst, höchstens 10), Fristen
+  der nächsten 7 Tage.
+- **Volltext:** Nur mit Flag `~/.claude/flags/ntfy_eigen.on` (eigener ntfy-Server) tragen Push und Digest die erste
+  Zeile der Antwort bzw. den MB-Kurztext, geschwärzt; Denylist-Projekte bleiben bei einer Zahl. Ohne Flag Vorlagentext.
+- **PC:** derselbe Hook (synct), Snapshot per SSH an netcup (`notify_fallback.snapshot_senden`); Verdrahtung in der
+  PC-`settings.json` macht „Setup PC“.
+- Aus: `touch ~/.claude/flags/session_snapshot.off`. Tests: `hooks/tests/test_session_snapshot.py`.
+
+## Eigener ntfy-Server (seit 15.11.2026)
+
+der Nutzer 15.11. 06:38: eigener Notify-Server für Volltext und Interaktion. ntfy (Version gepinnt in
+`scripts/ntfy_eigen/einrichten.sh`) als User-Dienst `ntfy-eigen.service`, nur `127.0.0.1:2586`, `deny-all`, ohne
+Signup. Nutzer `marco` (App: Meldungs-Topic lesen, Antwort-Topic schreiben) und `server` (Token: Meldungen senden,
+Antworten lesen). Topics, Token und des Nutzers Passwort stehen nur in `~/.claude/secrets/ntfy_eigen.env` bzw.
+`ntfy_eigen_marco.pass` (600, synct nicht, nie ins Repo).
+
+- **Antworten:** Was der Nutzer in der App ins Antwort-Topic schreibt, holt `ntfy-eigen-antwort.timer` jede Minute in den
+  Eingang (Titel „der Nutzer per ntfy“, INFO, `unterart: marco-ntfy`, sichtbar mit `liste --alle`) und quittiert in der App
+  „Angekommen: E<n>“. Der Text ist des Nutzers Wort, die Zentrale prüft ihn wie eine Chat-Nachricht von ihm.
+- **Aktions-Knöpfe (Ja/Nein):** nicht gebaut, nur entworfen; ein Knopfdruck zählt als des Nutzers Ja, Bau nur nach
+  des Nutzers ausdrücklichem Ja.
+- **Überwachung:** rc-watchdog (e) prüft `/v1/health`; zwei Fehlschläge in Folge → ALARM „ntfy-eigen DOWN“ über den
+  Rückfallweg. `routine_audit.py` prüft den Abhol-Timer.
+- **Neue Skripte** senden weiter über `rc-notify.sh`/`rc-mail.sh`, nie direkt an den Server.
+
 ## Rückwege
 
+- Eigener ntfy-Server aus (zurück zum öffentlichen Topic, Vorlagentext): Flag `ntfy_eigen.on` umbenennen, z. B.
+  `mv ~/.claude/flags/ntfy_eigen.on ~/.claude/flags/ntfy_eigen.off`
 - Discord parallel wieder an: `touch ~/.claude/flags/discord_parallel.on`
 - Notification-Hook aus: `touch ~/.claude/flags/discord_notify.off`
 - Vorige Fassungen: `*.bak.g252.<ts>` neben den geänderten Dateien
