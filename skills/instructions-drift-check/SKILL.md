@@ -1,55 +1,45 @@
 ---
 name: instructions-drift-check
-description: Prüft des Nutzers kanonische Standard-Anweisungen (~/.claude/CUSTOM_INSTRUCTIONS.md) wöchentlich auf Fakten-Drift (Versionen, Endpoints, Memory-Tool-Namen, Server, Modelle, Source-URLs) und patcht NUR die verifizierbaren Fakten-Regionen automatisch (mit Backup), der Verhaltens-/Stil-Teil bleibt unangetastet. Schreibt einen Drift-Report. Use when "instructions drift", "anweisungen aktualisieren", "custom-instructions check", "/instructions-drift-check", oder wöchentlich per Routine.
-version: 1.3.0
+description: Prüft wöchentlich den Spiegel von des Nutzers claude.ai-Anweisungen (SETUP_SPIEGEL/claude_app_anweisungen.md) auf Drift gegen das Setup (Connector-Werkzeugnamen, eingeschlichene harte Fakten, Widersprüche zu den Rules) und schreibt nur einen Bericht. Ändert weder den Spiegel noch den App-Text; der Nutzer trägt Änderungen selbst in die App ein. Use when "instructions drift", "anweisungen prüfen", "claude.ai-anweisungen check", "custom-instructions check", "/instructions-drift-check", oder wöchentlich per Routine.
+version: 2.0.0
 model: inherit
 ---
 
-# instructions-drift-check — Fakten-Drift in den Standard-Anweisungen
+# instructions-drift-check: Drift im Spiegel der claude.ai-Anweisungen
 
-Hält `~/.claude/CUSTOM_INSTRUCTIONS.md` faktisch aktuell (Datei liegt aktuell nur PC-seitig — root-Files von `~/.claude` sind vom Syncthing-Sync ausgenommen, auf netcup nicht vorhanden → Skill dort ggf. mit klarer Meldung abbrechen). **Nur** die verifizierbaren Fakten zwischen `<!-- AUTO-FACTS:START … -->` / `<!-- AUTO-FACTS:END … -->`-Markern werden auto-gepatcht. Verhalten/Stil/Regeln = des Nutzers Präferenzen → NIE automatisch ändern.
+**Quelle seit 16.11.2026** (der Nutzer, MB170 „neuer Spiegel“): `SETUP_SPIEGEL/claude_app_anweisungen.md`
+- PC: `C:\Users\<user>\projects-sync\Skills_&_Co\SETUP_SPIEGEL\claude_app_anweisungen.md`
+- netcup: `~/projects/Skills_&_Co/SETUP_SPIEGEL/claude_app_anweisungen.md`
 
-## Harte Grenzen (zuerst lesen)
-- **Backup vor jedem Edit** (Universelle Regel 2): `cp -a CUSTOM_INSTRUCTIONS.md CUSTOM_INSTRUCTIONS.md.bak.$(date +%s)`.
-- Edits **ausschließlich** innerhalb der `AUTO-FACTS`-Regionen. Steht außerhalb ein Fakt falsch → nur im Report flaggen, NICHT patchen.
-- **Read-Then-Verify**: Datei erst lesen, dann per Edit ändern — **kein Re-Read zur Kontrolle**. Der Harness lässt einen Edit fehlschlagen, wenn der Anker nicht passt; ein Nachlesen belegt also nichts, was nicht schon feststeht (globale `CLAUDE.md` Regel 1: verifizieren via Verhalten, nicht via Re-Read). Verhalten heißt hier: der Report nennt dokumentierten und Live-Wert nebeneinander.
-- Datei-Inhalte NUR via Read-Tool lesen (nie Get-Content/cat/head/tail via Bash/PowerShell) — sonst Security-Flag.
-- Bei Unsicherheit über einen Live-Wert: NICHT patchen, im Report als „unklar/manuell prüfen" listen (ehrlich-vor-bequem).
-- Kein `sudo`. Kein schreibender Remote-Befehl.
-- **SSH-Probe: read-only erlaubt, automatisch** (der Nutzer-Freigabe 2026-08-11, ersetzt das frühere Pauschalverbot). Eskalierend vorgehen, nicht gleich einloggen:
-  1. `~/.ssh/config` via Read-Tool → HostName/Port belegen (kein Netzzugriff).
-  2. Banner-Grab (TCP-Connect, **kein** Auth-Versuch → kein fail2ban-Zähler):
-     `(timeout 8 bash -c 'exec 3<>/dev/tcp/<host>/<port>; head -1 <&3')` — OpenSSH-Version + Distro-Suffix.
-  3. Read-only-Login: `ssh -o BatchMode=yes -o ConnectTimeout=8 netcup-marco '<cmd>'`.
-     Erlaubt sind **nur** lesende Befehle: `lsb_release`, `uname`, `uptime`, `systemctl status/is-active`, `python3 --version`, `ss -ltn`, `df -h`, `free -m`, `journalctl --no-pager -n`.
-     Verboten ohne Rückfrage: alles Schreibende/Neustartende (`systemctl restart|stop`, `apt`, `rm`, Datei-Edits), `sudo`, jeder Befehl mit Seiteneffekt.
-  Zum Datei-Lesen auf dem Server ist `cat`/`head` per SSH ok — die Read-Tool-Regel gilt für **lokale** Dateien.
-- SSH-Ausgabe ist MOTD-verseucht: Nutzsignal mit einem Marker abgrenzen (`echo "===RESULT==="; …` + `sed -n '/===RESULT===/,$p'`), nicht blind `head`.
+Der Spiegel gibt wieder, was der Nutzer in die claude.ai-App eingetragen hat (erste Zeile „Stand: …“). Er hat
+keine AUTO-FACTS-Regionen und enthält absichtlich keine Ports, Pfade, Versionen oder Modellnamen; die stehen
+im Wissensspeicher. `~/.claude/CUSTOM_INSTRUCTIONS.md` (nur PC) ist Altbestand: nicht mehr prüfen, nicht
+patchen, nicht löschen. Bis v1.3.0 hat dieser Skill dort AUTO-FACTS gepatcht (Backups `*.bak.pre-mb170.*`).
+
+## Harte Grenzen
+- **Nur lesen und berichten.** Spiegel, Vorschlagsdateien und Altbestand bleiben unverändert. Ein Vorschlag
+  für neuen App-Text steht im Bericht; eintragen tut der Nutzer.
+- Datei-Inhalte nur via Read-Tool (nie cat/Get-Content/head/tail via Shell), sonst Security-Flag.
+- Keine SSH-, curl- oder sudo-Aufrufe. Der Lauf braucht keine Live-Proben am Server.
+- Unsicher → im Bericht „unklar“, nicht raten.
 
 ## Ablauf
-1. **Backup** der Datei (s.o.). Dann Datei via Read lesen.
-2. **Live-Fakten proben**: genau ein Aufruf im Bash-Tool, wörtlich so und ohne Zusätze:
-   ```bash
-   python ~/.claude/scripts/drift_probe.py
-   ```
-   Dieser Aufruf ist in der PC-`settings.json` freigegeben und läuft deshalb auch unbeaufsichtigt (seit 2026-11-13). `curl` steht dort auf „ask“ und gehört nicht in den Wochenlauf. Das Skript gibt JSON aus:
-   - lokale Python-Version
-   - Memory-Endpoints: `MCP_MEMORY_BASE_URL`, Tailscale, MagicDNS (Auflösung und Health), wg0, `127.0.0.1`
-   - Werte aus `~/.ssh/config`, SSH-Banner
-   - Server: Distro, Kernel und `python3` per read-only-SSH
-   - Erreichbarkeit der Quellen-URLs
-
-   Lesart: `memory_mcp` = 405 heißt, der Endpoint lebt (GET wird abgelehnt, POST ist der Weg). Die mcp-memory-**Version** kommt aus `mcp__memory__memory_health`; die lokale `mcp-memory-venv` gibt es seit 2026-11-12 nicht mehr.
-3. **Memory-Tool-Namen** gegen die in DIESER Session real verfügbaren `mcp__memory__*`-Tools abgleichen (dein eigenes Tool-Listing ist die Quelle — kein externer Probe nötig). Im Doc gelistete Namen, die es nicht mehr gibt → Drift. Neue Kern-Tools, die fehlen → Drift.
-4. **Modelle** (Region `stack`): dokumentierte Modell-Namen gegen den aktuell bekannten Stand prüfen (Default-Opus-Generation, Long-horizon-Modell). Bei Rename/Deprecation → Drift. Unsicher → Report, nicht patchen.
-5. **Server-Fakten** (Region `stack`): dokumentierte SSH-IP/Port gegen `ssh_config_netcup_marco` prüfen, Distro und OpenSSH-Version aus `server.distro` und `ssh_banner_kurz` des Probe-Laufs (Schritt 2) nehmen. Eigene SSH-Aufrufe sind im Wochenlauf nicht nötig. Point-Release (`22.04.5`) NICHT ins Doc schreiben — bumpt bei jedem Update und läuft nächste Woche als Fake-Drift auf; nur die Major-Version (`22.04`) zählt.
-6. **Drift-Tabelle** bauen: je Fakt `Region | dokumentiert | live | Urteil(ok/drift/unklar)`.
-7. **Auto-Patch**: für jedes `drift` mit eindeutigem Live-Wert die Stelle INNERHALB der zugehörigen `AUTO-FACTS`-Region per Edit korrigieren. `unklar` → nicht patchen. Kein Re-Read nach dem Edit (s. Harte Grenzen) — der Beleg steht in der Drift-Tabelle des Reports.
-8. **Report** schreiben nach `~/projects/Skills_&_Co/INSTRUCTIONS_DRIFT/DRIFT_<YYYY-MM-DD>.md` (Syncthing-synct; PC-seitig = entsprechender `projekte`-Sync-Ordner): geprüfte Fakten, was gepatcht wurde, was offen blieb (mit Grund), Backup-Pfad. Bei 0 Drift: knappe „all green"-Zeile.
-9. **Verhaltens-Findings** (falls dir auffällt, dass ein Stil-/Regel-Punkt veraltet wirkt): NICHT ändern — nur unten im Report unter „Manueller Review-Vorschlag" notieren.
-
-## Probleme loggen
-MEDIUM+-Fakten-Drift, der nicht eindeutig auto-fixbar war (z.B. SSH-IP unklar), via `python ~/.claude/scripts/problem.py add --severity MEDIUM --project setup --source manual --title "…" --fix "…"`.
+1. **Spiegel lesen** (Read). Fehlt er: Bericht „Spiegel fehlt“ und Ende.
+2. **Stand:** Datum der ersten Zeile notieren. Liegt im selben Ordner eine `claude_app_anweisungen_VORSCHLAG_*.md`,
+   die neuer ist als dieser Stand → Bericht „Vorschlag liegt bereit, nicht eingetragen“.
+3. **Connector-Werkzeuge:** Jeder im Spiegel genannte Werkzeugname (z. B. `wissen_suchen`, `wissen_lesen`,
+   `wissen_merken`) muss in DIESER Session als Connector-Werkzeug vorkommen (eigenes Tool-Listing inklusive
+   deferred; der Name endet auf `__<werkzeug>`). Fehlt einer → drift.
+4. **Harte Fakten:** Stehen Ports, IP-Adressen, Pfade, Versionsnummern, Modell-IDs oder URLs im Spiegel → drift
+   („gehört in den Wissensspeicher“).
+5. **Regel-Abgleich:** Kernaussagen des Spiegels gegen `~/.claude/rules/` (vor allem `mitdenken.md`,
+   `session-disziplin.md` „Sofort erledigen statt vertagen“, `secret-handling.md`) und die globale `CLAUDE.md`
+   halten. Nur echte Widersprüche melden (beide Stellen mit Zeile), keine Stilfragen.
+6. **Kontext-Abschnitt:** nur bei klarem Widerspruch zu des Nutzers Projekten melden.
+7. **Bericht** nach `C:\Users\<user>\OneDrive\Dokumente\Projekte\Skills_&_Co\INSTRUCTIONS_DRIFT\DRIFT_<YYYY-MM-DD>.md`
+   (netcup: `~/projects/Skills_&_Co/INSTRUCTIONS_DRIFT/`): Tabelle `Prüfpunkt | Spiegel | Ist | Urteil (ok/drift/unklar)`,
+   bei Drift darunter ein Textvorschlag für die App. Bei 0 Drift eine Zeile „all green“. Hat der Bericht Drift,
+   lautet seine letzte Zeile `BRAUCHT: der Nutzer – App-Text anpassen (<Punkt>)`.
 
 ## Output (an der Nutzer, knapp)
-Zusammenfassung: X Fakten geprüft, Y gepatcht (welche), Z offen. Report-Pfad + Backup-Pfad. Falls Verhaltens-Review-Vorschlag: 1 Zeile.
+X Punkte geprüft, Y Drift, Z unklar; Berichtspfad.

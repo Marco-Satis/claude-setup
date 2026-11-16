@@ -116,13 +116,26 @@ def _gitignore_ok(pw_dir):
         return False
 
 
+def _expand_braces(g, depth=0):
+    """'*.{py,ps1}' -> ['*.py', '*.ps1']; '{*.md,*}' -> ['*.md', '*'] (begrenzt gegen Explosion)."""
+    m = re.search(r"\{([^{}]*)\}", g)
+    if not m or depth > 8:
+        return [g]
+    out = []
+    for part in m.group(1).split(","):
+        out.extend(_expand_braces(g[:m.start()] + part + g[m.end():], depth + 1))
+        if len(out) > 64:
+            break
+    return out
+
+
 def _glob_risky(glob):
     g = str(glob or "").replace("\\", "/").lower()
     if not g:
         return False
     if "patchwatch" in g or "neu_" in g:
         return True
-    for alt in re.split(r"[{},]", g):
+    for alt in _expand_braces(g):
         alt = alt.strip()
         if alt and "." not in alt.split("/")[-1]:
             return True
@@ -136,12 +149,12 @@ def _shell_hit(cmd, cwd):
     cwd_n = _norm(cwd)
     if IN_PW.search(cwd_n):
         return True
-    if SH_CORE_PATH.search(c) or SH_REL_PATH.search(c):
+    if SH_CORE_PATH.search(c):
         return True
+    # Relative Formen (patchwatch/…, nackter Ordnername) nur im _botcore-Kontext: cwd = _botcore oder cd dorthin.
+    # Sonst trafen Pfade wie <scratchpad>/stage/patchwatch/… (Fehlblock, Bot_Core 15.11. 17:03).
     in_botcore = cwd_n.endswith("/_botcore") or bool(SH_CD_BOTCORE.search(c))
-    if in_botcore and (SH_BARE.search(c) or SH_NEU.search(c)):
-        return True
-    return bool(SH_NEU.search(c) and "patchwatch" in c)
+    return bool(in_botcore and (SH_REL_PATH.search(c) or SH_BARE.search(c)))
 
 
 def decide(tool_name, tool_input, cwd, agent_type):
@@ -267,6 +280,11 @@ def _selftest():
         ("Bash", {"command": "python bots/neu_start.py"}, g + "/CellSurvivor", None, False),
         ("Bash", {"command": "cat _botcore/_fixtures/patchwatch/neu_offen.md"}, g, None, False),
         ("Bash", {"command": "cd _botcore && python -m pytest tests/test_patch_watch.py -q"}, g, None, False),
+        # Fehlblock-Fix 15.11. 17:05: patchwatch/ ausserhalb von _botcore ist frei
+        ("Bash", {"command": "wc -c \"C:/Users/der Nutzer/AppData/Local/Temp/claude/d644/b5d1/scratchpad/stage/patchwatch/digest.md\""}, g, None, False),
+        ("Bash", {"command": "cat C:/x/scratchpad/stage/patchwatch/neu_offen.md"}, g, None, False),
+        ("Bash", {"command": "cd _botcore && grep -n neu_offen patch_watch.py"}, g, None, False),
+        ("Bash", {"command": "cd _botcore && cat patchwatch/survivorio/neu_offen.md"}, g, None, True),
         ("Edit", {"file_path": neu}, g, None, False),
         ("Read", {"file_path": neu}, g, None, True),
     ]
@@ -308,6 +326,8 @@ def _selftest():
         check("Grep", {"pattern": "x", "path": fgn, "glob": "*"}, fgn, None, True, "glob *")
         check("Grep", {"pattern": "x", "path": fgn, "glob": "**/*"}, fgn, None, True, "glob **/*")
         check("Grep", {"pattern": "x", "path": fgn, "glob": "{*.md,*}"}, fgn, None, True, "glob {*.md,*}")
+        check("Grep", {"pattern": "x", "path": fgn, "glob": "*.{py,pyw,ps1,bat}"}, fgn, None, False, "glob *.{py,pyw,ps1,bat}")
+        check("Grep", {"pattern": "x", "path": fgn, "glob": "{scripts/*.py,*.vbs}"}, fgn, None, False, "glob {scripts/*.py,*.vbs}")
         check("Grep", {"pattern": "x", "path": fgn, "glob": "**/patchwatch/**"}, fgn, None, True, "glob **/patchwatch/**")
         # Einzeldatei ohne Fremdtext (C9)
         check("Grep", {"pattern": "v", "path": fgn + "/_botcore/patchwatch/survivorio/hinweis.json"}, fgn, None, False, "grep hinweis.json")
@@ -329,7 +349,7 @@ def _selftest():
         except Exception as e:  # pragma: no cover
             bad += 1
             print("FAIL Robustheit", type(e).__name__, e)
-    total = len(cases) + 16
+    total = len(cases) + 18
     print("\n%d/%d ok (+ Robustheit)" % (total - bad, total))
     return 1 if bad else 0
 

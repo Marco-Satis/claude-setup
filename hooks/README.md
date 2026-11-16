@@ -116,6 +116,6 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 
 ## Nicht in dieser Tabelle
 
-Diese Hooks der laufenden Konfiguration fehlen bewusst (installationsgebunden oder persönlich): `knapp_de.py`.
+Diese Hooks der laufenden Konfiguration fehlen bewusst (installationsgebunden oder persönlich): `claude_status_hook.py`, `knapp_de.py`.
 
 Die Dateien unter `hooks/tests/` sind Smoke-Tests der Hooks selbst und werden nicht eingehängt.

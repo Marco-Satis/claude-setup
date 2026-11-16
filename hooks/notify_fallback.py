@@ -60,9 +60,14 @@ def send(title: str, text: str, timeout: float = 20, klasse: str = "") -> bool:
             return False
         title, text = str(title)[:200], str(text)[:1700]
         klasse = klasse if klasse in ("ALARM", "ENTSCHEIDUNG", "INFO", "RAUSCHEN") else ""
+        # Kein Konsolenfenster unter pythonw (Windows) und kein geerbtes stdin (Bot_Core-Befund 16.11.2026,
+        # gleiche Parameter wie snapshot_senden).
+        kw = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+        if os.name == "nt":
+            kw["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
         if NOTIFY.exists():
             subprocess.run([str(NOTIFY), title, text] + ([klasse] if klasse else []), timeout=timeout, check=False,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                           **kw)
             return True
         if os.name == "nt":
             # G252: zuerst per SSH an den Eingang der Zentrale (netcup); Discord-Bot nur noch als Rueckfall.
@@ -71,8 +76,7 @@ def send(title: str, text: str, timeout: float = 20, klasse: str = "") -> bool:
                 remote += " " + klasse
             proc = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", f"ConnectTimeout={min(6, int(timeout))}",
                                    SSH_HOST, remote],
-                                  timeout=timeout, check=False,
-                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                  timeout=timeout, check=False, **kw)
             if proc.returncode == 0:
                 return True
         token = os.environ.get("CLAUDE_DISCORD_BOT_TOKEN", "").strip()

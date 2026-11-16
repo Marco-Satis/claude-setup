@@ -21,6 +21,7 @@ Best-effort: jeder unerwartete Fehler -> exit 0. Block: stderr + exit 2.
 from __future__ import annotations
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -39,8 +40,37 @@ def bot_dir(start: Path):
     return None
 
 
+_BT = re.compile(r"`([^`]+)`")
+_IDENT = re.compile(r"^[A-Za-z_][\w.]*$")
+_LITERAL = re.compile(r"^[\w.]+\(.*\)$")
+_FILE = re.compile(r"[\w./\\-]+\.(?:py|pyw|json|md|txt|flag|bat|ps1|vbs|ya?ml|toml|cfg|ini|png)\b", re.I)
+
+
+def symbols_of(part: str):
+    """Code-Symbole einer (Teil-)Zelle. 16.11.2026 (Befund Survivor.io_Bot): Sammelzellen wie
+    `A + B`, `A/B`, `X=7min` und Prosa wurden vorher als EIN Wort verglichen und schuetzten nichts.
+    -> [(token, wortgrenze)]; Backtick-Ausdruecke gelten woertlich, Prosa und Allerweltswoerter
+    (nur Kleinbuchstaben, ohne _ . Ziffer) fallen weg."""
+    out = []
+    for m in _BT.finditer(part):
+        t = m.group(1).strip()
+        if len(t) >= 3:
+            out.append((t, bool(_IDENT.match(t))))
+    rest = _BT.sub(" ", part)
+    for tok in re.split(r"\s+\+\s+|/|=|,\s*|\s+", rest):
+        tok = tok.strip().strip(".,;:")
+        if len(tok) < 4:
+            continue
+        if _IDENT.match(tok) and re.search(r"[_.A-Z0-9]", tok):
+            out.append((tok, True))
+        elif _LITERAL.match(tok):
+            out.append((tok, False))
+    return out
+
+
 def ledger(root: Path):
-    """[(symbol, datei_feld, ganze_zeile)] aus WIRING.md."""
+    """[(symbol, wortgrenze, [dateien], ganze_zeile)] aus WIRING.md.
+    Sammelzeilen: Teile mit ' ; ', Spalte 1 und 2 in gleicher Reihenfolge."""
     out = []
     try:
         raw = (root / "WIRING.md").read_text(encoding="utf-8", errors="ignore")
@@ -52,26 +82,40 @@ def ledger(root: Path):
             continue
         if "|" not in s:
             continue
-        fields = [f.strip() for f in s.split("|")]
-        sym = fields[0]
-        fil = fields[1] if len(fields) > 1 else ""
-        if len(sym) < 3:          # zu kurz = zu viele Fehltreffer
-            continue
-        out.append((sym, fil, s))
+        fields = [f.strip() for f in s.strip("|").split("|")]
+        sym_parts = [p.strip() for p in fields[0].split(" ; ")]
+        fil_parts = [p.strip() for p in (fields[1] if len(fields) > 1 else "").split(" ; ")]
+        all_files = _FILE.findall(fields[1] if len(fields) > 1 else "")
+        for i, part in enumerate(sym_parts):
+            if len(fil_parts) == len(sym_parts):
+                files = _FILE.findall(fil_parts[i]) or all_files
+            else:
+                files = all_files
+            for tok, wb in symbols_of(part):
+                out.append((tok, wb, files, s))
     return out
 
 
-def applies(fil: str, target: str) -> bool:
-    """Ledger-Zeile ohne Datei-Feld gilt ueberall; sonst Basename-Match."""
-    if not fil:
+def applies(files, target: str) -> bool:
+    """Ledger-Eintrag ohne Datei gilt ueberall; sonst Basename-Match."""
+    if not files:
         return True
-    return os.path.basename(fil).lower() in target.lower()
+    t = target.lower()
+    return any(os.path.basename(f.replace("\\", "/")).lower() in t for f in files)
+
+
+def present(sym: str, wb: bool, text: str) -> bool:
+    if not wb:
+        return sym in text
+    return re.search(r"(?<![\w])" + re.escape(sym) + r"(?![\w])", text) is not None
 
 
 def main() -> None:
     try:
         data = json.load(sys.stdin)
     except Exception:
+        sys.exit(0)
+    if not isinstance(data, dict):
         sys.exit(0)
     tool = data.get("tool_name")
     if tool not in TOOLS:
@@ -88,7 +132,7 @@ def main() -> None:
     if root is None or (root / OFF).exists():
         sys.exit(0)
 
-    entries = [e for e in ledger(root) if applies(e[1], os.path.basename(fp))]
+    entries = [e for e in ledger(root) if applies(e[2], os.path.basename(fp))]
     if not entries:
         sys.exit(0)
 
@@ -109,17 +153,21 @@ def main() -> None:
         pairs.append((cur, ti.get("content") or ""))
 
     removed = []
-    for sym, _fil, line in entries:
+    seen = set()
+    for sym, wb, _files, line in entries:
+        if sym in seen:
+            continue
         for old, new in pairs:
-            if sym in old and sym not in new:
+            if present(sym, wb, old) and not present(sym, wb, new):
                 removed.append((sym, line))
+                seen.add(sym)
                 break
 
     if removed:
         msg = [f"BLOCKED wiring-guard: dieser {tool} entfernt "
                f"{len(removed)} in WIRING.md registrierte(s) Symbol(e) aus {fp}."]
         for sym, line in removed[:5]:
-            msg.append(f"  * {sym} -> {line}")
+            msg.append(f"  * {sym} -> {line[:300]}")
         msg.append("Das ist Absicht, nicht unerklaerter Code. Vor dem Entfernen: "
                    "den genannten Grund widerlegen, `grep` im JOURNAL_*.md nach dem "
                    "Symbol, und erst die Ledger-Zeile loeschen (mit Journal-Eintrag). "
@@ -131,4 +179,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception:
+        sys.exit(0)  # best-effort: eigener Fehler blockt nie

@@ -83,7 +83,7 @@ def _is_bot_session(cwd):
 
 def _guard_off(cwd, target):
     for base in (target, cwd):
-        n = _norm(base)
+        n = _norm(base).rstrip("/") + "/"  # cwd = Games endet ohne "/" (p-9fc10d82cc, MB204 d)
         i = n.find("/games/")
         if i == -1:
             continue

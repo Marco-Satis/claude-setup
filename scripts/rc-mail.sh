@@ -94,7 +94,7 @@ prio = int(os.environ.get("PRIO", "4"))
 titel = sauber(os.environ.get("SUBJ") or "RC-Alarm").replace("\n", " ")[:200] or "Meldung"
 d = {"topic": env["NTFY_EIGEN_TOPIC_MELDUNG"], "title": titel,
      "message": (sauber(os.environ.get("BODY") or "") or "-")[:3900], "priority": prio,
-     "tags": ["rotating_light"] if prio >= 4 else ["inbox_tray"]}
+     "tags": (["rotating_light"] if prio >= 4 else ["inbox_tray"]) + ["zentrale"]}  # Marker: eigene Meldung (antwort_abholen ueberspringt sie)
 d = _knoepfe(d)
 for a in d.get("actions", []):
     a["label"] = sauber(a["label"]).replace("\n", " ")[:40] or "Oeffnen"

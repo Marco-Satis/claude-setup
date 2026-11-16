@@ -197,6 +197,8 @@ CRON_ROUTINES = [
      "note": "dpkg/npm/PyPI/Go gegen api.osv.dev; Discord nur bei neuem HIGH/CRITICAL "
              "oder gescheitertem Scan; Zustand ~/.local/share/cve_watch/state.json"},
     # 2026-11-15: E4 Off-Host-Sicherung nach Google Drive (gdrive_crypt:)
+    {"name": "n8n_nightly_backup", "plan": "taeglich 04:10", "kind": "append", "path": Path("$HOME/n8n_stack/logs/nightly_backup.log"), "max_h": 30, "since": "2026-11-17"},
+    {"name": "pa_backup", "plan": "taeglich 03:50", "kind": "append", "path": HOME / ".claude/logs/pa_backup.log", "max_h": 30, "since": "2026-11-16"},
     {"name": "gdrive_offsite", "plan": "taeglich 04:20", "kind": "append",
      "path": HOME / ".claude/logs/gdrive_offsite.log", "max_h": 30, "since": "2026-11-15"},
     # 2026-11-13: Aufbewahrung .bak (rules/backup-aufbewahrung.md), cron by der Nutzer

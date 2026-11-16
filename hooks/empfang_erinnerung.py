@@ -121,6 +121,8 @@ def ereignisse(transcript: str) -> list:
 def offene(ev: list, now: float) -> list:
     res = []
     for i, e in enumerate(ev):
+        if e[0] == "msg" and str(e[3]).startswith("anstoss-"):
+            continue  # Einweg-Laeufe (session_anstoss.sh, zentrale_wecken.sh) enden sofort, Quittung waere sinnlos
         if e[0] != "msg" or (e[1] and now - e[1] > FENSTER) or not ist_auftrag(e[5]):
             continue
         ids = e[2]

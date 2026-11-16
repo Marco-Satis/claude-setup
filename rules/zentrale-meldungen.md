@@ -75,6 +75,14 @@ Signup. Nutzer `marco` (App: Meldungs-Topic lesen, Antwort-Topic schreiben) und 
 Antworten lesen). Topics, Token und des Nutzers Passwort stehen nur in `~/.claude/secrets/ntfy_eigen.env` bzw.
 `ntfy_eigen_marco.pass` (600, synct nicht, nie ins Repo).
 
+- **Ein Kanal (der Nutzer 15.11. 21:25):** der Nutzer darf auch direkt im Meldungs-Topic antworten (marco und server dort
+  read-write). Eigene Meldungen tragen den Tag `zentrale` (rc-mail.sh, Quittung) und werden beim Abholen
+  übersprungen; alles ohne Tag gilt als des Nutzers Nachricht. Neue Sender ins Topic nur über `rc-mail.sh`, sonst fehlt
+  der Tag. Das alte Antwort-Topic bleibt als zweiter Weg.
+- **Weckruf (der Nutzer 15.11. 21:27):** Neue der Nutzer-Nachrichten stoßen „Setup Server“ automatisch an
+  (`ntfy-eigen-wecken.path` → `scripts/ntfy_eigen/zentrale_wecken.sh`, SendMessage nur mit E-Nummern). Die Zentrale
+  antwortet im selben Kanal per `rc-mail.sh "<Titel>" "<Text>" 3` und setzt den Eintrag `erledigt`.
+  Aus: `touch ~/.claude/flags/zentrale_wecken.off`.
 - **Antworten:** Was der Nutzer in der App ins Antwort-Topic schreibt, holt `ntfy-eigen-antwort.timer` jede Minute in den
   Eingang (Titel „der Nutzer per ntfy“, INFO, `unterart: marco-ntfy`, sichtbar mit `liste --alle`) und quittiert in der App
   „Angekommen: E<n>“. Der Text ist des Nutzers Wort, die Zentrale prüft ihn wie eine Chat-Nachricht von ihm.

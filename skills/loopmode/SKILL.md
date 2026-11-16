@@ -77,9 +77,13 @@ Ab dann treibt `Games/TICK_PROMPT.md` jeden Cron-Tick. Stoppen jederzeit mit `/l
 Der Tick wählt pro Wake GENAU EINE Aktion. Ist ein Problem offen, ist diese Aktion **ein Fix-Versuch** dafür — gegated, verifiziert, gedeckelt. Vollzug steht in `TICK_PROMPT.md` (ABLAUF Schritt 5–6).
 
 **Problem-Quellen (Priorität absteigend):**
-1. `diagnose.py` health-kritisch (Bot DEAD / blackscreen / RAM-Spike / stuck) → Betrieb zuerst: `diagnose.py --heal`. Höchste Prio.
-2. `fehler-ledger.json` Einträge mit `fix_status` = `offen` oder `reopened`, nach Severity sortiert.
-3. `selfcheck.py` / game-automation-reviewer Findings → erst als **VERIFIZIERTEN** Ledger-Eintrag erfassen (Beleg-Pfad), dann wie #2 behandeln.
+Bot DOWN/Heal → offener Incident/drift/STAGNATION → VERSION-Hinweis (Patch über patch-reader auswerten, vor normalen Ledger-Bugs) → offene Ledger-Bugs → PATCHWATCH neu ohne VERSION spätestens im 3. Tick nach dem ersten Hinweis. Ab ~55 % Kontext nur, wenn sonst nichts ansteht; ab ~70 % einmalig eine DEFERRED-Zeile. Details: TICK_PROMPT.md, Abschnitt PATCHWATCH.
+1. **Bot DOWN/Heal:** `diagnose.py` health-kritisch (Bot DEAD / blackscreen / RAM-Spike / stuck) → Betrieb zuerst: `diagnose.py --heal`. Höchste Prio.
+2. **Offener Incident/drift/STAGNATION** (`loop_observer.py`) → EIN Root-Cause-Schritt (TICK_PROMPT Schritt 4).
+3. **VERSION-Hinweis** in der Guard-Zeile → Patch über den Agenten `patch-reader` auswerten, vor normalen Ledger-Bugs. Der Hook `patchwatch_read_guard` sperrt `_botcore/patchwatch/` für Read, Grep und Shell der Hauptsession; Status ohne Fremdtext: `patch_watch.py status`.
+4. **Offene Ledger-Bugs:** `fehler-ledger.json` Einträge mit `fix_status` = `offen` oder `reopened`, nach Severity sortiert.
+5. `selfcheck.py` / game-automation-reviewer Findings → erst als **VERIFIZIERTEN** Ledger-Eintrag erfassen (Beleg-Pfad), dann wie #4 behandeln.
+6. **PATCHWATCH neu** ohne VERSION → spätestens im 3. Tick nach dem ersten Hinweis.
 
 **Fix-Ablauf (1 Problem pro Tick):**
 1. Top-offenes Problem nach Priorität wählen.

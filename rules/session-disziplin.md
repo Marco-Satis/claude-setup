@@ -70,6 +70,20 @@ Regeln eingehalten, Nachtbetrieb beachtet), wird sofort gemacht, nicht angekünd
 melden: „Fertig mit X, aktuell nichts mehr offen, Stand: …“. Vertagt wird nur, was wirklich der Nutzer, ein Budget-Reset oder ein
 anderes Ereignis braucht; dann mit Grund.
 
+## Dranbleiben, bis es funktioniert (der Nutzer 2026-11-15, 22:05–22:08)
+
+„Das gilt für alle meine Projekte, ich will nicht, dass etwas liegenbleibt, weil es einmal nicht funktioniert hat. Wenn es
+nicht funktioniert, muss ich halt schauen wieso, es ausbessern und weitermachen, bis es funktioniert.“ Gilt für alle
+Sessions und Projekte:
+1. **Neues direkt einschalten:** Fertige Funktionen nach grünen Tests sofort aktiv schalten und im Betrieb beobachten.
+   Ein Schalter oder Flag ist der Rückweg, kein Parkplatz.
+2. **Fehlschlag heißt nachbessern, nicht liegen lassen:** Ursache finden, ausbessern, erneut testen, wieder einschalten,
+   beobachten, bis es läuft. „Ging nicht, abgeschaltet“ ist kein Endstand.
+3. **Grenzen bleiben:** Freigaben bei der Nutzer (Löschen, Push, Geld, Konten), Änderungsbudgets, Gamebot-Neustarts höchstens
+   3 je Bot und Nacht mit Konsens, Nachtbetrieb. Nach wiederholtem Fehlschlag wird nicht weiter geraten, sondern
+   recherchiert ([stuck-research](stuck-research.md)). Nur was wirklich der Nutzer braucht, geht als MB-Zeile an „Setup Server“,
+   mit Grund; die übrige Arbeit am Punkt läuft weiter.
+
 ## Empfang bestätigen (der Nutzer 2026-11-13)
 
 Nachrichten über Remote Control (PC ↔ netcup) melden dem Absender keine Zustellung („not confirmed read“). Deshalb:
