@@ -19,6 +19,18 @@ python3 ~/.claude/scripts/agent_msg.py to-codex "<Nachricht>" [--thread claude-p
 - Codex läuft hier mit `sandbox read-only` und `approvalPolicy never`. Es liest und denkt, ändert aber keine Dateien. Änderungen macht Claude selbst.
 - Die Nachricht muss für sich allein verständlich sein: Kontext, konkrete Frage, gewünschtes Ausgabeformat. Bei nicht-trivialen Aufträgen vorher mit `/lyra --target codex` schärfen.
 
+## Antwort an einen Codex-Chat auf dem PC (seit 17.11.2026, K19)
+
+`to-codex` erreicht nur Threads auf netcup. Für einen Windows-Codex-Chat (Thread-UUID aus dessen Nachricht):
+
+```bash
+python3 ~/.claude/scripts/agent_msg.py reply-codex --file <text.txt> --thread-id <uuid> --in-reply-to <ID> [--message-id <ID>]
+```
+
+- Speichert `codex-reply-v1` im gemeinsamen mcp-memory (Tags `agent-msg`, `to-codex`, `to-thread:<uuid>`, `from:claude`,
+  `scope:shared`, `owner:claude`). Der Windows-Leser `C:\Users\<user>\.codex\scripts\claude_inbox.py` holt per Heartbeat ab;
+  von netcup startet kein Codex-Turn. IDs 8–80 Zeichen, Text 1–4000, Text bevorzugt per `--file`.
+
 ## Empfangen von Codex
 
 - Der Hook `agent_inbox.py` (UserPromptSubmit + PostToolUse, gedrosselt auf 60 s) spielt neue Nachrichten als `[AGENT-INBOX]` ein.

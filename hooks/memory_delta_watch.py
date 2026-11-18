@@ -38,7 +38,9 @@ except Exception:
 STATE = Path.home() / ".claude" / "state" / "memory_delta_watch.json"
 BY_TAG_URL = f"{_base()}/api/search/by-tag"
 WATCH_TAGS = ["setup-change"]
-CHECK_INTERVAL_S = 600   # max. 1 Netz-Call pro 10 min pro Session
+CHECK_INTERVAL_S = 120   # der Nutzer 16.11.2026: Sessions sollen zeitnah auf aktuellem Stand sein (vorher 600)
+WISSEN = Path.home() / "wissen" / "bereiche"
+MAX_WZ = 8
 MAX_SHOW = 5
 KEEP = 30                # State-Eintraege (Sessions) cappen
 
@@ -91,6 +93,47 @@ def _fetch_setup_changes() -> list[dict]:
     return [m for m in mems if isinstance(m, dict)]
 
 
+def _wissen_neu(since, sid: str) -> list[tuple]:
+    """Neue/geaenderte wz-Eintraege anderer Sessions seit `since` (nur lesen, Kopfzeilen)."""
+    out = []
+    if not WISSEN.is_dir():
+        # PC ohne ~/wissen: Kopfdaten aus wz_delta.json (netcup schreibt sie, Syncthing bringt sie)
+        try:
+            d = json.loads((Path.home() / ".claude" / "state" / "wz_delta.json").read_text(encoding="utf-8"))
+        except Exception:
+            return out
+        eigen = sid[:8]
+        for e in d.get("eintraege", []):
+            if e.get("mtime", 0) <= since.timestamp() or (eigen and eigen in e.get("updated_by", "")):
+                continue
+            ts = datetime.fromtimestamp(e["mtime"], tz=timezone.utc)
+            out.append((ts, f"{e.get('id', '')}: {e.get('title', '')} [{e.get('type', '')}]"))
+        out.sort(key=lambda t: t[0], reverse=True)
+        return out
+    cutoff = since.timestamp()
+    eigen = sid[:8]
+    for f in WISSEN.glob("*/*.md"):
+        try:
+            if f.stat().st_mtime <= cutoff:
+                continue
+            kopf = f.read_text(encoding="utf-8", errors="replace").split("---", 2)[1]
+        except Exception:
+            continue
+        felder = {}
+        for z in kopf.splitlines():
+            if ":" in z:
+                k, v = z.split(":", 1)
+                felder[k.strip()] = v.strip().strip('"')
+        if felder.get("status") in ("ersetzt", "archiv", "archiviert"):
+            continue
+        if eigen and eigen in felder.get("updated_by", ""):
+            continue
+        ts = _parse_ts(felder.get("updated_ts", "")) or datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+        out.append((ts, f"{f.parent.name}/{f.stem}: {felder.get('title', '')} [{felder.get('type', '')}]"))
+    out.sort(key=lambda t: t[0], reverse=True)
+    return out
+
+
 def main() -> None:
     try:
         data = json.load(sys.stdin)
@@ -120,7 +163,11 @@ def main() -> None:
     try:
         mems = _fetch_setup_changes()
     except Exception:
-        sys.exit(0)  # Service down/Timeout: kein State-Update, naechster Versuch nach Intervall
+        mems = []  # Service down/Timeout: wz-Teil trotzdem pruefen
+    try:
+        wz_neu = _wissen_neu(last_check, sid)
+    except Exception:
+        wz_neu = []
 
     fresh = []
     for m in mems:
@@ -131,18 +178,26 @@ def main() -> None:
     state[sid] = now.isoformat()
     _save_state(state)
 
-    if not fresh:
+    if not fresh and not wz_neu:
         sys.exit(0)
 
-    fresh.sort(key=lambda t: t[0], reverse=True)
-    lines = [
-        f"[SETUP-DELTA] {len(fresh)} neue setup-change-Memory(s) seit letztem Check "
-        f"(andere Sessions haben das Setup geaendert — beruecksichtigen!):"
-    ]
-    lines += [f"  - {c[:200]}" for _, c in fresh[:MAX_SHOW]]
-    if len(fresh) > MAX_SHOW:
-        lines.append(f"  … +{len(fresh) - MAX_SHOW} weitere (memory_search tags=setup-change)")
-    print(json.dumps({"systemMessage": "\n".join(lines)}))
+    lines = []
+    if fresh:
+        fresh.sort(key=lambda t: t[0], reverse=True)
+        lines.append(f"[SETUP-DELTA] {len(fresh)} neue setup-change-Memory(s) seit letztem Check "
+                     f"(andere Sessions haben das Setup geaendert — beruecksichtigen!):")
+        lines += [f"  - {c[:200]}" for _, c in fresh[:MAX_SHOW]]
+        if len(fresh) > MAX_SHOW:
+            lines.append(f"  … +{len(fresh) - MAX_SHOW} weitere (memory_search tags=setup-change)")
+    if wz_neu:
+        lines.append(f"[WISSEN-DELTA] {len(wz_neu)} neue/geaenderte wz-Eintraege anderer Sessions seit letztem Check. "
+                     f"Betrifft einer dein Thema: `wz get <id>` lesen, bevor du weiterarbeitest:")
+        lines += [f"  - {c[:180]}" for _, c in wz_neu[:MAX_WZ]]
+        if len(wz_neu) > MAX_WZ:
+            lines.append(f"  … +{len(wz_neu) - MAX_WZ} weitere")
+    # additionalContext erreicht das Modell; systemMessage sah nur der Nutzer (Fehler bis 16.11.2026)
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
+                                             "additionalContext": "\n".join(lines)}}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

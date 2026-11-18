@@ -36,7 +36,7 @@ patchen, nicht löschen. Bis v1.3.0 hat dieser Skill dort AUTO-FACTS gepatcht (B
    `session-disziplin.md` „Sofort erledigen statt vertagen“, `secret-handling.md`) und die globale `CLAUDE.md`
    halten. Nur echte Widersprüche melden (beide Stellen mit Zeile), keine Stilfragen.
 6. **Kontext-Abschnitt:** nur bei klarem Widerspruch zu des Nutzers Projekten melden.
-7. **Bericht** nach `C:\Users\<user>\OneDrive\Dokumente\Projekte\Skills_&_Co\INSTRUCTIONS_DRIFT\DRIFT_<YYYY-MM-DD>.md`
+7. **Bericht** nach `C:\Users\<user>\projects-sync\Skills_&_Co\INSTRUCTIONS_DRIFT\DRIFT_<YYYY-MM-DD>.md` (PC, seit 17.11.2026; die OneDrive-Kopie ist Altbestand)
    (netcup: `~/projects/Skills_&_Co/INSTRUCTIONS_DRIFT/`): Tabelle `Prüfpunkt | Spiegel | Ist | Urteil (ok/drift/unklar)`,
    bei Drift darunter ein Textvorschlag für die App. Bei 0 Drift eine Zeile „all green“. Hat der Bericht Drift,
    lautet seine letzte Zeile `BRAUCHT: der Nutzer – App-Text anpassen (<Punkt>)`.

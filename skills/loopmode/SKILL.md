@@ -1,6 +1,6 @@
 ---
 name: loopmode
-description: Aktiviert Loop-Mode für GENAU diese Session (autonome Bot-Operator-Tick-Schleife mit Auto-Fix). Setzt LOOP_RUN.flag, legt einen recurring CronCreate-Antrieb (TICK, ~15min, off-round/pro-Bot gestaffelt) an — CronCreate weil es bei idle REPL feuert (ScheduleWakeup weckt ruhende Session nicht zuverlässig), Context-Nag-Hook für diese session_id aus. Mission — Bot kritisch beobachten, Spielfehler root-causen + fixen, Spielverständnis erweitern. Survivability-first — LOOP_TICK.md hart klein (Guard), Detail ins JOURNAL, sonst stirbt die Session am Kontext. 1 gegateter, verifizierter Fix/Tick (Reviewer-Gate + Delta-Verify + Attempt-Cap). Trigger /loopmode <spiel> mit spiel ∈ cellsurvivor|survivorio|idleslayer. Stoppen mit /loopstop.
+description: Aktiviert Loop-Mode für GENAU diese Session (autonome Bot-Operator-Tick-Schleife mit Auto-Fix). Setzt LOOP_RUN.flag, legt einen recurring CronCreate-Antrieb (TICK, ~15min, off-round/pro-Bot gestaffelt) an — CronCreate weil es bei idle REPL feuert (ScheduleWakeup weckt ruhende Session nicht zuverlässig), Context-Nag-Hook für diese session_id aus. Mission — Bot kritisch beobachten, Spielfehler root-causen + fixen, Spielverständnis erweitern. Survivability-first — LOOP_TICK.md hart klein (Guard), Detail ins JOURNAL, sonst stirbt die Session am Kontext. Durcharbeiten statt Tick-Takt, solange Arbeit offen ist, Fix nach Fix gegatet (Reviewer-Gate + Delta-Verify + Attempt-Cap) umsetzen, testen, live schalten. Trigger /loopmode <spiel> mit spiel ∈ cellsurvivor|survivorio|idleslayer. Stoppen mit /loopstop.
 ---
 
 # /loopmode — Loop-Mode aktivieren (session-scoped, mit Auto-Fix)
@@ -9,12 +9,18 @@ Macht GENAU diese Session zur autonomen Operator-Tick-Schleife für ein Spiel. A
 
 **Mission der Session** (kein passiver Health-Pinger): den Bot **kritisch beobachten** → **Spielfehler erkennen** (falsche Nav, false-done/false-win, stuck, dumme Tode, schwache Picks) → **Root-Cause** im Code/Detektor finden (nie Band-Aid) → **fixen** (Auto-Fix-Policy unten) → **Spielverständnis erweitern**, wenn keine Bugs offen sind.
 
+**Durcharbeiten (der Nutzer 2026-11-16, 20:40, ersetzt „1 Fix pro Tick“):** „Gamebot-Sessions sollen nicht immer in ihren Loop-Ticks nur arbeiten, sondern solange sie was zu tun haben, sollen sie auch arbeiten und die Bots verbessern … Wenn ein Fehler kommt, okay, dann mache ich halt kurz ausstellen und dann wieder weitermachen, weiter testen.“ Daraus folgt:
+1. Der Cron-Tick ist nur der **Wecker für Leerlauf**, nicht das Arbeitstempo. Ist nach einem Tick noch etwas offen (der Nutzer-Auftrag, OPEN, DEFERRED, neuer Fehler im Log), arbeitet die Session **im selben Zug weiter**: nächster Punkt, gegateter Fix, Test, nächster Punkt. Sie wartet nicht auf den nächsten Tick.
+2. **der Nutzer-Aufträge zuerst**, dann eigene Fehler aus dem Log, dann Verbesserungen. Ein Auftrag von der Nutzer gilt erst als erledigt, wenn er live läuft und belegt ist.
+3. **Fehler im Betrieb:** Bot kurz stoppen (Standardweg), fixen, testen, wieder starten, beobachten. Fertige Fixes bündeln (Richtwert ~4 Neustarts je Bot und Tag/Nacht, Konsens bleibt, siehe gamebot-reuse-first).
+4. **Kontext:** ab ~70 % HANDOVER schreiben und der Nutzer **einmal** in der letzten Zeile um `/compact` bitten; danach weiterarbeiten statt alles zu parken. DEFERRED ist für das, was wirklich bis nach dem Compact warten muss, nicht der Normalfall.
+
 **Survivability ist Regel 1:** die Sessions starben früh, weil `LOOP_TICK.md` zur Kontext-Halde wurde. Der Per-Tick-Read MUSS klein bleiben (Schema unten, OVERWRITE, Guard erzwingt es); alles Detail → `JOURNAL_<dir>.md`. **Pflicht-Read pro Tick sind ZWEI kleine Dateien: `LOOP_TICK.md` UND `WIRING.md`** — Letztere ist der Ledger der absichtlich gebauten/verdrahteten Teile (≤40 Zeilen). Sie überlebt den Auto-Compact, der dir sonst das WARUM zu fertigem Code nimmt (belegt: `_bots_control.py` 2026-06-16 als „unerklärt" entfernt → Cold-Boot startete Bots nicht). `WIRING.md` ist per Definition klein → die Regel „danach NIE wieder die großen Docs pro Tick" bleibt unberührt gültig. Vollzug + harte Regeln stehen in `Games/TICK_PROMPT.md`.
 
 ## Argument
 `<spiel>` ∈ `cellsurvivor` | `survivorio` | `idleslayer`. Fehlt es → der Nutzer fragen, welches Spiel diese Session betreibt.
 Spiel-Dir: cellsurvivor→`CellSurvivor` · survivorio→`Survivor_io` · idleslayer→`IdleSlayer`.
-Basis: `C:\Users\<user>\OneDrive\Dokumente\Games\<dir>` (Windows-lokal — Bots/Emulator laufen auf dem PC). **Nicht verwechseln mit dem Syncthing-Folder `games`** (PC-Share → netcup `~/Games`): der zeigt auf einen *anderen* Ordner und enthält global nur 2 Dateien, keinen Bot-Code. Eine netcup-Session kann Gamebot-Arbeit deshalb **nicht** verifizieren — dort immer in der PC-Session nachfragen statt aus einem Nicht-Treffer zu schließen.
+Basis: `C:\Users\<user>\Games\<dir>` (Windows-lokal — Bots/Emulator laufen auf dem PC). **Nicht verwechseln mit dem Syncthing-Folder `games`** (PC-Share → netcup `~/Games`): der zeigt auf einen *anderen* Ordner und enthält global nur 2 Dateien, keinen Bot-Code. Eine netcup-Session kann Gamebot-Arbeit deshalb **nicht** verifizieren — dort immer in der PC-Session nachfragen statt aus einem Nicht-Treffer zu schließen.
 
 ## Schritte
 1. **Master-Schalter setzen:** schreibe `Games/<dir>/LOOP_RUN.flag` mit aktuellem Zeitstempel. Solange diese Datei existiert, läuft der Loop; `/loopstop` löscht sie.
@@ -85,7 +91,7 @@ Bot DOWN/Heal → offener Incident/drift/STAGNATION → VERSION-Hinweis (Patch �
 5. `selfcheck.py` / game-automation-reviewer Findings → erst als **VERIFIZIERTEN** Ledger-Eintrag erfassen (Beleg-Pfad), dann wie #4 behandeln.
 6. **PATCHWATCH neu** ohne VERSION → spätestens im 3. Tick nach dem ersten Hinweis.
 
-**Fix-Ablauf (1 Problem pro Tick):**
+**Fix-Ablauf (je Problem; danach direkt das nächste, siehe „Durcharbeiten“):**
 1. Top-offenes Problem nach Priorität wählen.
 2. **Backup vor Edit:** `cp -a <file> <file>.bak.autofix.$(date +%s)` (revertierbar).
 3. EINE minimale **offline** Code-Änderung (greift beim nächsten Loop-Reload). Nie mid-combat-Live-State editieren; Screencap nur in Lobby.

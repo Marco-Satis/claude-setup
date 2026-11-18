@@ -1,8 +1,8 @@
 ---
 name: ui-critique
-version: 1.3.0
-last-reviewed: 2026-06-03
-description: UX/Layout-Review für HTML/CSS-Komponenten — visuelle Hierarchie, Konsistenz, Spacing, Typografie-Skala, Interaktions-States, Empty/Loading/Error-States. Optimiert für FastAPI-Templates + style.css-Token-Systeme. Nur eigener Code und eigene Templates; eine fremde öffentliche Website per URL analysieren → site-anatomy.
+version: 1.4.0
+last-reviewed: 2026-11-18
+description: UX/Layout-Review für HTML/CSS-Komponenten — visuelle Hierarchie, Konsistenz, Spacing, Typografie-Skala, Interaktions-States, Empty/Loading/Error-States. Optimiert für FastAPI-Templates + style.css-Token-Systeme. Nur eigener Code und eigene Templates; eine fremde öffentliche Website per URL analysieren → site-anatomy; die gerenderte Oberfläche vor einer Übergabe prüft das Tor (visual_sheet --pruefen, rules/design-qualitaet.md).
 when_to_use: ui review, design critique, dashboard kritik, html review, css review, ux feedback, visual hierarchy check, design konsistenz, spacing check, hover states review
 argument-hint: Optional File/Komponente ("web/templates/dashboard.html" | "navigation" | "stats-card") — Default scant gesamten templates-Ordner
 allowed-tools: Read Grep Glob Bash Write Edit
@@ -12,6 +12,12 @@ user-invocable: true
 # ui-critique — UX/Layout-Review
 
 Zweck: HTML/CSS auf strukturelle UX-Probleme prüfen. Komplementär zu `/a11y-check` (WCAG) — hier geht's um Layout-Logik, visuelle Hierarchie, Konsistenz, Interaktions-Klarheit.
+
+**Abgrenzung zum Tor (G247):** ui-critique allein liest nur Code. Ob eine Oberfläche übergeben werden darf,
+entscheidet das Tor aus `~/.claude/rules/design-qualitaet.md`: `node ~/.claude/scripts/visual_sheet.mjs <seite>
+--pruefen --outdir <scratchpad>/pruefung_<name>`, PNGs mit Read ansehen, Anti-KI-Checkliste
+(`~/.claude/templates/anti_ki_checkliste.md`), Stempel per `~/.claude/hooks/design_tor.py`. Liegt ein solcher Lauf
+vor, nutzt dieser Skill dessen PNGs und `pruefung.md` als Beleg (siehe Constraints).
 
 ## Vor dem Start
 
@@ -176,12 +182,17 @@ der Nutzer's Dashboard nutzt HTMX. Spezifische Checks:
 
 ### AI-Slop-Risk
 Erkenne generisches „AI-Default-Design". Opus-4.7-Hausstil-Default: warmes Creme `#F4F1EA`, Serif-Display (Georgia/Fraunces/Playfair), Terracotta/Amber-Akzent — passt für Editorial/Hospitality, FALSCH für Dashboards/Dev-Tools/Fintech/Healthcare. Prüfe:
-- Default-Creme/Serif ohne Domänen-Begründung → LOW „AI-Slop-Verdacht: Stil passt nicht zur Domäne (Bot-Dashboard ≠ Editorial)"
-- Generische Hero/Card/Gradient-Muster ohne eigene Design-Sprache → INFO
+- Default-Creme/Serif ohne Domänen-Begründung → MEDIUM (Anti-KI A1/A2 hart) „AI-Slop-Verdacht: Stil passt nicht zur Domäne (Bot-Dashboard ≠ Editorial)"
+- Generische Hero/Card/Gradient-Muster ohne eigene Design-Sprache → MEDIUM (A4/A5/A6 hart)
 - Fix-Richtung: konkrete Alternativ-Spec (Hex/Typo/Radius) ODER „N Optionen vorschlagen" (Lyra Frontend-Variety-Steering)
 
 ### AI-Slop-Tells-Checkliste (adopt impeccable v3.5, Apache-2.0 / pbakaus — Wissen, nicht der Skill)
-Konkrete, deterministisch prüfbare 2026-Tells. Pro Treffer LOW/INFO + benannte Stelle + Fix. **≥3 Tells = MEDIUM** „generisches AI-Default-Design, keine eigene Sprache":
+Konkrete, deterministisch prüfbare 2026-Tells, je Treffer mit benannter Stelle + Fix. Gewichtung wie die
+Anti-KI-Checkliste (`~/.claude/templates/anti_ki_checkliste.md`, „ein harter oder drei weiche Befunde"):
+**ein hartes Merkmal = MEDIUM** (Creme-/Sand-Grund, Reflex-Schrift ohne Brief, Template-Grammatik, Hero-Rezept,
+Kartenbaukasten, Verlaufstext/Glas/Seitenstreifen, Platzhalter, Markentest fällt durch, Bewegungs-Reflex,
+Qualitätsboden fehlt — A1–A7, A11, A12, A14; Dauerbewegung über 5 s ohne Pause — A13 hart), weiche Tells einzeln
+LOW/INFO, **≥3 weiche Tells = MEDIUM** „generisches AI-Default-Design, keine eigene Sprache":
 - **Cream/Sand-Body-BG** (OKLCH L 0.84–0.97, C<0.06, hue 40–100; Token-Namen `--paper/--cream/--sand/--linen/--parchment` = Tell an sich) → echtes Off-White bei chroma 0 ODER saturierte Brand-Farbe; „Wärme" über Akzent+Typo, nicht Body-BG.
 - **Gradient-Text** (`background-clip:text` + Gradient) → eine Solid-Farbe, Emphasis via Weight/Size.
 - **Glassmorphism als Default** (deko-Blur/Glas-Cards) → selten + gezielt, oder weg.
@@ -229,7 +240,9 @@ Kategorien: `Hierarchie` / `Konsistenz` / `Interaktion` / `States` / `Responsive
 - **Read-only.** Keine Auto-Fixes
 - **Komplementär zu `/a11y-check`** — WCAG-Themen dorthin verschieben, hier nur UX-Logik
 - **Severity-Skala** kompatibel mit `/review`
-- **Keine subjektiven Geschmacks-Urteile** („sieht hässlich aus") — nur konkrete Probleme mit Begründung
+- **Keine subjektiven Geschmacks-Urteile** („sieht hässlich aus") — nur konkrete Probleme mit Begründung.
+  Urteile am **gerenderten Bild** sind erlaubt und erwünscht (PNG aus `visual_sheet`, mit Read angesehen), wenn
+  der Befund Bildpfad und Stelle nennt und auf einen Checklistenpunkt (A1–A15, M1–M12) zeigt
 - **der Nutzer-Convention:** Beispiele aus Discord-Bots-Dashboard (style.css v5.0 mit Discord-Blurple Tokens)
 
 ## Komplementäre Skills (wann anders triggern)
@@ -241,8 +254,12 @@ Kategorien: `Hierarchie` / `Konsistenz` / `Interaktion` / `States` / `Responsive
 | UX-Texte nachschärfen (Microcopy, Error-States) | `design:ux-copy` |
 | Design-Token-Drift im ganzen CSS-System | `design:design-system` |
 | WCAG-Audit (Color-Contrast, Keyboard, ARIA) | `/a11y-check` |
+| Gerenderte Oberfläche oder Animation vor der Übergabe prüfen | `visual_sheet --pruefen` + Checklisten + Zweitblick (Tor); Tiefenstufe `impeccable` critique |
+| Fremde Website als Vorbild zerlegen | `site-anatomy` |
 
-Workflow-Übersicht: `~/.claude/docs/design-workflow.md`
+Workflow-Übersicht: `~/.claude/rules/design-qualitaet.md` (Tor, Stufen K/L/V) und die Design-Zeilen in
+`~/.claude/rules/skill-dispatch.md` (Bau-Kette site-anatomy → design-shotgun → design-html → Tor). Die frühere
+`~/.claude/docs/design-workflow.md` gibt es auf netcup nicht (`docs/` synct nicht).
 
 ## Beispiel-Triggers
 
@@ -252,6 +269,11 @@ Workflow-Übersicht: `~/.claude/docs/design-workflow.md`
 
 ## Changelog
 
+- **v1.4.0 (2026-11-18):** G247 B11 — Abgrenzung zum Tor (visual_sheet --pruefen, Stempel); Gewichtung wie
+  Anti-KI-Checkliste (ein hartes Merkmal = MEDIUM); Urteile am gerenderten Bild mit Bildpfad erlaubt; toter Verweis
+  `~/.claude/docs/design-workflow.md` ersetzt durch `rules/design-qualitaet.md` + `rules/skill-dispatch.md`.
+  Richtigstellung zu v1.2.0: impeccable ist inzwischen als Plugin installiert und aktiv (netcup und PC, siehe
+  `rules/skill-dispatch.md`); sein Detektor-Hook prüft jede HTML/CSS-Änderung, `critique` ist die Tiefenstufe.
 - **v1.3.0 (2026-06-04):** **+4 Anti-Slop-Tells** aus huashu-design (alchaincyf, 16k★ MIT — web+GitHub-API-verifiziert, Wissen adoptiert NICHT Skill: huashu mandatet Playwright/Node-Render-Pipeline): Emoji-als-Content/Icon-Platzhalter, Generic-Illustration/SVG-Silhouette-statt-echtem-Asset, Default-UI-Sans (Inter/Geist) als Display-Face, fehlende Positiv-Defaults (`text-wrap:balance/pretty`, CSS-Grid, oklch). Jetzt 16 Tells. **Quelle:** TikTok-Pipeline claude-code-tips 2026-06-04 → GitHub-API-verifiziert (huashu real, ui-ux-pro-max=404-fake aussortiert) → nur nicht-überlappendes Wissen übernommen.
 - **v1.2.0 (2026-06-03):** **AI-Slop-Tells-Checkliste** in Phase 4.5 (adopt impeccable v3.5 Apache-2.0/pbakaus — nur das Design-Wissen, NICHT der Skill: impeccable mandatet unaudited Node-Scripts + Browser-Automation, daher Pattern-Adoption statt Install). 12 konkrete 2026-Tells (Cream-BG/OKLCH, Gradient-Text, Glassmorphism, Hero-Metric, Card-Grids, Eyebrow, Side-Stripe, aphoristische Copy, Font-Paarung, z-index, Entrance-Reflex, Second-Order). ≥3 Tells = MEDIUM. **Quelle:** TikTok-Pipeline-Finding (claude-code-tips, 2026-06-03) → web-verifiziert → Wissen adoptiert.
 - **v1.1.0 (2026-05-29):** gstack-plan-design-review-Best-of adoptiert (score-frei) — Phase 4.5: AI-Slop-Risk (Opus-4.7-Default-Stil-Erkennung, Lyra-Frontend-Variety), Unresolved-Decisions-Liste, „Ideal-Zustand statt Score" (targetable Spec ohne 0-10, da Score = Whitewashing-Anti-Pattern). Output-Dir → `~/.claude/reports/ui-critique/`.

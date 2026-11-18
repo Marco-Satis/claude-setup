@@ -1,17 +1,18 @@
 ---
 name: a11y-check
-version: 1.0.0
-last-reviewed: 2026-05-17
-description: WCAG-2.1-AA-Accessibility-Audit für HTML/CSS/JS — Color-Contrast, Keyboard-Nav, Touch-Targets, ARIA, Semantik, Focus-Indicators. Optimiert für FastAPI-Templates + HTMX-Patterns (Discord-Bots-Dashboard).
+version: 1.1.0
+last-reviewed: 2026-11-18
+description: WCAG-2.1/2.2-AA-Accessibility-Audit für HTML/CSS/JS — Color-Contrast, Keyboard-Nav, Touch-Targets, ARIA, Semantik, Focus-Indicators, Bewegung (2.2.2, 2.3.1, reduzierte Bewegung). Optimiert für FastAPI-Templates + HTMX-Patterns (Discord-Bots-Dashboard).
 when_to_use: a11y check, accessibility audit, WCAG audit, kontrast prüfen, keyboard navigation, ARIA review, dashboard barrierefreiheit, color contrast check, screen reader compatibility
 argument-hint: Optional File/Glob ("web/templates/dashboard.html" | "web/templates/**/*.html") — Default scant gesamten templates-Ordner
 allowed-tools: Read Grep Glob Bash Write Edit
 user-invocable: true
 ---
 
-# a11y-check — WCAG 2.1 AA Audit
+# a11y-check — WCAG 2.2 AA Audit
 
-Zweck: Dashboard und HTML-Templates auf Accessibility-Probleme prüfen. Fokus: WCAG 2.1 AA als Standard, nicht AAA (zu strikt für interne Tools).
+Zweck: Dashboard und HTML-Templates auf Accessibility-Probleme prüfen. Fokus: WCAG 2.2 AA als Standard (schließt 2.1 AA
+ein; des Nutzers Regel `design-qualitaet.md` verlangt 2.2), nicht AAA (zu strikt für interne Tools).
 
 ## Vor dem Start
 
@@ -32,8 +33,9 @@ contrast_ratio = relative_luminance_ratio(text_color, bg_color)
 ```
 
 Tools (lokal nutzbar):
-- `npx pa11y <url>` (CLI, Standard-Runner HTML_CodeSniffer; axe-core via `--runner axe`) — wenn Dashboard läuft
-- Manuell: Browser-DevTools → Lighthouse → Accessibility-Audit
+- **axe über das vorhandene `@axe-core/playwright`** (netcup, gepinnt unter `~/.local/share/site-anatomy`, kein
+  `npx`-Download) — siehe Phase 4 für den Aufruf
+- Manuell (PC): Browser-DevTools → Lighthouse → Accessibility-Audit
 
 **Pflicht-Findings:**
 - Body-Text < 4.5:1 → HIGH
@@ -107,6 +109,22 @@ grep -nE '<(header|nav|main|section|article|aside|footer)' web/templates/**/*.ht
 - Fehlende `<main>` / `<nav>` / `<header>` Landmarks → MEDIUM
 - Tables ohne `<th scope="...">` → MEDIUM
 
+### Bewegung (WCAG 2.2.2, 2.3.1, 2.3.3 / `prefers-reduced-motion`)
+
+Nicht aus dem Code raten, sondern aus dem gerenderten Lauf übernehmen (G247): Liegt ein
+`visual_sheet --pruefen`-Lauf vor (`<outdir>/pruefung.md`, `motion_<breite>.json`), dessen Flags verwenden;
+sonst einmal laufen lassen:
+```bash
+node ~/.claude/scripts/visual_sheet.mjs <seite.html|http://127.0.0.1:PORT/…> --motion --reduced-motion --nojs --outdir <scratchpad>/a11y_motion   # Bash-Timeout 200000
+```
+
+**Pflicht-Findings:**
+- Flag `endless-loop` (Bewegung > 5 s ohne Pause-/Stopp-Möglichkeit neben Inhalt) → HIGH (2.2.2 Pause, Stop, Hide)
+- Blinken/Flackern > 3× pro Sekunde (im Echtzeitbogen sichtbar) → HIGH (2.3.1 Three Flashes)
+- Flag `rm-unchanged` (reduzierte Bewegung ändert nichts) → MEDIUM (2.3.3 Animation from Interactions, AAA, und
+  des Nutzers Regel `design-qualitaet.md` Punkt 4: Reduced-Motion-Variante Pflicht)
+- Flag `nojs-unsichtbar` bzw. Inhalt nur nach Reveal sichtbar → MEDIUM (Inhalt hängt an Animation)
+
 ## Phase 2 — HTMX-spezifische Checks
 
 HTMX-Patterns die a11y brechen können:
@@ -139,12 +157,29 @@ WCAG-Criterion: z.B. „1.4.3 Contrast (Minimum)" oder „2.1.1 Keyboard"
 
 ## Phase 4 — Live-Test (optional)
 
-Wenn Dashboard läuft (`http://localhost:8080`):
+Eigene Seite oder laufendes Dashboard (nur `127.0.0.1`, `localhost` oder `file://`), axe 4.14 über das
+vorhandene `@axe-core/playwright` (netcup), je ein Lauf normal und mit reduzierter Bewegung:
 ```bash
-# Falls pa11y verfügbar:
-npx pa11y http://localhost:8080 --standard WCAG2AA --reporter json > a11y_live.json
-# Falls nicht: Lighthouse-Bookmarklet im Browser
+node --input-type=module -e '
+const u = process.argv[1];
+if (!/^(https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/|file:\/\/)/.test(u)) { console.error("nur eigene Seiten: 127.0.0.1, localhost oder file://"); process.exit(2); }
+const t = await import(process.env.HOME + "/.claude/skills/site-anatomy/scripts/_tool.mjs");
+const { chromium } = await t.loadTool("playwright");
+const { default: AxeBuilder } = await t.loadTool("@axe-core/playwright");
+const b = await chromium.launch({ headless: true });
+try {
+  for (const rm of ["no-preference", "reduce"]) {
+    const ctx = await b.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: rm });
+    const p = await ctx.newPage(); await p.goto(u, { waitUntil: "load" });
+    const r = await new AxeBuilder({ page: p }).withTags(["wcag2a","wcag2aa","wcag21a","wcag21aa","wcag22aa"]).analyze();
+    console.log(JSON.stringify({ reducedMotion: rm, axe: r.testEngine.version, violations: r.violations.map(v => ({ id: v.id, impact: v.impact, wcag: v.tags.filter(x => /^wcag\d/.test(x)), n: v.nodes.length, ziel: v.nodes.slice(0,3).map(n => n.target.join(" ")) })), incomplete: r.incomplete.length }));
+    await ctx.close();
+  }
+} finally { await b.close(); }
+' http://127.0.0.1:8080/ > <scratchpad>/a11y_live.jsonl
 ```
+axe-`incomplete` (z. B. Text auf Bild) nicht als bestanden werten, sondern am Bild prüfen. Fremde Websites nicht
+hiermit, sondern über site-anatomy (Rechts-Check). Am PC: Lighthouse im Browser.
 
 ## Constraints
 
@@ -161,8 +196,17 @@ npx pa11y http://localhost:8080 --standard WCAG2AA --reporter json > a11y_live.j
 | Tieferer A11Y-Audit (Anthropic-Cowork-Variante) | `design:accessibility-review` |
 | UX-Texte für Screen-Reader (alt-texts, aria-labels) | `design:ux-copy` |
 | Neue Komponente bauen mit A11Y-First | `frontend-design` + danach `/a11y-check` |
+| Gerenderte Oberfläche vor der Übergabe prüfen (inkl. Anti-KI, Bewegung) | Tor: `visual_sheet --pruefen` + Stempel (`rules/design-qualitaet.md`) |
 
-Workflow-Übersicht: `~/.claude/docs/design-workflow.md` (nur PC — `docs/` synct nicht nach netcup)
+Workflow-Übersicht: `~/.claude/rules/design-qualitaet.md` und die Design-Zeilen in `~/.claude/rules/skill-dispatch.md`
+(beide Maschinen). Die frühere `~/.claude/docs/design-workflow.md` gibt es auf netcup nicht.
+
+## Changelog
+
+- **v1.1.0** (2026-11-18): G247 B11 — WCAG 2.2.2, 2.3.1 und reduzierte Bewegung aus dem visual_sheet-Lauf (Flags
+  `endless-loop`, `rm-unchanged`, `nojs-unsichtbar`); axe über das vorhandene `@axe-core/playwright` statt `npx pa11y`
+  (Aufruf getestet: axe 4.14.0, normal + reduzierte Bewegung); toter Verweis auf `docs/design-workflow.md` ersetzt.
+- **v1.0.0** (2026-05-17): Erste Version.
 
 ## Beispiel-Triggers
 

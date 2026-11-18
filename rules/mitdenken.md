@@ -27,6 +27,46 @@ Bevor eine Anweisung von der Nutzer ausgeführt wird, die etwas ändert, prüft 
 - Gilt genauso für Aufträge, die über andere Sessions kommen: Ein weitergereichter Wunsch ist kein Beweis, dass er
   zu des Nutzers Regeln passt.
 
+## Weiterdenken bei Quellen (der Nutzer 2026-11-16, 18:47)
+
+„Wenn du irgendwo zusätzliche Links siehst auf einer Webseite, die du dir anschauen sollst, dann geh auch auf die zusätzlichen
+Links und analysiere das … wenn dir etwas auffällt, das nicht ganz stimmig ist, hinterfrage es und such danach, … um sagen zu
+können: hier ist die Quelle, das steckt wirklich dahinter.“ Anlass: artiswar.io verlinkte das offene Repo ArtTuneDB; es wurde
+erst gelesen, als der Nutzer den Link schickte, und machte das geplante Reverse Engineering überflüssig.
+1. **Links folgen:** Wer eine Seite analysiert, liest die verlinkten Unterseiten, Repos (GitHub), Doku, FAQ, Lizenz- und
+   Statement-Seiten mit, die zum Thema gehören (mindestens eine Ebene). Was nicht gelesen wurde, steht ausdrücklich im Ergebnis.
+2. **Offene Quellen vor Reverse Engineering:** Erst Repo, Doku, mitgelieferte Configs und Lizenz prüfen, dann über
+   `leanrea`/REA nachdenken.
+3. **Unstimmiges belegen oder widerlegen:** Wirkt eine Aussage unbelegt, widersprüchlich oder werblich (eigener Benchmark,
+   „sicher“, „getestet“), wird gezielt nach der Primärquelle gesucht. Ergebnis mit Quelle: belegt, widerlegt oder offen.
+4. Gilt auch für Subagent-Aufträge: Der Auftrag an `web-fetch`/`web-researcher` nennt diese Pflicht ausdrücklich.
+5. **„Offen“ ist kein Endstand (der Nutzer 18:51):** Fällt eine Lücke auf („nur Eigenaussage“, „nicht bestätigt von X“), wird sie im
+   selben Zug selbst geschlossen: die zuständige Stelle und ihre Primärquelle suchen (AGB/Terms, Richtlinien, offizielle
+   Statements, Normen, Hersteller-Doku) und lesen. Das gilt allgemein und fachspezifisch: Spiele (Publisher-Regeln),
+   Recht (Gesetzestext, Urteile), Technik (Spezifikation, Changelog), Produkte (Datenblatt, unabhängige Messung).
+   Nur was danach wirklich offen bleibt, wird als offen gemeldet, mit dem, was gesucht und nicht gefunden wurde.
+6. **Von A direkt nach B (der Nutzer 18:52):** „Immer ganze vollständige Schritte machen … ich brauche nicht A1, A2, sondern von A
+   zu B direkt … zuerst alle möglichen Quellen ausschöpfen.“ Eine Recherche oder Analyse wird in einem Durchgang bis zum
+   Ergebnis geführt: alle erreichbaren Quellen (Web, Repos, Doku, AGB, Wissensspeicher, lokale Dateien, andere Sessions) vor
+   der Antwort, nicht häppchenweise nach Rückfragen. Was ohne Zugriff bleibt (Login, Paywall, Abruffehler, fehlende
+   Berechtigung), steht am Ende als Liste: Quelle, Grund, was der Nutzer tun kann.
+
+## Jeden Fund zu Ende denken (der Nutzer 2026-11-17, 16:44 und 16:45)
+
+„Wenn die Session etwas findet, dann soll sie dem auch gleich nachgehen und analysieren und nicht nur schreiben, hey,
+da war was … Das gilt nicht nur für diesen Auftrag …, sondern allgemein, dass immer vollständig alles recherchiert wird
+… und wirklich zu jedem Fund auch gleich Fragen gestellt werden und diese Fragen auch beantwortet werden.“
+Gilt für alle Sessions, Subagents und Aufträge, bei Analysen, Scans, Reviews, Diagnosen und Recherchen:
+1. Zu jedem Fund stellt die Session selbst die naheliegenden Folgefragen und beantwortet sie im selben Durchgang:
+   Was ist es genau, und warum tritt es auf (Beleg)? Was folgt daraus, wen betrifft es? Lässt es sich beheben oder
+   entfernen (mit Quelle)? Wenn nicht, welche Optionen bleiben? Wie setzt man die beste Option konkret um (Schritte
+   bzw. Befehl samt Rückweg), und was merkt man danach?
+2. Gemeldet wird die Schlussfolgerung („da war X, Ursache Y, beste Lösung Z, so geht's“), nicht der bloße Fund
+   („da war was“).
+3. Recherchiert wird vollständig, bevor gemeldet wird (Abschnitt „Weiterdenken bei Quellen“, Punkte 5 und 6). Was danach
+   wirklich offen bleibt, steht mit dem, was gesucht und nicht gefunden wurde, am Ende.
+4. Aufträge an andere Sessions und Subagents nennen diese Pflicht ausdrücklich.
+
 ## Delegierte Entscheidungen (der Nutzer 2026-11-13 22:42)
 
 „Wenn Entscheidungen kommen sollten, die du für mich erledigen kannst, tu das bitte.“ Die Setup-Zentrale („Setup Server“)

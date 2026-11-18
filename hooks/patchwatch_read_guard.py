@@ -40,12 +40,29 @@ import json
 
 ALLOWED_AGENT = "patch-reader"
 SHELL_TOOLS = ("Bash", "PowerShell", "Monitor", "mcp__terminal__run_in_terminal")
-# Realer Ort am PC (Games synct nicht nach netcup); weitere Orte leitet _pw_dirs aus "/games/" ab.
+# Reale Orte am PC (Games synct nicht nach netcup); weitere Orte leitet _pw_dirs aus "/games/" ab.
+# Seit dem Umzug 16.11.: aktueller Ort aus scripts/games_dir.py, dazu alter OneDrive-Ort und der Altordner
+# Games_ALT_2026-11-16 (enthaelt dieselben Fremdtexte, "/games/" passt dort nicht).
 PW_REAL = "c:/users/marco/onedrive/dokumente/games/_botcore/patchwatch"
+PW_REALS = {PW_REAL, "c:/users/marco/onedrive/dokumente/games_alt_2026-11-16/_botcore/patchwatch"}
+try:
+    sys.path.insert(0, os.path.join(os.path.expanduser("~"), ".claude", "scripts"))
+    from games_dir import games_dir as _gd
+    PW_REALS.add(os.path.normpath(str(_gd())).replace("\\", "/").lower() + "/_botcore/patchwatch")
+except Exception:
+    pass
 
 # auch Temp-Dateien mit fuehrendem Punkt (.neu_offen.md.<pid>.tmp, Konvention aus loop_tick_guard), Befund R3
 READ_TARGET = re.compile(r"/_botcore/patchwatch/[^/]+/\.?neu_[^/]*$")
+# p-5551e1f86a (16.11.2026): patch-reader darf zusaetzlich genau die eigene Quellenliste lesen (Konfiguration, kein
+# Fremdtext), um Quell-ID, Vertrauen und URL-Host der Kopfzeilen selbst abzugleichen.
+READER_CONFIG = re.compile(r"/_botcore/patch_quellen\.json$")
 IN_PW = re.compile(r"/_botcore/patchwatch(/|$)")
+# Seit 17.11.2026 (Bot_Core adb0833): Laufzeitordner des Patch-Waechters unter Games/_runtime/patchwatch. Er kann
+# Fremdtext tragen (neu_patch_watch.err, Staging-Sicherungen); keine Session muss dort lesen (Stand ueber
+# `python _botcore/patch_watch.py status`). Deshalb ganzer Ordner gesperrt, auch fuer patch-reader.
+IN_RT = re.compile(r"/_runtime/patchwatch(/|$)")
+SH_RT_PATH = re.compile(r"_runtime/+patchwatch(?![a-z0-9_])")
 
 SH_CORE_PATH = re.compile(r"_botcore/+patchwatch(?![a-z0-9_])")
 SH_REL_PATH = re.compile(r"(?<![a-z0-9_])patchwatch/")
@@ -98,7 +115,7 @@ def _guard_off(*paths):
 
 
 def _pw_dirs(target):
-    dirs = {PW_REAL}
+    dirs = set(PW_REALS)
     root = _games_root(target)
     if root:
         dirs.add(root + "/_botcore/patchwatch")
@@ -147,9 +164,11 @@ def _shell_hit(cmd, cwd):
     if not c.strip() or LIST_ONLY.match(c):
         return False
     cwd_n = _norm(cwd)
-    if IN_PW.search(cwd_n):
+    if IN_PW.search(cwd_n) or IN_RT.search(cwd_n):
         return True
-    if SH_CORE_PATH.search(c):
+    if SH_CORE_PATH.search(c) or SH_RT_PATH.search(c):
+        return True
+    if cwd_n.endswith("/_runtime") and (SH_REL_PATH.search(c) or SH_BARE.search(c)):
         return True
     # Relative Formen (patchwatch/…, nackter Ordnername) nur im _botcore-Kontext: cwd = _botcore oder cd dorthin.
     # Sonst trafen Pfade wie <scratchpad>/stage/patchwatch/… (Fehlblock, Bot_Core 15.11. 17:03).
@@ -160,9 +179,17 @@ def _shell_hit(cmd, cwd):
 def decide(tool_name, tool_input, cwd, agent_type):
     """-> (block: bool, grund: str). Reine Funktion für den Selbsttest."""
     ti = tool_input if isinstance(tool_input, dict) else {}
+    if tool_name in ("Read", "Grep"):
+        rt = _norm(ti.get("file_path") if tool_name == "Read" else (ti.get("path") or cwd), cwd)
+        if IN_RT.search(rt):
+            if _guard_off(rt, cwd):
+                return False, "notausgang"
+            return True, "runtime-patchwatch"
     if (agent_type or "") == ALLOWED_AGENT:
         if tool_name == "Read" and READ_TARGET.search(_norm(ti.get("file_path"), cwd)):
             return False, "lese-agent"
+        if tool_name == "Read" and READER_CONFIG.search(_norm(ti.get("file_path"), cwd)):
+            return False, "lese-agent:quellenliste"
         if tool_name in ("Read", "Grep") + SHELL_TOOLS:
             return True, "reader:ausserhalb"
         return False, "tool irrelevant"
@@ -220,6 +247,16 @@ def _selftest():
         ("Read", {"file_path": g + "/_botcore/patchwatch/cellsurvivor/.neu_offen.md.4711.tmp"}, g, None, True),
         ("PowerShell", {"command": "(Get-Item _botcore\\patchwatch\\survivorio\\neu_offen.md).OpenText().ReadToEnd()"}, g, None, True),
         ("Bash", {"command": "ls -la $(cat _botcore/patchwatch/survivorio/neu_offen.md)"}, g, None, True),
+        # Games/_runtime/patchwatch (17.11.2026): ganzer Ordner gesperrt, auch fuer patch-reader; Auflisten frei
+        ("Read", {"file_path": "C:/Users/der Nutzer/Games/_runtime/patchwatch/neu_patch_watch.err"}, "C:/Users/der Nutzer/Games", None, True),
+        ("Read", {"file_path": "C:\\Users\\<user>\\Games\\_runtime\\patchwatch\\versuch.json"}, "C:/Users/der Nutzer/Games", None, True),
+        ("Read", {"file_path": "C:/Users/der Nutzer/Games/_runtime/patchwatch/wip_stage_20261116_2009/x.md"}, "C:/Users/der Nutzer/Games", "patch-reader", True),
+        ("Grep", {"pattern": "x", "path": "C:/Users/der Nutzer/Games/_runtime/patchwatch"}, "C:/Users/der Nutzer/Games", None, True),
+        ("Bash", {"command": "cat /c/Users/der Nutzer/Games/_runtime/patchwatch/neu_patch_watch.err"}, "C:/Users/der Nutzer/Games", None, True),
+        ("PowerShell", {"command": "Get-Content _runtime\\patchwatch\\patch_watch.log"}, "C:/Users/der Nutzer/Games", None, True),
+        ("Bash", {"command": "grep -r x patchwatch"}, "C:/Users/der Nutzer/Games/_runtime", None, True),
+        ("Bash", {"command": "ls _runtime/patchwatch"}, "C:/Users/der Nutzer/Games", None, False),
+        ("Read", {"file_path": "C:/Users/der Nutzer/Games/_runtime/caps/daily_done.txt"}, "C:/Users/der Nutzer/Games", None, False),
         ("Read", {"file_path": g + "/_botcore/patchwatch/survivorio/hinweis.json"}, g, None, False),
         ("Read", {"file_path": g + "/_botcore/patchwatch/survivorio/stand.json"}, g, None, False),
         ("Read", {"file_path": g + "/_botcore/_fixtures/patchwatch/neu_offen.md"}, g, None, False),
@@ -228,6 +265,12 @@ def _selftest():
         ("Read", {"file_path": neu}, g, "patch-reader", False),
         ("Read", {"file_path": neu.replace("/", "\\")}, g, "patch-reader", False),
         ("Read", {"file_path": "C:/Users/der Nutzer/.claude/secrets/gemini.env"}, g, "patch-reader", True),
+        # p-5551e1f86a: Quellenliste ja, andere _botcore-Dateien nein
+        ("Read", {"file_path": g + "/_botcore/patch_quellen.json"}, g, "patch-reader", False),
+        ("Read", {"file_path": "C:\\Users\\<user>\\Games\\_botcore\\patch_quellen.json"}, g, "patch-reader", False),
+        ("Read", {"file_path": g + "/_botcore/patch_quellen.json.bak"}, g, "patch-reader", True),
+        ("Read", {"file_path": g + "/_botcore/patch_watch.py"}, g, "patch-reader", True),
+        ("Read", {"file_path": g + "/_botcore/x/patch_quellen.json/../../../.claude/secrets/a.env"}, g, "patch-reader", True),
         ("Read", {"file_path": neu + "/../../../../../../../.ssh/id_ed25519"}, g, "patch-reader", True),
         ("Read", {"file_path": g + "/CellSurvivor/config/.env"}, g, "patch-reader", True),
         ("Bash", {"command": "cat " + neu}, g, "patch-reader", True),
@@ -365,7 +408,13 @@ def main():
         block, reason = decide(data.get("tool_name") or "", data.get("tool_input") or {},
                                data.get("cwd") or os.getcwd(), data.get("agent_type"))
         if block:
-            if reason.startswith("reader:"):
+            if reason == "runtime-patchwatch":
+                sys.stderr.write(
+                    "BLOCKIERT: Games/_runtime/patchwatch/ ist der Laufzeitordner des Patch-Waechters und kann ungeprueften\n"
+                    "Fremdtext enthalten (neu_patch_watch.err, Staging). Keine Session liest dort, auch patch-reader nicht.\n"
+                    "Stand ohne Fremdtext: python _botcore/patch_watch.py status · Sammeldatei: patch-reader mit\n"
+                    "_botcore/patchwatch/<spiel>/neu_*. Notausgang nur mit des Nutzers Ja: Games/_botcore/.patchwatch_guard.off\n")
+            elif reason.startswith("reader:"):
                 sys.stderr.write(MSG_READER)
             elif reason.startswith("grep-root"):
                 sys.stderr.write(MSG_GREP_ROOT)

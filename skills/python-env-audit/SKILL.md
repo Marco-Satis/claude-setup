@@ -134,7 +134,7 @@ Schreibe die Datei NICHT automatisch ueber die echte `.env.example` — biete si
 
 **Discord Bot System** (`~/projects/Discord_Bots`, Syncthing-synct PC↔netcup): ENVs liegen unter `config/.env`. Die Variablen sind in 13 Sektionen gruppiert (Bot-Tokens, DB-Pfade, MC-Server, Feature-Flags). Sektions-Header (`# ===== SECTION =====`) beim Generieren der Example beibehalten.
 
-**FootstepPro** (`C:\Users\<user>\OneDrive\Dokumente\AudioSetup\FootstepAnalyzer`, **Windows-lokal** — kein Syncthing-Sync, auf netcup nicht vorhanden): Hat keine .env, sondern Konstanten in `constants.py`. Skill kann hier degradiert laufen: hartcodierte Pfade (z.B. `C:\Program Files\EqualizerAPO\config\`) erkennen und melden, aber kein .env-Diff durchfuehren. Klarstellen im Report.
+**FootstepPro** (`C:\Users\<user>\AudioSetup\FootstepAnalyzer`, **Windows-lokal** — kein Syncthing-Sync, auf netcup nicht vorhanden): Hat keine .env, sondern Konstanten in `constants.py`. Skill kann hier degradiert laufen: hartcodierte Pfade (z.B. `C:\Program Files\EqualizerAPO\config\`) erkennen und melden, aber kein .env-Diff durchfuehren. Klarstellen im Report.
 
 **FritzBox Monitor** (`~/projects/FritzBox Docsis logging`, Syncthing-synct PC↔netcup): ENVs unter `.env.example` im Root. 16 Variablen (FRITZBOX_HOST, FRITZBOX_USER, SMTP_*, ALERT_THRESHOLD_*, etc.). Kompakt, aber Drift hier ist besonders kritisch weil der Cron-Job sonst still scheitert.
 

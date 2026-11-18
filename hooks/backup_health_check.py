@@ -18,8 +18,20 @@ import sys
 import time
 from pathlib import Path
 
-BACKUP_DIR = Path(r"C:\Users\<user>\OneDrive\Backups\mcp-memory")
-PREFIX = "sqlite_vec_"
+# 16.11.2026 (Plan K1): Der lokale Memory-Server und backup_memory_db.py sind abgeschaltet bzw. archiviert. Gesichert
+# wird auf netcup (taeglich ~17:36); die Windows-Aufgabe NetcupMemoryBackupPull (taeglich 18:15 seit 18.11.2026,
+# vorher 14:30 und damit immer einen Tag alt; pull_netcup_memory_backup.py) holt die
+# verschluesselten Staende hierher. Ort per MEMORY_BACKUP_DIR ueberschreibbar (Umzugsplan Phase 2 verlegt ihn).
+# Seit 16.11.2026 (Phase 4) F:\Backups ueber scripts/backup_ort.py, kein Rueckfall nach OneDrive.
+try:
+    sys.path.insert(0, str(Path.home() / ".claude" / "scripts"))
+    from backup_ort import memory_netcup_dir as _ort
+    _STANDARD = _ort()
+except Exception:
+    _STANDARD = Path(r"F:\Backups\mcp-memory\netcup")
+BACKUP_DIR = Path(os.environ.get("MEMORY_BACKUP_DIR") or _STANDARD)
+PATTERN = "memory_backup_*.db.gpg"
+LOG_NAME = "pull.log"
 STALE_HOURS = 48
 
 
@@ -37,7 +49,7 @@ def main() -> None:
     msgs: list[str] = []
 
     try:
-        backups = sorted(BACKUP_DIR.glob(f"{PREFIX}*.db"), key=lambda p: p.stat().st_mtime)
+        backups = sorted(BACKUP_DIR.glob(PATTERN), key=lambda p: p.stat().st_mtime)
     except Exception:
         backups = []
 
@@ -46,10 +58,10 @@ def main() -> None:
     else:
         age_h = (time.time() - backups[-1].stat().st_mtime) / 3600
         if age_h > STALE_HOURS:
-            msgs.append(f"juengstes Backup ist {age_h:.0f}h alt (>{STALE_HOURS}h — Autostart-Backup laeuft evtl. nicht)")
+            msgs.append(f"juengstes Backup ist {age_h:.0f}h alt (>{STALE_HOURS}h — NetcupMemoryBackupPull laeuft evtl. nicht)")
 
-    # backup.log auf kuerzlich geloggten FAIL pruefen (F1-Logging)
-    log = BACKUP_DIR / "backup.log"
+    # pull.log auf kuerzlich geloggten FAIL pruefen
+    log = BACKUP_DIR / LOG_NAME
     try:
         if log.exists() and (time.time() - log.stat().st_mtime) / 3600 < STALE_HOURS:
             tail = log.read_text(encoding="utf-8", errors="replace").strip().splitlines()[-5:]
@@ -73,7 +85,7 @@ def main() -> None:
     if msgs:
         out = (
             "[BACKUP-HEALTH] " + " | ".join(msgs)
-            + " — pruefe `python ~/.claude/scripts/backup_memory_db.py --force` + backup.log"
+            + f" — pruefe Windows-Aufgabe NetcupMemoryBackupPull (taeglich 18:15) und {BACKUP_DIR / LOG_NAME}"
         )
         print(json.dumps({"systemMessage": out}))
 

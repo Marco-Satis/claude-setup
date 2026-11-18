@@ -87,7 +87,16 @@ def _postfach(data: dict) -> str:
         sys.path.insert(0, str(Path.home() / ".claude" / "scripts" / "wissen"))
         import postfach_core
         return postfach_core.hook_lauf(data)
-    except Exception:
+    except Exception as e:  # F01 17.11.2026: record instead of vanishing silently
+        try:
+            postfach_core.fehler_merken("agent_inbox/_postfach", e)  # noqa: F821 - NameError if import failed
+        except Exception:
+            try:
+                p = Path(os.environ.get("POSTFACH_DIR") or Path.home() / ".local/share/wissen-mcp/postfach")
+                p.mkdir(parents=True, exist_ok=True)
+                (p / "hook_fehler_import.txt").write_text(f"{time.time():.0f} {type(e).__name__}\n", encoding="utf-8")
+            except Exception:
+                pass
         return ""
 
 

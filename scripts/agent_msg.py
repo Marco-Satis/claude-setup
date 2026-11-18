@@ -276,6 +276,45 @@ def to_claude(msg: str, to: str, sender: str) -> int:
     return 0
 
 
+UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+REF_RE = re.compile(r"^[A-Za-z0-9._:-]{8,80}$")
+
+
+def reply_codex(text: str, thread_id: str, in_reply_to: str, message_id: str | None) -> int:
+    """K19 (17.11.2026, abgestimmt mit Codex): Rueckantwort an einen bestimmten Codex-Chat, auch auf dem PC.
+    Kein Codex-Turn von hier aus: die Antwort liegt im gemeinsamen mcp-memory (schema codex-reply-v1); der
+    Windows-Codex-Chat liest sie per Heartbeat-Leser selbst ab (Windows-Seite gehoert Codex)."""
+    if not UUID_RE.match(thread_id):
+        print("ABGELEHNT: --thread-id muss eine Codex-Thread-UUID sein.", file=sys.stderr)
+        return 2
+    if not REF_RE.match(in_reply_to) or (message_id and not REF_RE.match(message_id)):
+        print("ABGELEHNT: --in-reply-to/--message-id: 8-80 Zeichen aus A-Z a-z 0-9 . _ : -", file=sys.stderr)
+        return 2
+    text = re.sub(r"[\x00-\x08\x0b-\x1f\x7f]", " ", text or "").strip()
+    if not text or len(text) > 4000:
+        print("ABGELEHNT: Text 1-4000 Zeichen.", file=sys.stderr)
+        return 2
+    try:
+        sys.path.insert(0, str(Path.home() / ".claude" / "scripts" / "wissen"))
+        import wz_core
+        if wz_core.secret_treffer(text):
+            print("ABGELEHNT: Text enthaelt einen Wert, der wie ein Secret aussieht.", file=sys.stderr)
+            return 3
+    except Exception as e:  # fail-closed: ohne Secret-Pruefung kein Versand
+        print(f"ABGELEHNT: Secret-Pruefung nicht ladbar ({type(e).__name__}).", file=sys.stderr)
+        return 3
+    now = time.time()
+    mid = message_id or f"claude-skillsco-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid() % 10000:04d}"
+    body = {"schema": "codex-reply-v1", "message_id": mid, "in_reply_to": in_reply_to,
+            "target_thread_id": thread_id, "from_project": "skillsco", "text": text,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(now))}
+    tags = ["agent-msg", "to-codex", f"to-thread:{thread_id}", "from:claude", "scope:shared", "owner:claude"]
+    res = _post("/api/memories", {"content": json.dumps(body, ensure_ascii=False), "tags": tags,
+                                  "memory_type": "communication"})
+    print(json.dumps({"stored": bool(res.get("success", True)), "message_id": mid, "tags": tags}))
+    return 0
+
+
 def inbox(to: str | None, limit: int) -> int:
     ms = fetch_inbox()
     if to:
@@ -333,6 +372,12 @@ def main() -> int:
     c.add_argument("--limit", type=int, default=10)
     sub.add_parser("threads")
     sub.add_parser("notify-pending")
+    r = sub.add_parser("reply-codex", help="Antwort an einen Codex-Chat (auch PC) als codex-reply-v1 im Store")
+    r.add_argument("message", nargs="?", default=None, help="Text; laenger besser per --file")
+    r.add_argument("--file", help="Text aus Datei lesen (UTF-8), statt ihn als Shell-Argument zu uebergeben")
+    r.add_argument("--thread-id", required=True)
+    r.add_argument("--in-reply-to", required=True)
+    r.add_argument("--message-id")
     args = ap.parse_args()
     if args.cmd == "to-codex":
         cwd = os.path.realpath(os.path.expanduser(args.cwd))
@@ -354,6 +399,12 @@ def main() -> int:
         return to_claude(args.message, args.to, args.sender)
     if args.cmd == "inbox":
         return inbox(args.to, args.limit)
+    if args.cmd == "reply-codex":
+        if (args.message is None) == (args.file is None):
+            print("ABGELEHNT: genau eins von <message> oder --file angeben.", file=sys.stderr)
+            return 2
+        text = Path(args.file).read_text(encoding="utf-8") if args.file else args.message
+        return reply_codex(text, args.thread_id, args.in_reply_to, args.message_id)
     if args.cmd == "threads":
         return list_threads()
     return notify_pending()

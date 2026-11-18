@@ -1,8 +1,8 @@
 ---
 name: seo
-version: 1.1.0
-last-reviewed: 2026-10-24
-description: Use when der Nutzer wants a product, website, landing page or GitHub repo of his to be found and chosen — in Google, in AI search (ChatGPT, Perplexity, Google AI Mode) or on GitHub/PyPI — or asks how to market it, get rankings, reviews or customers online, or whether a launch will flop. Not for analysing someone else's site design (site-anatomy), building the page itself (design-html) or security scans (cso/security-audit).
+version: 1.1.1
+last-reviewed: 2026-11-16
+description: Use when der Nutzer wants a product, website, landing page or GitHub repo of his to be found and chosen — in Google, in AI search (ChatGPT, Perplexity, Google AI Mode) or on GitHub/PyPI — or asks how to market it, get rankings, reviews or customers online, or whether a launch will flop. Not for inventing or checking a product name (namensfindung), analysing someone else's site design (site-anatomy), building the page itself (design-html) or security scans (cso/security-audit).
 when_to_use: seo, suchmaschinenoptimierung, google ranking, gefunden werden, sichtbarkeit, ki-suche, chatgpt findet mich nicht, geo, aeo, ai overviews, landingpage optimieren, meta description, title tag, keywords, keyword recherche, search console, google unternehmensprofil, bewertungen sammeln, local seo, github sichtbarkeit, github stars, pypi, readme optimieren, produkt vermarkten, kommerziell nutzen, kunden gewinnen online, launch, floppt das, markteinführung
 argument-hint: "[audit <url|datei> | plan <produkt> | github <repo-pfad> | inhalt <seite/thema> | lokal | recht | messen] — ohne Argument: Modus erfragen"
 allowed-tools: Read Grep Glob Bash Write Edit WebFetch WebSearch
@@ -41,7 +41,7 @@ Zweck: des Nutzers Produkte (Agent OS + Voice-Agent für Handwerk, FootstepPro, 
 ## Modus `plan <produkt>` — SEO- und Sichtbarkeitsstrategie
 
 1. Floppt-das-Gate (oben).
-2. **Noch keine Website?** Dann zuerst: Produktname festlegen (unverwechselbar, kein Gattungsbegriff) → Domain sichern → statische Seite (HTML ohne JS-Pflicht für Kerninhalt) als Entwurf → live erst kurz vor Gewerbe/erstem Pilot. Ehrlich sagen: Ohne eigene Seite ist Sichtbarkeit in Google und KI-Suchen praktisch nicht steuerbar; Drittquellen (GitHub, Verzeichnisse) helfen nur begrenzt.
+2. **Noch keine Website?** Dann zuerst: Produktname festlegen (unverwechselbar, kein Gattungsbegriff; erfinden und auf Kollisionen prüfen mit `/namensfindung`) → Domain sichern → statische Seite (HTML ohne JS-Pflicht für Kerninhalt) als Entwurf → live erst kurz vor Gewerbe/erstem Pilot. Ehrlich sagen: Ohne eigene Seite ist Sichtbarkeit in Google und KI-Suchen praktisch nicht steuerbar; Drittquellen (GitHub, Verzeichnisse) helfen nur begrenzt.
 3. Zielgruppe und Suchintention: Wer sucht was, in welchen Worten, wo (Google, YouTube, Reddit, GitHub, KI-Assistent)? Kostenlose Quellen: Google-Autocomplete von Hand, „Ähnliche Fragen“, Reddit/Foren-Threads, später Search-Console-Queries. Keine erfundenen Suchvolumina — ohne Datenquelle als „Schätzung, unbelegt“ markieren.
 4. Kanal je Produkt aus `references/produkte.md` übernehmen und begründen.
 5. Seitenplan: wenige starke Seiten statt vieler dünner (Startseite, je Kernleistung eine Seite, Preise, Über/Who-How-Why, FAQ aus echten Kundenfragen, Kontakt). Für Datenseiten: `references/daten-seiten.md`.
@@ -105,5 +105,6 @@ Aufbau angelehnt an Anthropics `seo-ai-visibility` (Apache-2.0) und Corey Haines
 
 ## Changelog
 
+- **v1.1.1** (2026-11-16): Verweis auf `namensfindung` (Namen erfinden und prüfen) in Description und Modus `plan`.
 - **v1.1.0** (2026-10-24): Nach Subagent-Test: Freitext→Modus-Abbildung ohne Rückfrage, Fall „noch keine Website“, Gate-Fortsetzung unter Vorbehalt, Projektdatei als maßgebliche Quelle, einheitliche Ablage, Grundlage-Spalte mit drei Kategorien, Pflichtpunkte in plan/inhalt.
 - **v1.0.0** (2026-10-24): Erstfassung. Modi audit/plan/github/inhalt/lokal/recht/messen, Floppt-das-Gate über `/office-hours`, stdlib-Prüfskript `seo_check.py`, sechs Referenzdateien.

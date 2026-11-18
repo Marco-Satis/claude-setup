@@ -40,8 +40,12 @@ def main():
     if basename.startswith("_"):
         sys.exit(0)
 
-    fp_root = "C:/Users/der Nutzer/OneDrive/Dokumente/AudioSetup/FootstepAnalyzer"
+    # Seit 17.11.2026 (Phase 4 Stufe 2) ausserhalb von OneDrive.
+    fp_root = "C:/Users/der Nutzer/AudioSetup/FootstepAnalyzer"
     if not os.path.isdir(fp_root):
+        # K4 (Umzugsplan 16.11.): laut statt still, sonst faellt die Regressionspruefung nach einem Umzug unbemerkt weg
+        print(json.dumps({"systemMessage": f"[K4] FootstepPro-Tests uebersprungen: Ordner fehlt {fp_root} - "
+                                           f"Pfad in ~/.claude/hooks/footstep_pytest.py nachziehen (Setup PC)"}))
         sys.exit(0)
 
     # Debounce (2026-05-29): der Test-Lauf blockt synchron (pytest ~10s). Bei schnellem

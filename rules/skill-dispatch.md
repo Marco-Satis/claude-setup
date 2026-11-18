@@ -46,6 +46,7 @@ Maschine falsch wäre.
 | `hookify` | deinstalliert, ersetzt durch Cron `weekly_hook_suggest` (Mo 08:00) | aus (29.09., keine Regeldatei vorhanden) |
 | `document-skills` | **aktiv** | aus (29.09., doppelt mit `anthropic-skills` aus dem Konto) |
 | `parseltongue` | aus (29.09.) | aus (29.09.) |
+| `caveman` | aus (der Nutzer 16.11.2026, 21:00: „caveman aus“, widersprach KNAPP-DE) | aus (der Nutzer direkt 16.11. 21:08, Setup PC) |
 | `static-analysis`, `differential-review`, `sharp-edges` | aus (29.09.) | aus (29.09.) |
 | `mcp-memory-service` | nicht installiert | aus (Setup PC 15.11.: `settings.json` `false`) |
 | `typescript-lsp`, `claude-code-setup` | nicht installiert | **aktiv** (Setup PC 15.11.) |
@@ -54,7 +55,7 @@ Maschine falsch wäre.
 Stand 29.09. nach des Nutzers Aufräum-Entscheid, PC-Zeilen nachgezogen am 15.11.2026 (Quelle: Setup PC 15.11.,
 PC-Wochenprüfung `SETUP_SPIEGEL/PC_PRUEFUNG_2026-11-15_details.md`). Grundlage 29.09.: In 1.424 PC- und
 469 netcup-Verläufen hatte keines der abgeschalteten Plugins einen einzigen Aufruf. Aktiv auf beiden
-Maschinen: `caveman`, `claude-hud`, `claude-md-management`, `council`, `frontend-design`, `impeccable`,
+Maschinen: `claude-hud`, `claude-md-management`, `council`, `frontend-design`, `impeccable`,
 `pyright`, `safety-net`; nur netcup zusätzlich `document-skills`; nur am PC zusätzlich `security-guidance`,
 `typescript-lsp`, `claude-code-setup`, `herald`. Rückweg: Wert in `settings.json` auf `true`.
 

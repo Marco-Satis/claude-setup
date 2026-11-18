@@ -1,9 +1,9 @@
 ---
 name: site-anatomy
-version: 0.3.0
-last-reviewed: 2026-10-20
-description: Use this skill whenever der Nutzer wants someone else's public website or domain analysed, read out, taken apart, benchmarked or used as a model for his own design — e.g. "analysiere telekom.de", "wie ist die Seite von X aufgebaut", "Design-System/Tokens einer Website auslesen", "meine Seite soll so hochwertig werden wie die von X", "Konkurrenzseite zerlegen", "Firmenseite scannen und im eigenen Design nachbauen" — whether he asks about colours, fonts, design tokens, layout, imagery, texts, tone, navigation or page structure, and even when no skill is named. Not for his own code or UI (impeccable, ui-critique, design-taste-frontend), building pages (design-html), security scans (security-audit/cso), or technical questions about how a site works under the hood — JavaScript bundles, API calls, network requests, search backends (leanrea).
-when_to_use: webseite analysieren, website auslesen, seite nachbauen eigenes design, wie ist die seite gebaut, design einer firma verstehen, design system einer fremden website auslesen, design tokens einer website, bildsprache analysieren, website inhalte analysieren, landingpage zerlegen, konkurrenz website design, warum wirkt die seite hochwertig, referenz website, inspiration von website, site teardown, website anatomy
+version: 0.4.0
+last-reviewed: 2026-11-18
+description: Use this skill whenever der Nutzer wants someone else's public website or domain analysed, read out, taken apart, benchmarked or used as a model for his own design — e.g. "analysiere telekom.de", "wie ist die Seite von X aufgebaut", "Design-System/Tokens einer Website auslesen", "meine Seite soll so hochwertig werden wie die von X", "Konkurrenzseite zerlegen", "Firmenseite scannen und im eigenen Design nachbauen", "Animation einer Seite zerlegen", "wie animiert X" — whether he asks about colours, fonts, design tokens, layout, motion, imagery, texts, tone, navigation or page structure, and even when no skill is named. Not for his own code or UI (impeccable, ui-critique, design-taste-frontend), building pages (design-html), security scans (security-audit/cso), or technical questions about how a site works under the hood — JavaScript bundles, API calls, network requests, search backends (leanrea).
+when_to_use: webseite analysieren, website auslesen, seite nachbauen eigenes design, wie ist die seite gebaut, design einer firma verstehen, design system einer fremden website auslesen, design tokens einer website, bildsprache analysieren, website inhalte analysieren, landingpage zerlegen, konkurrenz website design, warum wirkt die seite hochwertig, referenz website, inspiration von website, site teardown, website anatomy, animation einer seite zerlegen, wie animiert die seite, bewegung einer website messen, vorbild für eigene seite
 argument-hint: "<url> [--pages N] [--own-tokens <pfad>] [--ziel <projektpfad>] — eine URL je Lauf; Default Startseite + bis 5 Seiten aus der Hauptnavigation"
 allowed-tools: Read Grep Glob Bash Write Edit
 user-invocable: true
@@ -19,7 +19,7 @@ Token-Vorschläge — nie eine Kopie.
 der Nutzer kennt die Fachbegriffe nicht. Bericht **und** Chat erklären jeden Fachbegriff beim ersten
 Auftreten in einem Satz Alltagssprache.
 
-## Werkzeugkette (Stand 0.2.1)
+## Werkzeugkette (Stand 0.4.0)
 
 Skripte liegen unter `~/.claude/skills/site-anatomy/scripts/` und werden **immer mit diesem
 absoluten Pfad** aufgerufen. Grund: Der Skill läuft im cwd von des Nutzers Projekt; ein relativer Pfad
@@ -33,6 +33,7 @@ Python-Skripte immer mit `python3 -I` starten (keine Module aus dem cwd).
 | `capture.mjs` + playwright 1.61.1 (chromium-1228) | Erfassung: Screenshots, Volltext, Überschriften, Bild-Inventar, Navigation, CTAs; prüft jede Unterseite selbst per `legal_check.py` |
 | `measure.mjs` mit designlang 13.3.2, @axe-core/playwright 4.14.0, colorthief 3.5.0 + sharp 0.35.5 | Tokens, Typo, Layout, Motion, Komponenten, Barrierefreiheit, Bildpaletten, Text auf Bild |
 | `tile.sh` (ffmpeg 4.4; AVIF über sharp) | Screenshot-Kacheln und Kontaktbögen für die Vision-Analyse |
+| `motion.mjs` + `~/.claude/scripts/motion_probe.mjs` (G247) | Bewegung messen: Rollen, Dauern, Kurven, Stagger, Schleifen, Flags, Lauf mit reduzierter Bewegung, Schrittbögen; nur Seiten aus `capture.json` |
 | `brand_distance.mjs` (ohne Abhängigkeiten) | Farbabstand ΔE (CIEDE2000) eigene Farben ↔ Markenfarben der Vorlage |
 | Claude-Vision (Read-Tool auf PNG) | Bildsprache, Illustration, Icon-Stil, Gesamtwirkung |
 
@@ -43,14 +44,16 @@ Die Node-Pakete liegen isoliert unter `~/.local/share/site-anatomy/` (gepinnt, `
 Installiert ist die Kette nur auf **netcup** (Stand 2026-10-20). Läuft die Session auf dem PC
 (Windows), keine Installation vorschlagen, sondern den Lauf in einer netcup-Session empfehlen.
 
-## Abdeckung 0.2.1 — was die Skripte NICHT liefern
+## Abdeckung 0.4.0 — was die Skripte NICHT liefern
 
 Diese Werte stehen im Bericht als „nicht erhoben: <Grund>", nie geschätzt und nie mit `[M]`/`[T]`:
 
 - Zustände von Komponenten (Hover, Fokus, aktiv, Fehler). Erfasst wird nur Hover in der
   Hauptnavigation (`nav_hover_<i>.png`). Fehlerzustände bräuchten Formulareingaben — verboten.
 - Ausschnitte einzelner Komponenten (nur falls `design.json` `componentScreenshots` gefüllt ist).
-- Verhalten bei „Bewegung reduzieren" (`prefers-reduced-motion`).
+- Bewegung außerhalb von Phase 2d: weitere Unterseiten (Phase 2d misst nur Startseite und höchstens 2 Unterseiten)
+  und Zustände nach Klick oder Eingabe (Phase 2d scrollt und hovert nur). JS-Zeitleisten (GSAP, Lottie, Canvas) nur abgeleitet; Parameter liefert leanrea.
+  Worker, Video und WebGL-Shader: nicht erfasst. Ohne GPU gibt es Ruckeln nur relativ.
 - Seitenbaum jenseits der Hauptnavigation, Sitemap, echte Klickpfade (nur Urteil `[E]` aus `nav.tree`).
 - Dark-Mode-Farbwerte, solange `design.json` kein `darkMode` enthält; dann nur `[V]` aus `*_dark.png`.
 - **Felddaten** echter Nutzer (CrUX). `perf.mjs` liefert nur **Labordaten** (Lighthouse, simulierte
@@ -72,8 +75,8 @@ Werkzeug-Eigenheiten (gemessen mit designlang 13.3.2) — so lesen, nicht anders
   (gemessen `fontFamily: system-ui` bei `font-family: sans-serif` im CSS). Nur zitieren, wenn das
   Ziel existiert bzw. der Wert in `design.json` steht.
 - `animations` zählt `transition: all` (Browser-Standardwert) als Bewegung: Eine Seite ganz ohne
-  CSS-Übergang ergab `animations.transitions: ["all"]`. Bewegungsanteile sind damit eine **obere
-  Schranke** und werden so benannt.
+  CSS-Übergang ergab `animations.transitions: ["all"]`. Bewegungsanteile aus designlang sind damit eine
+  **obere Schranke**; Bewegungswerte im Bericht kommen deshalb aus `ergebnis/motion.json` (Phase 2d).
 - `typography.families` kann leer sein. Dann Schriften aus `kopien/capture.json:pages[].tech.fonts`
   (nur geladene Webfonts); sind beide leer: „nicht erhoben".
 
@@ -84,12 +87,12 @@ Syncthing auf den PC). Aufbau:
 
 - `WD/LOESCHDATUM`, `WD/meta.json` — Löschdatum (Default heute + 30 Tage), URL, Anlagedatum.
 - `WD/kopien/` — fremde Werke: `capture.json`, `shots/`, `pages/<seite>/text.md`, `images/`,
-  `tiles/`, `sheets/`, `design_texte.json` (fremde Texte, die measure.mjs aus `design.json`
+  `tiles/`, `sheets/`, `motion/` (Schrittbögen und Rohmessung), `bundles/` (nur für leanrea, JS-Zeitleisten), `design_texte.json` (fremde Texte, die measure.mjs aus `design.json`
   verschiebt; das Feld in `design.json` zeigt dann `-> kopien/design_texte.json`). Wird zum
   Löschdatum gelöscht.
 - `WD/ergebnis/` — bleibt: `legal.json`, `design.json`, `tokens.dtcg.json`, `a11y.json`,
   `images.json` (nur Paletten/Metadaten), `text_on_image.json`, `measure_errors.json`,
-  `capture_errors.json`, `versions.json`, `BERICHT.md`, `own-tokens.dtcg.json`, `transcript.txt`.
+  `capture_errors.json`, `versions.json`, `motion.json`, `BERICHT.md`, `own-tokens.dtcg.json`, `transcript.txt`.
 
 Grund: § 44b Abs. 2 UrhG verlangt, Vervielfältigungen zu löschen, sobald die Analyse sie nicht mehr
 braucht. Messwerte, Regeln und eigene Entwürfe sind keine Werkkopien und bleiben. **Ausnahme zur
@@ -242,10 +245,36 @@ schon rechtlich geprüft. Schreibt `ergebnis/perf.json` (Kennzahlen, keine fremd
 vollen Bericht nach `kopien/lighthouse/` (enthält Screenshots der Seite). Exit 0 fertig · 3 WD
 ungültig · 4 Werkzeugkette fehlt · 5 Seite blockt → nicht wiederholen, melden, Teilergebnis nutzen.
 
+### Phase 2d — Bewegung (G247)
+
+```bash
+node ~/.claude/skills/site-anatomy/scripts/motion.mjs --out "<WD>"; echo "exit=$?"
+```
+
+Läuft **nach** capture.mjs und besucht nur Seiten aus `capture.json` `pages[]` (also nach bestandenem
+`legal_check.py`): Startseite und höchstens 2 Unterseiten (`--pages 1..3`), Breite 1280 (`--width`).
+Prüft den TDM-Vorbehalt der Browser-Antwort erneut, hält den Abstand aus `capture.json` ein, lehnt
+Consent nur ab, scrollt einmal durch und fährt mit der Maus über höchstens 6 Bedienelemente — kein Klick,
+keine Eingabe. Je Seite ein zweiter Lauf mit „Bewegung reduzieren“. Misst mit
+`~/.claude/scripts/motion_probe.mjs` (dieselbe Messung wie `visual_sheet --motion` für eigene Seiten).
+
+- `ergebnis/motion.json` (bleibt, nur Messwerte): je Seite (`seiten[]`) `rollen` mit `eintritt`, `rueckmeldung`,
+  `zustand`, `sonstige_animation` (Dauer min/median/max, Kurvenklassen), `stagger_ms` (größte Spanne je
+  Geschwistergruppe), `schleifen`, `signatur_kandidat`, `js` (Urteil, Bibliotheken, `skripte` für leanrea, höchstens 60);
+  daneben je Seite `flags[]` (Anti-KI A12/A13, Bewegung M8–M12), `reduzierte_bewegung`, `consent`; oben `uebersprungen[]`.
+- `kopien/motion/<n>_<g>.png`: höchstens **6** Schrittbögen (0/20/40/50/60/80/100 %), `dump_<n>.json`
+  Rohmessung — Kopien mit Löschpflicht.
+
+Exit 0 fertig · 1 keine Seite messbar (Grund in `uebersprungen[]`) · 3 Aufruf/WD ungültig oder
+`capture.json` fehlt · 4 Werkzeugkette fehlt. Übernommen werden Verhältnisse und Prinzipien, **nie**
+Code, Lottie-Dateien oder Assets. JS-Zeitleisten (GSAP, Motion/Framer, Lottie): Parameter mit leanrea
+(Website-Teil) aus den geladenen Bundles, nur Zahlen.
+
 ### Phase 3 — Sehen (Vision)
 
-Kacheln (`kopien/tiles/`) und Kontaktbögen (`kopien/sheets/`) mit dem Read-Tool ansehen und nach
-`references/vision-raster.md` bewerten. Jede Vision-Aussage `[V]`, mit Dateinamen, und wo möglich
+Kacheln (`kopien/tiles/`), Kontaktbögen (`kopien/sheets/`) und die Schrittbögen aus Phase 2d
+(`kopien/motion/*.png`, höchstens 6) mit dem Read-Tool ansehen und nach
+`references/vision-raster.md` bewerten; bei Schrittbögen zusätzlich Kurvenform und Signaturmoment. Jede Vision-Aussage `[V]`, mit Dateinamen, und wo möglich
 gegen Messwerte prüfen (Palette aus `ergebnis/images.json`, Seitenverhältnisse aus
 `kopien/capture.json`). Widerspruch → benennen.
 
@@ -292,9 +321,23 @@ Vertrauenselemente, Dark-Pattern-Hinweise, Seitenstruktur. Kennzeichnung `[E]` (
        "family": { "base": { "$type": "fontFamily", "$value": "…" } },
        "size":   { "<stufe>": { "$type": "dimension", "$value": "…px" } }
      },
-     "space": { "<stufe>": { "$type": "dimension", "$value": "…px" } }
+     "space": { "<stufe>": { "$type": "dimension", "$value": "…px" } },
+     "motion": {
+       "duration": { "feedback": { "$type": "duration", "$value": "…ms" }, "state": { "$type": "duration", "$value": "…ms" },
+                     "entry": { "$type": "duration", "$value": "…ms" }, "exit": { "$type": "duration", "$value": "…ms" } },
+       "easing":   { "in": { "$type": "cubicBezier", "$value": [0, 0, 0, 1] }, "out": { "$type": "cubicBezier", "$value": [0, 0, 0, 1] },
+                     "standard": { "$type": "cubicBezier", "$value": [0, 0, 0, 1] } },
+       "stagger":  { "$type": "duration", "$value": "…ms" },
+       "signature": { "$type": "string", "$value": "<ein benannter Moment oder: keiner>" }
+     }
    }
    ```
+
+   `motion` aus `ergebnis/motion.json` (Rollen-Mediane; Werte selbst setzen, Verhältnisse übernehmen) und
+   innerhalb der Leitplanken der Bewegungs-Checkliste (`~/.claude/scripts/visual_sheet_checkliste.md` M9–M12):
+   Rückmeldung 100–150 ms, Zustand 200–300 ms, Eintritt ease-out, Austritt etwa 75 % des Eintritts, Stagger
+   gesamt höchstens 500 ms, kein Überschwingen, Dauerbewegung nur als ein Signaturmoment mit Pause. Hat die
+   Vorlage Flags (z. B. Overshoot), wird das **nicht** übernommen und in Teil 21 so benannt.
 
    „Umgerechnet auf die eigene Basis" heißt: **Abstände** = Vielfache der eigenen Abstandsbasis,
    **Schriftgrößen** = eigene Fließtextgröße × Skalenfaktor.
@@ -341,7 +384,12 @@ mode"); `own-tokens.dtcg.json` kennt es nicht.
 1. `<ziel>/DESIGN.md` schreiben. Existiert sie: vorher `cp -a DESIGN.md DESIGN.md.bak.$(date +%s)`.
    Inhalt: Farben (Hex, Rolle), Schriftfamilien und Gewichte, Typo-Skala (px je Stufe),
    Abstandsskala, Radien — alles aus `own-tokens.dtcg.json` — plus Bild-Briefing, Tonalitätsprofil
-   und Nicht-übernehmen-Liste. Keine fremden Texte, keine Pfade nach `kopien/`.
+   und Nicht-übernehmen-Liste. Keine fremden Texte, keine Pfade nach `kopien/`. Dazu zwei Pflicht-
+   abschnitte, die design-html (Stufe V) prüft:
+   - `## Vorbild` — Domain, Datum der Analyse, Pfad zu `ergebnis/BERICHT.md`, die 3–5 übernommenen
+     Prinzipien (mit Quelle) und was ausdrücklich nicht übernommen wird.
+   - `## Bewegung` — `own-tokens.motion` als Tabelle (Rolle, Dauer, Kurve), Stagger, Signaturmoment,
+     Verhalten bei reduzierter Bewegung.
 2. `<ziel>/designs/ceo-plans/<domain>-sektionsplan.md` schreiben (Backup wie oben, falls vorhanden):
    Sektionen in Reihenfolge, je Zweck, eigener Inhalt, CTA-Verb.
 3. Nächster Schritt für der Nutzer: `/design-html` in einer Session mit cwd = Zielprojekt starten
@@ -349,8 +397,10 @@ mode"); `own-tokens.dtcg.json` kennt es nicht.
    Ergebnis: `<ziel>/designs/<screen>-<YYYYMMDD>/finalized.html`.
 4. Vergleich, höchstens 3 Runden. Eigenen Build lokal ausliefern (freier Port 18800–18899):
    `nohup python3 -m http.server <port> --bind 127.0.0.1 -d "<ordner von finalized.html>" >/dev/null 2>&1 & echo $!`
-   → PID merken. Dann Schritt 1, Schritt 2, Phase 1 (`--pages 0`), Phase 2 und Phase 2b für
-   `http://127.0.0.1:<port>/finalized.html` (eigenes WD). Am Ende `kill <PID>`.
+   → PID merken. Dann Schritt 1, Schritt 2, Phase 1 (`--pages 0`), Phase 2, Phase 2b und Phase 2d für
+   `http://127.0.0.1:<port>/finalized.html` (eigenes WD). Zusätzlich das Tor für den eigenen Build:
+   `node ~/.claude/scripts/visual_sheet.mjs "<ordner>/finalized.html" --pruefen --outdir <scratchpad>/pruefung_<screen>`
+   (Bash-Timeout 200000; Ablauf und Stempel wie design-html Step 4). Am Ende `kill <PID>`.
 5. Tabelle in Teil 21 schreiben, Werte aus beiden WDs:
 
    | Kennzahl | Quelle | Vorlage | eigen | Δ | Toleranz | ok |
@@ -360,13 +410,21 @@ mode"); `own-tokens.dtcg.json` kennt es nicht.
    | Akzent-Flächenanteil | `[0].colors.all[]` mit hex = `[0].colors.accent.hex` → `areaShare` | | | | ±50 % relativ | |
    | CTAs im ersten Bildschirm | `capture.json:pages[0].ctas[]` mit `rect.y` < 900 (1280×900) | | | | ±1 | |
    | axe-Verstöße je Schwere | `a11y.json:[0].violations[].impact` (Anzahl) | | | | eigen ≤ Vorlage | |
+   | Rückmeldung Median | `motion.json:seiten[0].rollen.rueckmeldung.dauer.median` | | | | 100–150 ms (eigen) | |
+   | Eintritt Median / Kurve | `…rollen.eintritt.dauer.median` / `.kurven` | | | | ±30 %, ease-out | |
+   | Stagger gesamt | `…rollen.stagger_ms` | | | | eigen ≤ 500 ms | |
+   | Bewegungs-Flags hart | `…flags[]` mit `art` H | | | | eigen = 0 | |
+   | Reduzierte Bewegung | `…reduzierte_bewegung.unveraendert` | | | | eigen = false | |
 
    Toleranzen: ±0,05 trennt benachbarte Standard-Skalen (1,2 / 1,25 / 1,333); ±15 % liegt knapp
    über der 12-%-Bündelung, mit der designlang Abstände gruppiert; ±50 % weil `areaShare` nur
    CSS-Hintergrundfläche misst und Bilder ignoriert; ±1 weil CTA-Zahlen klein sind; axe darf nicht
    schlechter werden. Fehlt ein Wert auf einer Seite: „nicht vergleichbar", nicht schätzen.
-6. Vision-Vergleich Vorlage vs. eigener Build nebeneinander: Ziel „gleichwertig, nicht verwechselbar".
-7. Alle Zeilen mit `ok = nein` als Liste an design-html zurückgeben (Refinement-Loop).
+6. Vision-Vergleich Vorlage vs. eigener Build nebeneinander, auch die Schrittbögen beider Seiten:
+   Ziel „gleichwertig, nicht verwechselbar" — gleich gutes Bewegungsprofil, aber eigene Signatur.
+7. `<ziel>/designs/<screen>-<YYYYMMDD>/vergleich.md` (Ordner von `finalized.html`) schreiben (Backup, falls vorhanden): die Tabelle aus Punkt 5
+   samt Bewegungszeilen, das Ergebnis des Vision-Vergleichs und alle Zeilen mit `ok = nein` als Liste.
+   design-html liest diese Datei im Step 0 und arbeitet sie im Refinement-Loop ab.
 8. Danach der Nutzer anbieten, die Kopien sofort zu löschen statt zum Löschdatum. Bei Ja:
    `date -d yesterday +%F > "<WD>/LOESCHDATUM"`, dann Schritt 0 (`sweep`). Verlängern nur mit neuem
    Datum **und** Grund in Teil 2.
@@ -404,8 +462,9 @@ Berichtsdump:
   ohne Teil 3, ohne wörtliche Zitate (Teil 11 nur Muster wie „Verb + Nutzen"), ohne Bilder.
 - Keine bezahlten APIs, keine Telemetrie (designlang ohne `--smart`, ohne `studio`; Lighthouse ohne
   Fehlerberichte, `enableErrorReporting: false`; keine CrUX-Abfrage).
-- Schreibt nur in den WD unter `~/site-anatomy/`. Einzige Ausnahme: `DESIGN.md` und
-  `designs/ceo-plans/<domain>-sektionsplan.md` im Zielprojekt, jeweils mit Backup.
+- Schreibt nur in den WD unter `~/site-anatomy/`. Einzige Ausnahme: `DESIGN.md`,
+  `designs/ceo-plans/<domain>-sektionsplan.md` und `designs/<screen>-<YYYYMMDD>/vergleich.md` im Zielprojekt,
+  jeweils mit Backup.
 - Kein 1:1-Nachbau einer fremden Marke, auch nicht „nur zum Testen", wenn er veröffentlicht würde.
 
 ## Beispiel-Triggers
@@ -416,6 +475,14 @@ Berichtsdump:
 
 ## Changelog
 
+- **v0.4.0** (2026-11-18): G247 B9 — Phase 2d „Bewegung“ mit neuem `scripts/motion.mjs` (motion_probe, nur Seiten
+  aus `capture.json`, Scroll + Hover, Lauf mit reduzierter Bewegung, höchstens 6 Schrittbögen in `kopien/motion/`,
+  Messwerte in `ergebnis/motion.json`); Bericht Teil 12 mit Messwerten statt „obere Schranke“, „Bewegung
+  reduzieren: nicht erhoben“ entfällt; Phase 5 `own-tokens.motion`; Phase 6 schreibt `## Vorbild` und
+  `## Bewegung` in DESIGN.md, `designs/<screen>-<YYYYMMDD>/vergleich.md` mit Bewegungszeilen und vergleicht das
+  Bewegungsprofil; neue Auslöser „Animation einer Seite zerlegen“, „wie animiert X“. Abweichung vom Plan:
+  capture.mjs bleibt unverändert (wurde am 18.11. 03:29 von anderer Stelle geändert), die Messung läuft als
+  eigener Schritt nach capture.mjs.
 - **v0.3.0** (2026-10-20): Ladezeit-Messung `perf.mjs` (Lighthouse 13.5.0, Node 24; der Nutzer-Ja). Labordaten
   Handy+Desktop, CWV, LCP-Element, Ressourcen je Typ, Drittanbieter; voller Bericht nach `kopien/`.
 - **v0.2.1** (2026-10-20, Nachtrag Gegenprüfung): Banner-Erkennung verlangt einen

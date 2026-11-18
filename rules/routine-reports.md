@@ -111,6 +111,6 @@ liefern kann) und ist deshalb nicht eingehängt.
 ## Abgrenzung zu `routine_report.py`
 
 `routine_report.py` (systemd, täglich 08:15) ist der **Diff-Melder**: neue Log-Zeilen seit
-letztem Lauf → Discord + `ROUTINE_STATUS.md`. `routine_audit.py` ist die
+letztem Lauf → Eingang der Zentrale ([zentrale-meldungen](zentrale-meldungen.md), seit 14.11. statt Discord) + `ROUTINE_STATUS.md`. `routine_audit.py` ist die
 **Planmäßigkeits-Prüfung** + Report-Sammler für Claude. Beide bleiben, sie beantworten
 verschiedene Fragen: „was ist passiert" vs. „lief alles und was fehlt".

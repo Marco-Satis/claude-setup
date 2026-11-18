@@ -322,16 +322,30 @@ function extractPage({ ab, cmp, nonHtml }) {
     jsonLdTypes: [...document.querySelectorAll('script[type="application/ld+json"]')].flatMap((s) => { try { const j = JSON.parse(s.textContent); return [].concat(j).map((x) => x['@type']); } catch { return ['(ungueltig)']; } }),
   };
   // Navigationsziele: gleiche Origin, nur HTML-Seiten, Anker abgeschnitten statt Link verworfen.
-  const navLinks = [];
-  for (const a of document.querySelectorAll('nav a[href], header a[href]')) {
-    try {
-      const u = new URL(a.href);
-      if (u.origin !== location.origin || a.hasAttribute('download') || NON_HTML.test(u.pathname)) continue;
-      u.hash = '';
-      navLinks.push(u.href);
-    } catch { /* ungueltige href */ }
+  // Fallback-Kette (PA-Befund 18.11.: Sunsama hat weder <nav> noch <header> → 0 Links):
+  // 1. nav/header, 2. role=navigation, 3. Links im oberen Seitenstreifen (Div-Leisten), 4. footer.
+  const collect = (els) => {
+    const out = [];
+    for (const a of els) {
+      try {
+        const u = new URL(a.href);
+        if (u.origin !== location.origin || a.hasAttribute('download') || NON_HTML.test(u.pathname)) continue;
+        u.hash = '';
+        if (u.href !== location.href.split('#')[0]) out.push(u.href);
+      } catch { /* ungueltige href */ }
+    }
+    return out;
+  };
+  let navLinks = collect(document.querySelectorAll('nav a[href], header a[href]'));
+  let navSource = 'nav/header';
+  if (!navLinks.length) { navLinks = collect(document.querySelectorAll('[role=navigation] a[href]')); navSource = 'role=navigation'; }
+  if (!navLinks.length) {
+    navLinks = collect([...document.querySelectorAll('a[href]')].filter((a) => { const r = a.getBoundingClientRect(); return r.width > 0 && r.top + window.scrollY < 160; }));
+    navSource = 'oberer Streifen';
   }
-  return { headings, images, ctas, trust, tech, ab: abHits, meta, markdown: md.join('\n\n'), navLinks: [...new Set(navLinks)], pageHeight: document.documentElement.scrollHeight };
+  if (!navLinks.length) { navLinks = collect(document.querySelectorAll('footer a[href], [role=contentinfo] a[href]')); navSource = 'footer'; }
+  if (!navLinks.length) navSource = 'keine';
+  return { headings, images, ctas, trust, tech, ab: abHits, meta, markdown: md.join('\n\n'), navLinks: [...new Set(navLinks)], navSource, pageHeight: document.documentElement.scrollHeight };
 }
 
 async function navSnapshot(page, shotDir) {

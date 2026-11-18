@@ -52,6 +52,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `enforce_read_tool.py` | `Bash` | 5 | PreToolUse-Hook (Bash): blockt REINE Datei-Reads via Shell und erzwingt das Read-Tool. |
 | `wissen_hook.py` | `Bash|Edit|Write|MultiEdit|NotebookEdit` | 2 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
 | `auto_backup.py` | `Edit|Write|MultiEdit` | 10 | PreToolUse-Hook (Edit/Write/MultiEdit): Auto-Backup fuer Dateien ohne git. |
+| `design_tor.py` | `Artifact|SendUserFile` | 10 | design_tor: Tor fuer sichtbare Ergebnisse (G247 Phase 2, Baustein B6). |
 
 ## PostToolUse
 
@@ -59,6 +60,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 |---|---|---|---|
 | `review_reminder.py` | `Edit|Write` | 10 | PostToolUse Hook (Edit/Write): Review-Reminder bei sicherheits-/integritäts- |
 | `agent_inbox.py` | `—` | 6 | UserPromptSubmit + PostToolUse (+ optional SessionStart) Hook: stellt Nachrichten zu. |
+| `design_tor.py` | `Edit|Write|MultiEdit` | 10 | design_tor: Tor fuer sichtbare Ergebnisse (G247 Phase 2, Baustein B6). |
 
 ## PostToolUseFailure
 
@@ -75,6 +77,8 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `context_canary.py` | `—` | — | Stop-Hook: Context-Canary — erkennt stillen Instruktions-Drift vor der ersten Halluzination. |
 | `empfang_erinnerung.py` | `—` | 10 | Stop-Hook: Erinnerung an die Empfangsbestaetigung (rules/session-disziplin.md, „Empfang bestaetigen“). |
 | `session_snapshot.py` | `—` | 5 | session_snapshot.py — Stop-Hook: Stand jeder Session am Zugende (der Nutzer 15.11.2026 06:34, G252-Ausbau). |
+| `wissen_schreibpflicht.py` | `—` | 10 | wissen_schreibpflicht.py — Stop-Hook: Sessions halten Dauerhaftes fest, bevor sie den Zug beenden. |
+| `design_tor.py` | `—` | 10 | design_tor: Tor fuer sichtbare Ergebnisse (G247 Phase 2, Baustein B6). |
 
 ## StopFailure
 

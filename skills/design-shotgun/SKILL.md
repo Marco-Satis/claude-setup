@@ -1,8 +1,9 @@
 ---
 name: design-shotgun
-version: 1.1.0
+version: 1.2.0
+last-reviewed: 2026-11-18
 description: |
-  Design shotgun: generate multiple AI design variants, open a comparison board,
+  Design shotgun: generate multiple AI design variants, render a comparison board,
   collect structured feedback, and iterate. Standalone design exploration you can
   run anytime. Use when: "explore designs", "show me options", "design variants",
   "visual brainstorm", or "I don't like how this looks".
@@ -27,7 +28,7 @@ allowed-tools:
 # /design-shotgun: Visual Design Exploration
 
 You are a design brainstorming partner. Generate multiple AI design variants, open them
-side-by-side in the user's browser, and iterate until they approve a direction. This is
+side-by-side as rendered images, and iterate until they approve a direction. This is
 visual brainstorming, not a review process.
 
 ## Skill Invocation During Plan Mode
@@ -161,6 +162,9 @@ python ~/.claude/scripts/nano_banana.py \
   Implementierung bleibt der maßgebliche Deliverable. Bild ergaenzt, ersetzt nicht.
 - Vor Massen-Generierung der Nutzer fragen (Kosten). Bei reinem Layout/Token-System reicht
   oft HTML — Bilder nur wenn visuelle Stil-Richtung der Kern der Entscheidung ist.
+- **Nur Stimmung, kein Nordstern (G247):** Ein Nano-Banana-Bild zeigt die Atmosphäre einer Richtung. Maßstab
+  für Typo, Layout, Dichte und Bewegung bleibt das gemessene Vorbild (site-anatomy) und die Anti-KI-Checkliste;
+  ein generiertes Bild bringt selbst KI-Merkmale mit und wird nie pixelgenau nachgebaut.
 
 ## Voice
 
@@ -316,11 +320,24 @@ images illustrate.
 
 The comparison board is a single self-contained HTML page you write yourself: all
 variants side by side (iframes onto the variant files work well), labeled with letter,
-concept name, and one-line description. Open it in the default browser:
+concept name, and one-line description.
+
+**Render instead of opening a browser (G247).** Sessions run on netcup without a desktop; der Nutzer sees nothing
+that is "opened". Render every variant and the board, look at the PNGs yourself, then hand over the images:
 
 ```bash
-start "" "<board.html>" 2>/dev/null || open "<board.html>" 2>/dev/null || xdg-open "<board.html>"
+# Bash timeout 200000. Variants live under ~/projects/… (or the scratchpad), which visual_sheet accepts.
+for v in "$_DESIGN_DIR"/variant-*.html; do
+  node ~/.claude/scripts/visual_sheet.mjs "$v" --full --outdir "$_DESIGN_DIR/render/$(basename "$v" .html)"
+done
+node ~/.claude/scripts/visual_sheet.mjs "$_DESIGN_DIR/design-board.html" --full --widths 1280 --outdir "$_DESIGN_DIR/render/board"
 ```
+
+Read the PNGs with the Read tool (390 and 1280 px). Hand over the board PNG(s) via `SendUserFile` if the
+session has it, otherwise name the absolute paths. PNGs pass the gate hook untouched. Publishing the board
+or a variant as an **Artifact** counts as a hand-over of HTML and needs a stamp
+(`~/.claude/hooks/design_tor.py`); normally the finished page goes through /design-html instead.
+On the PC: Claude in Chrome screenshots at 390/1280 px.
 
 ## UX Principles: How Users Actually Behave
 
@@ -418,17 +435,17 @@ AskUserQuestion:
 > "Previous design explorations for this project:
 > - [date]: [screen] — chose variant [X], feedback: '[summary]'
 >
-> A) Revisit — reopen the comparison board to adjust your choices
+> A) Revisit — re-render the comparison board to adjust your choices
 > B) New exploration — start fresh with new or updated instructions
 > C) Something else"
 
-If A: rebuild the board from the existing variant files, reopen, and resume the feedback loop.
+If A: rebuild the board from the existing variant files, re-render it (Mockup Format), and resume the feedback loop.
 If B: proceed to Step 1.
 
 **If none found:** Show the first-time message:
 
 "This is /design-shotgun — your visual brainstorming tool. I'll generate multiple AI
-design directions, open them side-by-side in your browser, and you pick your favorite.
+design directions, render them side-by-side as images, and you pick your favorite.
 You can run /design-shotgun anytime during development to explore design directions for
 any part of your product. Let's start."
 
@@ -436,7 +453,7 @@ any part of your product. Let's start."
 
 When design-shotgun is invoked from another skill, the calling skill may have already
 gathered context. Check for an existing design brief (e.g. `$_DESIGN_BRIEF` or a prose
-handoff) — if present, skip to Step 2.
+handoff) — if present, skip the questions below but still run Step 1b (quality chain), then Step 2.
 
 When run standalone, gather context to build a proper design brief.
 
@@ -480,6 +497,20 @@ all gaps:
 > How many variants? (default 3, up to 8 for important screens)"
 
 Two rounds max of context gathering, then proceed with what you have and note assumptions.
+
+### Step 1b: Quality chain (G247, before any concept)
+
+`~/.claude/rules/design-qualitaet.md`: experienced designers must not be able to tell AI was involved.
+
+1. **Read before drafting:** `~/.claude/templates/profi_kanon.md` — vor dem Entwurf lesen, falls vorhanden.
+   Always `~/.claude/templates/anti_ki_checkliste.md` (A1–A15) and, if entries exist, `wz find design logbuch`.
+2. **Model page for a whole page or dashboard (Stufe V):** if `DESIGN.md` has no `## Vorbild` section, run
+   **site-anatomy** on a professional page from the same field first (suggestions in
+   `~/.claude/skills/site-anatomy/references/vorbilder.md`, if present) or record der Nutzer's explicit
+   „ohne Vorbild“. Each direction below states which principle of the model page it uses — equal in quality,
+   not mistakable for it.
+3. Each concept names its palette (4–6 named values), fonts with roles, layout idea and motion signature
+   (two-pass plan, frontend-design). Reflex choices from the checklist only when the brief asks for them.
 
 ## Step 2: Taste Memory
 
@@ -570,6 +601,11 @@ Steps:
    realistic content — no lorem ipsum) implementing the brief.
 2. Self-check against the brief: the specified font family, color palette, and layout
    approach must be clearly recognizable. Fix mismatches before reporting.
+   Then read ~/.claude/templates/anti_ki_checkliste.md and remove every A1–A15 trait the brief
+   does not explicitly ask for (cream/near-black+neon grounds, reflex fonts, eyebrow/01-02-03
+   grammar, hero metric recipe, card kit, glass/gradient text, placeholders, filler copy,
+   fade-and-rise on every section, bounce/overshoot, transition: all).
+   If ~/.claude/templates/profi_kanon.md exists, read it before writing (positive standard).
 3. Verify the file exists and is non-empty (ls -lh).
 4. Report exactly one of:
    VARIANT_{letter}_DONE: {file size}
@@ -584,20 +620,28 @@ works, change what the user dislikes: {feedback}.
 
 **Optional reference images:** if visual style direction is the core decision,
 generate ONE Nano-Banana image per direction (see Behavioral Nudges — cost guard
-applies, ask der Nutzer before bulk generation).
+applies, ask der Nutzer before bulk generation). Mood only, never the north star.
 
 ### Step 3d: Results
 
 After all agents complete:
 
 1. Show each variant to the user: at minimum list the files and describe each
-   direction; render screenshots inline if tooling is available.
+   direction; the rendered PNGs (step 5) are mandatory, a description alone is not enough.
 2. Report status: "All {N} variants generated. {successes} succeeded,
    {failures} failed."
 3. For any failures: report explicitly with the error. Do NOT silently skip.
 4. If zero variants succeeded: fall back to writing them sequentially yourself,
    showing each as it lands.
-5. Proceed to Step 4 (comparison board).
+5. Render every variant with `visual_sheet --full` (see Mockup Format) and read the PNGs.
+6. **Second look strikes the most AI-typical variant before der Nutzer chooses (G247).** Per variant launch one
+   fresh Claude subagent (all in one message) following `~/.claude/templates/design_zweitblick.md`: each gets
+   only that variant's PNG paths (no brief, no code, no concept name) and returns the template's JSON
+   (`urteil`, `sicherheit`, `indizien`). Among the variants judged `ki`, the one with the highest `sicherheit` is **struck** if at least one indicator is supported
+   by a checklist finding or by a visual_sheet flag (consensus rule of the template); the board shows it greyed
+   out with the reason, and it is not offered as a choice. With only 2 variants, mark instead of strike.
+   Until calibration (T4) the second look is advisory: der Nutzer may revive a struck variant.
+7. Proceed to Step 4 (comparison board).
 
 **Dynamic variant list for the comparison board:** construct the list from whatever
 variant files actually exist, not a hardcoded A/B/C list:
@@ -610,15 +654,15 @@ ls "$_DESIGN_DIR"/variant-* 2>/dev/null
 
 Write the board page `$_DESIGN_DIR/design-board.html`: one self-contained HTML page
 showing all variants side by side (iframes onto the variant files work well), each
-labeled with its letter, concept name, and one-line description. Then open it in the
-default browser (see Mockup Format).
+labeled with its letter, concept name, and one-line description (struck variant greyed out
+with the second-look reason). Render it and hand over the PNGs (see Mockup Format).
 
-**PRIMARY WAIT: AskUserQuestion with the board path.**
+**PRIMARY WAIT: AskUserQuestion with the board images.**
 
-After the board is open, use AskUserQuestion to collect structured feedback:
+After the board images are handed over, use AskUserQuestion to collect structured feedback:
 
-"I've opened a comparison board with the design variants
-(`$_DESIGN_DIR/design-board.html` — open it manually if no tab appeared).
+"Here is the comparison board with the design variants
+(images: `$_DESIGN_DIR/render/board/…png`, page: `$_DESIGN_DIR/design-board.html`).
 Which direction wins? Optionally add ratings (1-5 per variant), per-variant comments,
 and an overall direction ('go with A, bigger CTA'). You can also ask me to regenerate:
 'something different', 'more like B', or 'remix: layout from A + colors from B'."
@@ -629,7 +673,7 @@ wait mechanism.
 **If the user asks to regenerate/remix:**
 1. Derive the updated brief(s) from their words (different direction / more like X /
    remix spec such as layout from A + colors from B).
-2. Generate new variants (Step 3c), rebuild `design-board.html`, reopen it.
+2. Generate new variants (Step 3c), render + second look (Step 3d), rebuild and re-render `design-board.html`.
 3. AskUserQuestion again with the same board path. Repeat until a variant is approved.
 
 **After receiving feedback (any path):** summarize and verify — see Step 5.
@@ -653,8 +697,12 @@ Use AskUserQuestion to confirm before saving.
 ## Step 6: Save & Next Steps
 
 Write a short result report into the project: `$_DESIGN_DIR/ERGEBNIS.md` with the
-approved variant, feedback summary, screen name, and date. One file — no separate
-state system.
+approved variant (file `variant-<letter>.html` and its PNGs), feedback summary, screen name, date,
+the model page (`Vorbild`, or „ohne Vorbild“) and the struck variant with the second-look reason.
+One file — no separate state system. /design-html reads this file in its Step 0 (Case A).
+
+A variant is a draft, not a finished page: it is not handed over as the result without the gate
+(/design-html Step 4: `visual_sheet --pruefen`, protocol, stamp).
 
 If invoked from another skill: return the structured feedback for that skill to
 consume. The calling skill reads `ERGEBNIS.md` and the approved variant file.
@@ -672,10 +720,20 @@ If standalone, offer next steps via AskUserQuestion:
 1. **All design artifacts (variants, board, ERGEBNIS.md) live in
    `designs/<screen-name>-<date>/` inside the project.** Versioned folders; archive,
    don't delete.
-2. **Show variants inline before opening the board.** The user should see designs
-   immediately in their terminal. The browser board is for detailed comparison.
+2. **Show variant images before the board.** The user should see each rendered variant
+   immediately; the rendered board is for detailed comparison.
 3. **Confirm feedback before saving.** Always summarize what you understood and verify.
 4. **Taste memory is automatic.** Prior `ERGEBNIS.md` reports inform new generations
    by default.
 5. **Two rounds max on context gathering.** Don't over-interrogate. Proceed with assumptions.
 6. **DESIGN.md is the default constraint.** Unless the user says otherwise.
+7. **Quality chain (G247).** Checklist and (for Stufe V) model page before concepts, render instead of
+   opening a browser, second look strikes the most AI-typical variant, the finished page passes the gate.
+
+## Changelog
+
+- **v1.2.0** (2026-11-18): G247 B8 — Step 1b Qualitäts-Kette (`profi_kanon.md` falls vorhanden,
+  Anti-KI-Checkliste, Vorbild über site-anatomy bei Stufe V), Varianten mit `visual_sheet --full` gerendert und
+  Board als PNG übergeben statt `xdg-open`, Zweitblick streicht die KI-typischste Variante vor des Nutzers Wahl,
+  Nano-Banana nur Stimmung, ERGEBNIS.md mit Vorbild und gestrichener Variante.
+- **v1.1.0**: Standalone-Port mit Nano-Banana-Option.

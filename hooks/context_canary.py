@@ -49,7 +49,12 @@ except Exception:
 
 FLAG_OFF = Path.home() / ".claude" / "flags" / "context_canary.off"
 CAVEMAN_ACTIVE = Path.home() / ".claude" / ".caveman-active"
-GAMES_DIR = Path.home() / "Games"
+try:  # Games-Ort aus scripts/games_dir.py (Umzug 16.11.), Rueckfall wie bisher ~/Games
+    sys.path.insert(0, str(Path.home() / ".claude" / "scripts"))
+    from games_dir import games_dir
+    GAMES_DIR = games_dir()
+except Exception:
+    GAMES_DIR = Path.home() / "Games"
 STATE_FILE = Path.home() / ".claude" / "state" / "context_canary.json"
 LOG_FILE = Path.home() / ".claude" / "logs" / "context_canary.jsonl"
 
@@ -128,8 +133,12 @@ def _loop_session(cwd: str) -> bool:
         for parent in (here, *here.parents):
             if (parent / "LOOP_RUN.flag").exists():
                 return True
+        # Rueckfall nur fuer Sessions IM Games-Ordner (16.11.2026, MB180c): vorher galt bei vorhandenem
+        # ~/Games jede Session als Loop-Session, sobald irgendein LOOP_RUN.flag existierte.
         if GAMES_DIR.is_dir():
-            return any(GAMES_DIR.glob("*/LOOP_RUN.flag"))
+            g = GAMES_DIR.resolve()
+            if here == g or g in here.parents:
+                return any(GAMES_DIR.glob("*/LOOP_RUN.flag"))
     except Exception:
         pass
     return False

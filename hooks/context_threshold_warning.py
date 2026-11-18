@@ -49,6 +49,11 @@ DEFAULT_CONTEXT_LIMIT = 200_000     # Sonnet/Haiku 200K-Default (konservativ)
 # mit usage drin liegt (Tool-Outputs koennen lang sein).
 MEASURE_TAIL_BYTES = 600_000
 
+# Aufschlag, damit die Anzeige eher zu hoch als zu niedrig liegt (der Nutzer 2026-11-16).
+PENDING_CHARS_PER_TOKEN = 3       # Rohtext nach dem letzten usage-Eintrag -> Tokens (bewusst grosszuegig)
+PENDING_CAP_TOKENS = 150_000      # Obergrenze gegen Ausreisser (riesige Tool-Ausgabe im Tail)
+SAFETY_MARGIN_FRAC = 0.02         # fester Aufschlag: 2 Prozentpunkte des Fensters
+
 # Eskalations-Schwellen. 2026-07-13 aufs 1M-Window kalibriert (vorher fuers ~200K-Denken:
 # 35/45/50/60/70 -> feuerte STRONG bei 500K, obwohl ein halbes 1M-Fenster noch frei war = zu frueh).
 # Belegt via Raw-usage-Messung: Desktop-Meter unter-reportet (zeigte 16% bei real 57%), der Hook
@@ -113,7 +118,9 @@ def measure_context(transcript_path: Path) -> tuple[int, int]:
                 + int(u.get("cache_read_input_tokens", 0) or 0)
                 + int(u.get("cache_creation_input_tokens", 0) or 0))
 
-    for ln in tail.splitlines():
+    lines = tail.splitlines()
+    last_idx = -1
+    for idx, ln in enumerate(lines):
         # 2026-09-30: Eine Compact-Grenze macht alle frueheren usage-Eintraege ungueltig.
         # Der neue Stand entsteht erst mit der naechsten Assistant-Antwort; bis dahin gibt
         # es KEINE Messung (-> 0, main() bleibt still). Vorher mass der erste Prompt nach
@@ -142,6 +149,7 @@ def measure_context(transcript_path: Path) -> tuple[int, int]:
             t = _sum(u)
             if t > 0:                      # Null-Eintraege ueberspringen, nicht uebernehmen
                 last_usage = u
+                last_idx = idx
                 if t > max_tokens:
                     max_tokens = t
 
@@ -149,6 +157,14 @@ def measure_context(transcript_path: Path) -> tuple[int, int]:
         return (0, DEFAULT_CONTEXT_LIMIT)
 
     tokens = _sum(last_usage)
+
+    # 2026-11-16 (der Nutzer: "Kontextbewertungen sollten lieber ein bisschen drueber sein als drunter",
+    # gemessen lag die Anzeige 2-5 % unter dem echten Stand). Der letzte usage-Eintrag kennt weder
+    # die eigene Antwort noch alles, was danach kam (Tool-Ergebnisse, Hook-Kontext, neuer Prompt).
+    # Deshalb: Rohtext nach dem letzten usage-Eintrag grob in Tokens schaetzen (JSON-Overhead
+    # macht das eher zu hoch, gewollt) plus fester Sicherheitsaufschlag.
+    pending_chars = sum(len(x) for x in lines[last_idx + 1:]) if last_idx >= 0 else 0
+    tokens += min(pending_chars // PENDING_CHARS_PER_TOKEN, PENDING_CAP_TOKENS)
 
     # Window NUR per Modellname (1M = Opus/Fable; Sonnet/Haiku = 200K). Keine
     # Token-Heuristik (wuerde fast-volle Sonnet-Session faelschlich auf 1M heben).
@@ -181,6 +197,7 @@ def measure_context(transcript_path: Path) -> tuple[int, int]:
     # der Hook zu niedrig. Nicht loesbar ohne ein Feld, das das Fenster nennt.
     if max_tokens > DEFAULT_CONTEXT_LIMIT:
         limit = OPUS_CONTEXT_LIMIT
+    tokens += int(limit * SAFETY_MARGIN_FRAC)
     return (tokens, limit)
 
 
@@ -316,7 +333,7 @@ COMPACT_READY_CHECKLIST = (
 def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, first_pct: int) -> str:
     """SystemMessage je Eskalations-Stufe. nag_n = bisherige STRONG+-Warnungen
     in dieser Session (>=2 -> Persistenz-Eskalation: Warnung wurde uebergangen)."""
-    base = f"Context-Auslastung ~{pct}% (~{est_k}K / {limit_k}K Tokens, exakt aus usage-Feld)."
+    base = f"Context-Auslastung ~{pct}% (~{est_k}K / {limit_k}K Tokens, usage-Feld + Aufschlag, eher zu hoch)."
 
     # Persistenz-Zusatz: greift wenn schon mehrfach gewarnt + Context NICHT gesunken.
     persist = ""
@@ -377,12 +394,16 @@ def main():
     lm = _load_loopmode()
     now_ts = time.time()
     lm = {k: v for k, v in lm.items() if isinstance(v, (int, float)) and now_ts - v < LOOPMODE_KEEP_S}
-    if ("/loopstop" in prompt_txt) or ("loop stop" in prompt_txt) or ("[loopstop]" in prompt_txt):
+    # Nur eigene Prompts schalten den Loop-Mode; Nachrichten anderer Sessions, die „/loopmode“ nur erwähnen,
+    # markierten sonst fremde Sessions (Zentrale 16.11.2026 20:27, MB246a)
+    fremd = (prompt_txt.lstrip().startswith("another claude session sent a message")
+             or "<cross-session-message" in prompt_txt or "<agent-message" in prompt_txt)
+    if not fremd and (("/loopstop" in prompt_txt) or ("loop stop" in prompt_txt) or ("[loopstop]" in prompt_txt)):
         if sid in lm:
             lm.pop(sid, None)
             _save_loopmode(lm)
         sys.exit(0)   # Stop -> Nag fuer diese Session ab jetzt wieder aktiv
-    if ("/loopmode" in prompt_txt) or ("[loopmode]" in prompt_txt):
+    if not fremd and (("/loopmode" in prompt_txt) or ("[loopmode]" in prompt_txt)):
         lm[sid] = now_ts
         _save_loopmode(lm)
         sys.exit(0)   # Aktivierung (niedrige Auslastung) -> kein Nag, Pre-Compact-Notiz noch nicht noetig
@@ -430,9 +451,10 @@ def main():
             note = (f"[LOOP-DEFER] Context ~{pct0}% — ab jetzt MONITOR-ONLY bis der Auto-Compact gelaufen ist. "
                     f"ERLAUBT: Bot-Health pruefen (laeuft er, Log-Stale, FROZEN/Crash), Kurz-Diagnose aus "
                     f"vorhandenen Logs, 1-Zeilen-State-Save in LOOP_TICK.md, Eintrag in WIRING.md wenn etwas "
-                    f"fertig wurde. VERBOTEN: neue Fixes beginnen, Root-Cause-Marathons, Refactors, "
-                    f"Screenshots, Voll-Logs, grosse Reads. Jede Aufgabe, die dir jetzt einfaellt oder die "
-                    f"der Nutzer nennt, wird NICHT begonnen, sondern als EINE Zeile nach {deferred} geschrieben "
+                    f"fertig wurde. AUSNAHME (der Nutzer 2026-11-16): der Nutzer-Auftraege und Fehler im laufenden "
+                    f"Betrieb werden in kleinen Schritten WEITER umgesetzt (Ausgaben in Dateien, keine "
+                    f"Screenshots/Voll-Logs). VERBOTEN: Root-Cause-Marathons, Refactors, grosse Reads. "
+                    f"Eigene neue Ideen werden NICHT begonnen, sondern als EINE Zeile nach {deferred} geschrieben "
                     f"(Format: '- [ ] <Aufgabe> | warum | woran erkennbar dass sie erledigt ist'). "
                     f"Nach dem Compact liest der Inject-Hook DEFERRED.md wieder ein und du arbeitest sie ab — "
                     f"deshalb muss der Nutzer nichts erneut erklaeren. Antworte in diesem Turn kurz. "
@@ -449,10 +471,10 @@ def main():
                     f"Der SessionStart-Hook injiziert die Datei nach dem Compact zurueck — was hier fehlt, "
                     f"ist weg und der Nutzer muss es erneut erklaeren.")
         elif usage >= LOOP_LIGHTEN_THRESHOLD:
-            note = (f"[LOOP-CTX] Context ~{pct0}% — ab jetzt LEICHT ticken: 1 kleine Aktion/Tick, Tool-Output "
-                    f"IMMER in Dateien (nur 1-2 Zeilen zurueck), KEINE Root-Cause-Marathons in einem Turn "
-                    f"(ueber mehrere Ticks splitten, Zwischenstand in LOOP_TICK/JOURNAL). So greift der "
-                    f"Auto-Compact zwischen Turns, bevor das Fenster voll ist.")
+            note = (f"[LOOP-CTX] Context ~{pct0}% — weiter DURCHARBEITEN, solange Arbeit offen ist (der Nutzer "
+                    f"2026-11-16), aber sparsam: Tool-Output IMMER in Dateien (nur 1-2 Zeilen zurueck), "
+                    f"keine Voll-Logs/Screenshots im Kontext, grosse Analysen in Teilschritten mit Zwischenstand "
+                    f"in JOURNAL. So greift der Auto-Compact zwischen Turns, bevor das Fenster voll ist.")
         if note:
             # Frueh-Warnung an der Nutzer: einmal pro Tier pro Session, nicht pro Tick.
             # Terminal-systemMessage erreicht ihn bei 24/7-Loops nicht — Discord schon.

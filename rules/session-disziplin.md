@@ -79,8 +79,8 @@ Sessions und Projekte:
    Ein Schalter oder Flag ist der Rückweg, kein Parkplatz.
 2. **Fehlschlag heißt nachbessern, nicht liegen lassen:** Ursache finden, ausbessern, erneut testen, wieder einschalten,
    beobachten, bis es läuft. „Ging nicht, abgeschaltet“ ist kein Endstand.
-3. **Grenzen bleiben:** Freigaben bei der Nutzer (Löschen, Push, Geld, Konten), Änderungsbudgets, Gamebot-Neustarts höchstens
-   3 je Bot und Nacht mit Konsens, Nachtbetrieb. Nach wiederholtem Fehlschlag wird nicht weiter geraten, sondern
+3. **Grenzen bleiben:** Freigaben bei der Nutzer (Löschen, Push, Geld, Konten), Änderungsbudgets, Gamebot-Neustarts mit Konsens
+   und gebündelten Fixes (Richtwert ~4 je Bot und Nacht, [gamebot-reuse-first](gamebot-reuse-first.md)), Nachtbetrieb. Nach wiederholtem Fehlschlag wird nicht weiter geraten, sondern
    recherchiert ([stuck-research](stuck-research.md)). Nur was wirklich der Nutzer braucht, geht als MB-Zeile an „Setup Server“,
    mit Grund; die übrige Arbeit am Punkt läuft weiter.
 
@@ -122,9 +122,21 @@ Schritten oder mehreren Aufträgen von der Nutzer bekommt sofort eine Aufgabenli
 bevor daran gearbeitet wird, und auf `completed`, sobald sie belegt fertig ist. Fehlen die Werkzeuge in einer Session
 (nur über `ToolSearch` als „deferred“ sichtbar), lädt die Session sie per `ToolSearch select:TaskCreate,TaskUpdate,TaskList`.
 
+## des Nutzers Entscheidungen sofort an die Zentrale (der Nutzer 2026-11-16, 21:01)
+
+„Alle Sessions müssen sich besser miteinander synchronisieren.“ Anlass: der Nutzer entschied in Audio_Setup über MB235
+(Hypervisor-Befehl ausgeführt, Neustart später); die Zentrale erfuhr es nicht und mahnte den Punkt weiter an.
+1. Entscheidet oder erledigt der Nutzer in einer Session etwas, das einen MB-Punkt, eine andere Session oder das Setup betrifft,
+   schickt diese Session es **im selben Zug** an „Setup Server“ (Gamebots über „Bot_Core“):
+   `MB-Stand: <MB-Nummer oder Thema> | der Nutzer <Datum Uhrzeit>: „<wörtlich>“ | <was erledigt, was offen>`.
+2. Kennt die Session die MB-Nummer nicht, nennt sie das Thema; die Zentrale ordnet zu.
+3. Die Zentrale trägt den Stand sofort im der Nutzer-Block ein und mahnt nichts an, was der Nutzer schon entschieden hat.
+4. Vor einer Erinnerung an der Nutzer prüft die Zentrale den Eingang und die letzten Nachrichten der zuständigen Session.
+
 ## Fragen an der Nutzer laufen über die Zentrale (der Nutzer 2026-11-15, 09:07)
 
 „Melde bitte deine Antworten, wenn du mich brauchst oder Fragen hast, an mich immer direkt an die Setup-Session vom
 Server, da ich kaum hier die Sessions mitlese.“ Jede Session (PC und netcup) schickt Fragen, Freigabe-Wünsche und
 Ergebnisse, die der Nutzer sehen soll, per `SendMessage` an „Setup Server“ (Format `MB: <projekt> | Frage/Freigabe | <dauer> |
 <warum>`), nicht nur in den eigenen Chat. Die Zentrale legt sie der Nutzer vor und reicht seine Antwort wörtlich zurück (MB118).
+Ausnahme Gamebots (der Nutzer 2026-11-16, 20:47): Cell Survivor, Survivor.io_Bot und IdleSlayer_bot laufen ohne Remote Control und melden über „Bot_Core“, das wörtlich an „Setup Server“ weitergibt; Nachrichten an sie gehen ebenfalls über Bot_Core.

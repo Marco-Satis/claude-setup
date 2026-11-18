@@ -204,6 +204,8 @@ CRON_ROUTINES = [
     # 2026-11-13: Aufbewahrung .bak (rules/backup-aufbewahrung.md), cron by der Nutzer
     {"name": "backup_prune", "plan": "taeglich 04:50", "kind": "append",
      "path": HOME / ".claude/logs/backup_prune.log", "max_h": 30, "since": "2026-11-14"},
+    {"name": "site_anatomy_sweep", "plan": "taeglich 04:35", "kind": "append",
+     "path": HOME / ".claude/logs/site_anatomy_sweep.log", "max_h": 30, "since": "2026-11-18"},
     # 2026-11-13: CoD-DB-Update-Check (cron 07:23, ohne Wrapper) fehlte im Audit (Inventur offene Punkte)
     {"name": "cod_db_update_check", "plan": "taeglich 07:23", "kind": "append",
      "path": HOME / "projects/CoD_Waffen_DB/cod_db_deltas_v2/_raw/update_check.log", "max_h": 30,

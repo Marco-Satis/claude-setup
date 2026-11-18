@@ -4,7 +4,7 @@ Auto-applied in den Gamebot-Projekten (cellsurvivor / survivorio / idleslayer) u
 
 ## Das geteilte Grundgerüst heißt `_botcore/`
 
-`C:\Users\<user>\OneDrive\Dokumente\Games\_botcore\` — **nicht** `gamebot_core/`.
+`C:\Users\<user>\Games\_botcore\` — **nicht** `gamebot_core/`.
 
 Der ursprüngliche Handoff (2026-07-24) schlug ein neues `gamebot_core/` vor, weil er ohne Kenntnis der
 PC-Struktur entworfen wurde. Discovery am 2026-07-24 zeigte: `_botcore/` existiert seit Monaten mit 17
@@ -76,11 +76,17 @@ Survivor.io_Bot) startet ihren **eigenen** Bot ohne der Nutzer neu, wenn alles d
    antworten `OK Neustart <bot>` oder `NEIN Neustart <bot>: <grund>` (z. B. laufender Kampf, gemeinsames ADB/Emulator
    gerade belegt). Betrifft der Neustart Startsteuerung, Watchdog-Kette, `_botcore` oder mehr als einen Bot, muss
    zusätzlich **Bot_Core** mit OK antworten.
-3. **Ohne alle OKs kein Neustart:** Fehlt eine Antwort nach 10 min oder kommt ein NEIN, MB-Zeile an „Setup Server“.
-4. **Nur der Standardweg** (Bot-Prozess beenden, Watchdog startet neu, bzw. `BOTS_RESTART_DETACHED.ps1`), höchstens
-   **3 Neustarts je Bot und Nacht**. Läuft der Bot nicht sauber, kein weiterer Versuch, MB-Zeile. Frist: 5 min ab dem
+3. **Ohne alle OKs kein Neustart:** Fehlt eine Antwort nach 10 min oder kommt ein NEIN, MB-Zeile an „Bot_Core“ (leitet an „Setup Server“ weiter).
+4. **Nur der Standardweg** (Bot-Prozess beenden, Watchdog startet neu, bzw. `BOTS_RESTART_DETACHED.ps1`), **Fixes
+   bündeln** (der Nutzer 16.11.2026, 19:02: „lieber gesammelt mehrere Fixe einspielen und dann 4-mal neu starten, anstatt 10-mal
+   neu starten für jeden einzelnen Fix“). Keine feste Obergrenze mehr, auch nachts nicht; Richtwert etwa 4 Neustarts je Bot
+   und Tag bzw. Nacht, damit keine Farming-Zeit unnötig verloren geht. Ein fertiger Fix wartet, bis ein zweiter dazukommt
+   oder ein Hänger ohnehin einen Neustart verlangt; dringend (Geld-/Kaufrisiko, Bot steht) geht sofort. Läuft der Bot nach
+   einem Neustart nicht sauber, kein blinder weiterer Versuch, sondern Ursache klären und MB-Zeile. Frist: 5 min ab dem
    Neustart; beim Weg „nur beenden, Watchdog startet neu“ bis 11 min, weil Watchdog-Prüfung und Log-Altersschwelle je
    300 s brauchen (IdleSlayer 13.11.: 8,5 min, normal).
-5. **Ergebnis** in einer Zeile an „Setup Server“, der den Punkt im der Nutzer-Block abhakt.
+5. **Ergebnis** in einer Zeile an „Bot_Core“, das es an „Setup Server“ weitergibt; der hakt den Punkt im der Nutzer-Block ab.
+**Meldeweg (der Nutzer 2026-11-16, 20:47):** „Bot-Sessions an sich werde ich auch nicht remote machen, weil sie es einfach nicht brauchen. Du [Bot_Core] bist remote und fungierst quasi als Sprachrohr für die drei.“ Die drei Bot-Sessions schicken MB-Zeilen, Ergebnisse und Fragen an Bot_Core, die Zentrale schickt ihre Nachrichten an die Bots über Bot_Core. Neustart-Absprachen laufen weiter direkt unter den drei.
+**Bot_Core verwaltet (der Nutzer 2026-11-16, 20:51):** „Du bist quasi die Verwaltung mit für die 3 Gamebot-Sessions. Nur wenn du … das nicht entscheiden kannst … meldest du das Ganze an Setup Server.“ Bot_Core entscheidet Bot-Fragen selbst, wenn alles gilt: umkehrbar, keine Löschung, kein Geld/Premium/Konto, nichts gegen des Nutzers Festlegungen (Picks, Loadouts, Spielweise, objective.json), keine Sicherheit gesenkt. Sonst MB-Zeile an „Setup Server“. An die Zentrale gehen nur erledigte der Nutzer-Aufträge, MB-Punkte und was der Nutzer wissen muss, keine reinen Statusmeldungen.
 Gilt auch im Nachtbetrieb. Fremde Bots neu starten, Löschen und `_botcore`-Edits außerhalb von Bot_Core bleiben bei
 der Nutzer bzw. Bot_Core.

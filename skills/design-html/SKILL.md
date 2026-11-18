@@ -1,6 +1,7 @@
 ---
 name: design-html
-version: 1.0.0
+version: 1.1.0
+last-reviewed: 2026-11-18
 description: |
   Design finalization: generates production-quality Pretext-native HTML/CSS.
   Works with approved mockups from /design-shotgun, CEO plans from /plan-ceo-review,
@@ -274,11 +275,35 @@ binaries. Consequences:
 - Visual mockup generation is not available. Analyze reference PNGs inline via
   the Read tool, or design directly from plan context / user description
   (HTML wireframe approach).
-- Preview and comparison happen by opening HTML files directly in the browser.
+- Preview and comparison happen through rendered images (`visual_sheet`, Step 4) that are handed to the user;
+  a local browser preview is optional (sessions on netcup have no desktop).
 - All design artifacts (mockup PNGs, approved.json, finalized.html,
   finalized.json) are saved project-local under
   `designs/<screen-name>-YYYYMMDD/` in the repo root — result reports are
   written as files into the project.
+
+## Qualitäts-Kette (G247, Pflicht)
+
+des Nutzers Mindestmaß (`~/.claude/rules/design-qualitaet.md`): Erfahrene Designer dürfen nicht erkennen, dass KI
+beteiligt war. Dieser Skill ist der Bau-Schritt der Kette (Stufe V: site-anatomy für das Vorbild →
+design-shotgun optional → design-html → Tor). Deshalb gilt zusätzlich zu allem unten:
+
+1. **Vor dem Entwurf lesen:**
+   - `~/.claude/templates/profi_kanon.md` (positiver Maßstab: was Profi-Seiten ausmachen) — vor dem Entwurf lesen, falls vorhanden.
+   - `~/.claude/templates/anti_ki_checkliste.md` (A1–A15, ein harter oder drei weiche Befunde = durchgefallen).
+   - `wz find design logbuch` (eigene letzte Arbeiten, Punkt A15), soweit Einträge vorhanden sind.
+2. **Stufe festlegen** (Plan G247 5.4): K Text-, Farb-, Abstandsfix · L Komponente oder Animation ·
+   V ganze Seite, Dashboard, neues Artifact. Ein Lauf dieses Skills ist fast immer **Stufe V**.
+3. **Stufe V braucht ein Vorbild:** `DESIGN.md` mit Abschnitt `## Vorbild` (von site-anatomy geschrieben).
+   Fehlt er, zuerst site-anatomy auf eine Profi-Seite aus dem Fach laufen lassen (Vorschläge in
+   `~/.claude/skills/site-anatomy/references/vorbilder.md`, falls vorhanden) — außer der Nutzer sagt ausdrücklich
+   „ohne Vorbild“; das kommt dann ins Protokoll (Feld „Vorbild“).
+4. **Zwei-Durchgänge-Plan vor dem Code** (frontend-design): Palette mit 4–6 benannten Werten, Schriften mit
+   Rollen, Layoutskizze, Prinzipien, Bewegungs-Signatur. Gegen Brief, Vorbild und Logbuch prüfen. Wählen statt
+   verbieten: Eine Reflex-Wahl (Inter, Creme-Grund, Karten-Raster, Eyebrows) nur, wenn der Brief sie verlangt.
+5. **Tor vor der Übergabe** (Step 4): `visual_sheet --pruefen`, Protokoll, Zweitblick, höchstens 3 Runden,
+   Stempel. Der Hook `design_tor.py` (netcup) merkt jede geschriebene HTML/CSS-Datei vor und sperrt bzw. vermerkt
+   eine Übergabe ohne Stempel.
 
 ## UX Principles: How Users Actually Behave
 
@@ -375,24 +400,37 @@ project root (design artifacts live project-local under `designs/`):
 ```bash
 _CEO=$(ls -t designs/ceo-plans/*.md *ceo-plan*.md docs/*ceo-plan*.md 2>/dev/null | head -1)
 [ -n "$_CEO" ] && echo "CEO_PLAN: $_CEO" || echo "NO_CEO_PLAN"
-_APPROVED=$(ls -t designs/*/approved.json 2>/dev/null | head -1)
+_APPROVED=$(ls -t designs/*/approved.json designs/*/ERGEBNIS.md 2>/dev/null | head -1)
 [ -n "$_APPROVED" ] && echo "APPROVED: $_APPROVED" || echo "NO_APPROVED"
-_VARIANTS=$(ls -t designs/*/variant-*.png 2>/dev/null | head -1)
+_VARIANTS=$(ls -t designs/*/variant-*.png designs/*/variant-*.html 2>/dev/null | head -1)
 [ -n "$_VARIANTS" ] && echo "VARIANTS: $_VARIANTS" || echo "NO_VARIANTS"
 _FINALIZED=$(ls -t designs/*/finalized.html 2>/dev/null | head -1)
 [ -n "$_FINALIZED" ] && echo "FINALIZED: $_FINALIZED" || echo "NO_FINALIZED"
 [ -f DESIGN.md ] && echo "DESIGN_MD: exists" || echo "NO_DESIGN_MD"
+grep -q '^## Vorbild' DESIGN.md 2>/dev/null && echo "VORBILD: ja" || echo "NO_VORBILD"
+_VERGLEICH=$(ls -t designs/*/vergleich.md 2>/dev/null | head -1)
+[ -n "$_VERGLEICH" ] && echo "VERGLEICH: $_VERGLEICH" || echo "NO_VERGLEICH"
 ```
+
+`APPROVED` is either an `approved.json` (older runs) or the `ERGEBNIS.md` that /design-shotgun writes today
+together with `variant-<letter>.html`. `VERGLEICH` is the comparison file from site-anatomy Phase 6
+(own design against the model page, including motion); read it as input whenever it exists.
+
+**Stufe V without `VORBILD`:** Before Case A/B/C, tell the user that a full page starts from a measured
+model page (rules/design-qualitaet.md point 3) and offer: A) run site-anatomy on a model page first,
+B) der Nutzer says „ohne Vorbild“ (record it in the protocol field „Vorbild“). Do not silently skip this.
 
 If a plan might live elsewhere in the project, additionally Glob for
 `**/*ceo-plan*.md` before concluding `NO_CEO_PLAN`.
 
 Now route based on what was found. Check these cases in order:
 
-### Case A: approved.json exists (design-shotgun ran)
+### Case A: approved.json or ERGEBNIS.md exists (design-shotgun ran)
 
-If `APPROVED` was found, read it. Extract: approved variant PNG path, user feedback,
-screen name. Also read the CEO plan if one exists (it adds strategic context).
+If `APPROVED` was found, read it. Extract: approved variant (PNG, or `variant-<letter>.html` — then read
+that HTML as the visual and structural reference), user feedback, screen name. From an `ERGEBNIS.md` take
+the chosen variant, the feedback and the variants the second look struck as AI-typical (do not revive them).
+Also read the CEO plan if one exists (it adds strategic context).
 
 Read `DESIGN.md` if it exists in the repo root. These tokens take priority for
 system-level values (fonts, brand colors, spacing scale).
@@ -404,7 +442,7 @@ Then check for prior finalized.html. If `FINALIZED` was also found, use AskUserQ
 > B) Start fresh — regenerate from the approved mockup
 
 If evolve: read the existing HTML. Apply changes on top during Step 3.
-If fresh or no finalized.html: proceed to Step 1 with the approved PNG as the
+If fresh or no finalized.html: proceed to Step 1 with the approved PNG or `variant-<letter>.html` as the
 visual reference.
 
 ### Case B: CEO plan and/or design variants exist, but no approved.json
@@ -446,7 +484,7 @@ If C: proceed to Step 1 in "freeform mode." Ask the user for a screen name.
 
 After routing, output a brief context summary:
 - **Mode:** approved-mockup | plan-driven | freeform | evolve
-- **Visual reference:** path to approved PNG, or "none (plan-driven)" or "none (freeform)"
+- **Visual reference:** path to approved PNG or approved `variant-<letter>.html` (with its rendered PNGs), or "none (plan-driven)" or "none (freeform)"
 - **CEO plan:** path or "none"
 - **Design tokens:** "DESIGN.md" or "none"
 - **Screen name:** from approved.json, user-provided, or inferred from CEO plan
@@ -455,7 +493,9 @@ After routing, output a brief context summary:
 
 ## Step 1: Design Analysis
 
-1. If an approved/reference PNG exists, read it inline using the Read tool.
+1. If an approved/reference PNG exists, read it inline using the Read tool. If the approved variant is
+   `variant-<letter>.html`, read its HTML and its rendered PNGs (design-shotgun `render/`); take layout, type and
+   palette from it, not its code verbatim (it is a draft).
    Describe the visual layout, colors, typography, and component structure yourself.
 
 2. If in plan-driven or freeform mode (no approved PNG), design from context:
@@ -578,6 +618,10 @@ For framework output, save to:
 - Emoji as visual elements
 - Generic testimonial sections
 - Cookie-cutter hero sections with left-text right-image
+- Everything else on `~/.claude/templates/anti_ki_checkliste.md` (A1–A15): cream/sand or near-black-plus-neon
+  backgrounds, reflex fonts (Inter, Space Grotesk, Geist, …) without a reason from the brief, eyebrow/`01 02 03`
+  template grammar, hero metric recipes, card kits, glass/gradient text, placeholders (picsum, example.com,
+  `href="#"`), filler copy, fade-and-rise on every section, bounce/overshoot easing, `transition: all`
 
 ### Pretext Wiring Patterns
 
@@ -735,9 +779,11 @@ setLocale(locale?) → void
 
 ---
 
-## Step 3.5: Live Reload Server
+## Step 3.5: Live Reload Server (optional)
 
-After writing the HTML file, start a simple HTTP server for live preview:
+Only useful when the user sits at a desktop that can reach the server (not for netcup sessions used via the
+phone app). The required check is the gate in Step 4, which renders the file itself. If wanted, start a simple
+HTTP server for live preview:
 
 ```bash
 # Start a simple HTTP server in the output directory
@@ -765,38 +811,49 @@ kill $_SERVER_PID 2>/dev/null || true
 
 ## Step 4: Preview + Refinement Loop
 
-### Verification
+### Verification: the gate (G247, mandatory)
 
-No headless-browser binary is bundled. If browser automation tooling is
-available in this session (e.g. a browser/preview MCP), take verification
-screenshots at 375px, 768px, and 1440px widths and show them inline. Check for:
-- Text overflow (text cut off or extending beyond containers)
-- Layout collapse (elements overlapping or missing)
-- Responsive breakage (content not adapting to viewport)
+Never skip this and never hand the check to the user. On netcup:
 
-If issues are found, note them and fix before presenting to the user.
+```bash
+# Bash timeout 200000. Page as a file under ~/projects/ or /tmp/claude-<uid>/ (preferred) or 127.0.0.1 URL.
+node ~/.claude/scripts/visual_sheet.mjs <path>/finalized.html --pruefen --outdir <scratchpad>/pruefung_<screen>
+```
 
-If no automation tooling is available, skip automated verification and ask the
-user to check the three widths in the browser (DevTools responsive mode).
+1. Read **every** PNG listed in `<outdir>/pruefung.md` with the Read tool (390 and 1280 px, full page, grey,
+   reduced motion, no JS, motion step sheets).
+2. Fill `pruefung.md`: Stufe (normally V), Runde, each A1–A15 and M1–M12 as `ok`, `Befund` (image path + spot
+   in „Beleg“) or `n.a.` (quote from the brief). Criteria: `~/.claude/templates/anti_ki_checkliste.md` and
+   `~/.claude/scripts/visual_sheet_checkliste.md`. The column „Mechanik“ is a hint, not a verdict.
+3. If a `VERGLEICH` file exists (site-anatomy Phase 6), compare against the model page: equal in quality,
+   not mistakable for it (layout, type, motion profile).
+4. **Second look, blind** (`~/.claude/templates/design_zweitblick.md`): Stufe L a fresh Claude subagent,
+   Stufe V additionally Codex. Only image paths, no brief, no code. Enter the result in the protocol header.
+5. Finding → fix with surgical Edits, render again, look again. **At most 3 rounds**; a remaining finding after
+   round 3 goes into „Restbefund“ and into the hand-over sentence.
+6. **Stamp:** `python3 ~/.claude/hooks/design_tor.py stempel <path>/finalized.html <outdir>/pruefung.md`
+   (exit 2 lists what is missing). Only a stamped page is shown to the user as finished.
+
+On the PC (no visual_sheet): render with Claude in Chrome at 390/1280 px, look at the screenshots and go
+through the same checklist; no stamp exists there, say so in the hand-over sentence.
 
 ### Refinement Loop
 
 ```
 LOOP:
-  1. If server is running, tell user to open http://localhost:PORT/finalized.html
-     Otherwise: open <path>/finalized.html
+  1. Render (Step 4 gate run) and hand the 390/1280 PNGs to the user (SendUserFile or absolute paths).
+     A localhost preview is an optional extra for a user at a desktop.
 
-  2. If an approved mockup PNG exists, show it inline (Read tool) for visual comparison.
+  2. If an approved mockup (PNG or variant HTML renders) exists, show it inline (Read tool) for visual comparison.
      If in plan-driven or freeform mode, skip this step.
 
   3. AskUserQuestion (adjust wording based on mode):
-     With mockup: "The HTML is live in your browser. Here's the approved mockup for comparison.
-      Try: resize the window (text should reflow dynamically),
-      click any text (it's editable, layout recomputes instantly).
+     With mockup: "Here are the rendered pages at 390 and 1280 px next to the approved mockup
+      (if you have a desktop browser: resize the window, text reflows; click text to edit).
       What needs to change? Say 'done' when satisfied."
-     Without mockup: "The HTML is live in your browser. Try: resize the window
-      (text should reflow dynamically), click any text (it's editable, layout
-      recomputes instantly). What needs to change? Say 'done' when satisfied."
+     Without mockup: "Here are the rendered pages at 390 and 1280 px (if you have a desktop
+      browser: resize the window, text reflows; click text to edit).
+      What needs to change? Say 'done' when satisfied."
 
   4. If "done" / "ship it" / "looks good" / "perfect" → exit loop, go to Step 5
 
@@ -805,7 +862,8 @@ LOOP:
 
   6. Brief summary of what changed (2-3 lines max)
 
-  7. If verification screenshots are available, re-take them to confirm the fix
+  7. Re-run the gate (visual_sheet --pruefen, new outdir, Runde +1) and look at the new PNGs; a changed file
+     invalidates the old stamp
 
   8. Go to LOOP
 ```
@@ -816,6 +874,10 @@ Maximum 10 iterations. If the user hasn't said "done" after 10, use AskUserQuest
 ---
 
 ## Step 5: Save & Next Steps
+
+**„Fertig“ only with a stamp.** Before this step, `python3 ~/.claude/hooks/design_tor.py status <path>/finalized.html`
+must show a valid stamp (or der Nutzer said „ohne Tor“, or the session runs on the PC where no stamp exists; then say so). The hand-over sentence names what was checked
+(Stufe, rounds, second look) and any Restbefund.
 
 ### Design Token Extraction
 
@@ -852,7 +914,9 @@ Write `finalized.json` alongside the HTML:
   "iterations": <number of refinement iterations>,
   "date": "<ISO 8601>",
   "screen": "<screen name>",
-  "branch": "<current branch>"
+  "branch": "<current branch>",
+  "pruefung": "<path to pruefung.md>",
+  "stempel": "<stamped|ohne Tor|PC: no stamp>"
 }
 ```
 
@@ -887,3 +951,15 @@ Use AskUserQuestion:
 
 - **One page per invocation.** For multi-page designs, run /design-html once per page.
   Each run produces one HTML file.
+
+- **No hand-over without the gate.** Step 4 (visual_sheet --pruefen, protocol, second look, stamp) is
+  mandatory, also for Artifacts. "Ask the user to check" is not a substitute.
+
+## Changelog
+
+- **v1.1.0** (2026-11-18): G247 B7 — Qualitäts-Kette: Pflichtlektüre (`profi_kanon.md` falls vorhanden,
+  Anti-KI-Checkliste, Logbuch), Stufe V nur mit Vorbild (`## Vorbild` in DESIGN.md) oder „ohne Vorbild“,
+  Step 0 erkennt `ERGEBNIS.md` und `variant-*.html` von design-shotgun sowie `vergleich.md` von site-anatomy,
+  Step 4 Pflicht-Tor statt „otherwise ask the user“ (visual_sheet --pruefen, Zweitblick, 3 Runden, Stempel),
+  Step 5 „fertig“ erst mit Stempel.
+- **v1.0.0**: gstack-Port, standalone.

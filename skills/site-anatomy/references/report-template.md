@@ -141,11 +141,16 @@ Quelle: `kopien/pages/<seite>/text.md`, `cap` `pages[].headings`, `pages[].ctas`
 kurz zitiert; Dramaturgie und Tonalität [E] mit Beleg.
 
 ## 12. Motion
-Dauern, Easing-Kurven, welche Elemente sich bewegen.
-Quelle: `des[i]` `motion.durations`, `.easings`, `.springs`, `.feel` und `animations` [T]; bewegte
-Elemente nur [V], soweit Screenshots sie zeigen. `animations` zählt `transition: all` (den
-Browser-Standardwert) als Bewegung — Anteile bewegter Elemente sind eine obere Schranke und werden
-so benannt. Verhalten bei „Bewegung reduzieren“: nicht erhoben.
+Rollen, Dauern, Kurven, Choreografie und Signaturmoment — **Messwerte** aus Phase 2d.
+Quelle: `ergebnis/motion.json` [M] (`seiten[].rollen`: `eintritt`, `rueckmeldung`, `zustand`,
+`sonstige_animation` je `dauer` min/median/max und `kurven`, dazu `stagger_ms`, `schleifen`, `signatur_kandidat`,
+`js`; auf `seiten[]`-Ebene `flags[]` mit Art H/W, `reduzierte_bewegung`, `consent`), Schrittbögen `kopien/motion/<n>_<g>.png` [V] (Kurvenform:
+bei 50 % der Zeit hat eine ease-out-Bewegung mehr als die Hälfte des Wegs zurückgelegt). Laien-Satz je
+Rolle („Hover-Rückmeldung 150 ms, fühlt sich sofort an“). Verhalten bei „Bewegung reduzieren“ aus
+`reduzierte_bewegung` (Anzahl Animationen vorher/nachher, Flag `rm-unchanged`). JS-Bewegung (GSAP,
+Lottie, Canvas, rAF) nur als „abgeleitet“ aus `rollen.js` bzw. leanrea-Parametern; Worker, Video,
+WebGL-Shader „nicht erfasst“. `des[i]` `motion.*` [T] nur ergänzend; dessen `animations` zählt
+`transition: all` mit und ist nur eine obere Schranke. Fehlt `motion.json`: „nicht erhoben: <Grund>“.
 
 ## 13. Responsive
 Breakpoints × Umbau-Muster (Spalten → gestapelt, Navigation → Burger, Bildausschnitt wechselt …).
@@ -208,17 +213,21 @@ Kacheln [V].
   Fehlt die Ausgabe ohne diesen Vermerk, gilt die Prüfung als nicht bestanden
 - Bild-Briefing für eigene Fotos/Illustrationen
 - Tonalitätsprofil
+- Bewegungsprofil: `own-tokens` Gruppe `motion` (Dauer je Rolle, Easing Ein/Aus/Standard, Stagger,
+  Signaturmoment) mit Herleitung aus `motion.json`; Verhältnisse, nie Code, Lottie-Dateien oder Assets
 - **Nicht übernehmen:** Logo, Markenzeichen, Hausschrift, Fotos, Illustrationen, Texte, Slogans,
   geschützte Markenfarben, eine Gesamtanmutung, die Herkunft von der Vorlage suggeriert
 - Sektionsplan für `design-html`; falls geschrieben: Pfade von `<ziel>/DESIGN.md` und
   `<ziel>/designs/ceo-plans/<domain>-sektionsplan.md`
 - falls Phase 6 lief: Vergleichstabelle Kennzahl | Quelle | Vorlage | eigen | Δ | Toleranz | ok
+  (inklusive Bewegungszeilen) und Pfad von `<ziel>/designs/<screen>-<YYYYMMDD>/vergleich.md`
 
 ## 22. Grenzen der Analyse
 Alles, was oben „nicht erhoben“ ist, gesammelt mit Grund. Dazu: Werkzeugfehler aus
 `ergebnis/measure_errors.json` und `ergebnis/capture_errors.json`; per Rechts-Check übersprungene
 und blockierte Seiten; offener Consent-Banner (Satz aus Teil 1, nur bei `no_reject_button_found`
 oder `reject_failed`); Kacheln oder Kontaktbögen = 0; „kein Dark Mode erkennbar (Screenshots
-identisch)“, falls zutreffend; Bewegungsanteile als obere Schranke (`transition: all`); fehlende
+identisch)“, falls zutreffend; Bewegung: in Phase 2d übersprungene Seiten (`motion.json`
+`uebersprungen[]`), JS-Bewegung nur abgeleitet, keine GPU auf netcup (Ruckeln nur relativ); fehlende
 Lösch-Routine (`ROUTINE_FEHLT` aus Schritt 0); A/B-Varianten, Personalisierung, Login-Bereiche,
 Bot-Schutz.

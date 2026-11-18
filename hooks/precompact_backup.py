@@ -32,8 +32,9 @@ def main():
     backup_dir = backups_root / f"precompact_{ts}"
 
     # Dynamisch jeweils juengstes Status / Backlog / Review-Report finden
-    fp_docs = Path("C:/Users/der Nutzer/OneDrive/Dokumente/AudioSetup/FootstepAnalyzer/docs")
-    prompt_opt = Path("C:/Users/der Nutzer/OneDrive/Dokumente/Projekte/Skills_&_Co")
+    fp_docs = Path("C:/Users/der Nutzer/AudioSetup/FootstepAnalyzer/docs")  # seit 17.11.2026 ausserhalb von OneDrive
+    # Seit 17.11.2026 (Phase 4 Stufe 4) ist die projects-sync-Kopie der Arbeitsordner, die OneDrive-Kopie heisst _ALT.
+    prompt_opt = Path("C:/Users/der Nutzer/projects-sync/Skills_&_Co")
 
     sources = []
     for directory, pat in [(fp_docs, "STATUS_*.md"), (fp_docs, "BACKLOG_v*.md")]:
@@ -85,14 +86,13 @@ def main():
                 shutil.rmtree(old, ignore_errors=True)
         except Exception:
             pass  # Retention darf den Backup-Flow nicht stoeren
-        if copied:
-            out = {
-                "systemMessage": (
-                    f"PreCompact-Backup -> {backup_dir} ({len(copied)} Files: "
-                    f"{', '.join(copied)})"
-                )
-            }
-            print(json.dumps(out))
+        # K4 (Umzugsplan 16.11.): fehlende Quellordner melden statt still uebergehen
+        fehlt = [str(d) for d in (fp_docs, prompt_opt) if not d.is_dir()]
+        if copied or fehlt:
+            msg = f"PreCompact-Backup -> {backup_dir} ({len(copied)} Files: {', '.join(copied)})"
+            if fehlt:
+                msg += f" | [K4] Quellordner fehlt: {'; '.join(fehlt)} - Pfad in hooks/precompact_backup.py nachziehen"
+            print(json.dumps({"systemMessage": msg}))
     except Exception as e:
         # Niemals den Compact-Flow blockieren
         print(json.dumps({"systemMessage": f"PreCompact-Backup Fehler (ignoriert): {e}"}))

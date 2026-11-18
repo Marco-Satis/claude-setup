@@ -17,6 +17,17 @@ fragen. Ein Nein bei 1 oder 2 heißt: nicht bauen. Auch wenn 3 reicht, wird 4 ge
    Skill-Liste (unvollständig, siehe [native-skills-erkennung](native-skills-erkennung.md)).
 5. Erst dann das **Minimum** bauen.
 
+## Bestand zuerst, auch vor der Antwort (der Nutzer 2026-11-16, 21:32)
+
+„Das gilt allgemein wieder projektübergreifend: immer erst den Bestand checken, was da ist, bevor man antwortet, um
+erstmal zu wissen, was überhaupt da ist und was für Möglichkeiten es gibt.“ Anlass: Auf „Memories werden nicht aktiv
+geschrieben“ baute die Zentrale einen neuen Stop-Hook, bevor sie die vier vorhandenen Memory-Hooks und die live
+geschaltete Merkliste (Phase M) gesichtet hatte; der Nutzer musste nachfragen.
+1. Vor jeder Antwort, Bewertung oder Lösung zu einem Thema erst den Bestand erheben: verdrahtete Hooks
+   (`settings.json`), Skripte, Skills, Rules, Routinen, Flags, `wz find`, laufende Dienste und Projektdateien.
+2. Die Antwort nennt zuerst, was es schon gibt und was davon fehlt oder nicht greift; erst danach kommt ein Vorschlag.
+3. Gilt für alle Sessions und Projekte, auch unter Zeitdruck und für scheinbar kleine Fragen.
+
 ## Abgrenzung
 
 - Gamebots: [gamebot-reuse-first](gamebot-reuse-first.md) konkretisiert Stufe 4 für `_botcore/` und geht dort vor.

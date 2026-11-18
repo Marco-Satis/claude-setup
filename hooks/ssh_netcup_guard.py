@@ -74,13 +74,13 @@ ASK_PATTERNS = [
     (r"(?:^|[\s/'\"])wz\s+(?:bestaetigen|betrieb|secrets-hash|init|zurueck|modellwahl|eingang|commit|pflege"
      r"|reindex)\b", "heikler wz-Befehl"),
     (r"(?<![<>&0-9=-])(?:[0-9]?>>?|&>>?)\s*(?!&|/dev/(?:null|stdout|stderr)\b)['\"]?(?:~|/|\$HOME|\.{1,2}/"
-     r"|[\w.-]+\.\w{1,6}(?![\w(]))", "Umleitung in eine Datei"),
+     r"|[\w-]{1,80}\.\w{1,6}(?![\w(]))", "Umleitung in eine Datei"),
     (CMDPOS + r"(?:shutdown\s+-r|reboot)\b", "Neustart des Servers"),
 ]
 
 DENY_PATTERNS = [
     (r"(?<![\w.-])mkfs(?:\.\w+)?(?![\w.-])", "mkfs formatiert ein Dateisystem"),
-    (r"(?<![\w.-])dd\b[^;|&\n]*\bof=/dev/", "dd schreibt auf ein Geraet"),
+    (r"(?<![\w.-])dd\b[^;|&\n]{0,200}\bof=/dev/", "dd schreibt auf ein Geraet"),
     (r">\s*/dev/(?:sd|nvme|vd|xvd|mmcblk)", "Umleitung auf ein Geraet"),
     (r"(?<![\w.-])wipefs(?![\w.-])", "wipefs"),
     (r"(?<![\w.-])crontab\s+(?:-\w*\s+)*-\w*r\w*(?![\w-])", "crontab -r loescht alle Cronjobs"),
@@ -90,8 +90,8 @@ DENY_PATTERNS = [
     (r"(?<![\w.-])(?:userdel|deluser)(?![\w.-])", "Benutzer loeschen"),
     (r"(?<![\w.-])ufw\s+(?:--force\s+)?(?:disable|reset)\b", "Firewall abschalten"),
     (r"(?<![\w.-])iptables\s+(?:-t\s+\w+\s+)?-F\b", "Firewall-Regeln leeren"),
-    (r"(?<![\w.-])find\s+(?:~|/|\$HOME)\S*\s[^;|&\n]*-delete\b", "find -delete auf ~ oder /"),
-    (r"(?<![\w.-])git\b[^;|&\n]*\bpush\b[^;|&\n]*(?:--force\b|--force-with-lease\b|\s-f\b|\s\+\S)",
+    (r"(?<![\w.-])find\s+(?:~|/|\$HOME)\S{0,100}\s[^;|&\n]{0,300}-delete\b", "find -delete auf ~ oder /"),
+    (r"(?<![\w.-])git\b[^;|&\n]{0,200}\bpush\b[^;|&\n]{0,200}(?:--force\b|--force-with-lease\b|\s-f\b|\s\+\S)",
      "git push --force"),
     (r"filter-repo|filter-branch", "Git-Historie umschreiben"),
     (r"(?<![\w.-])(?:poweroff|halt)(?![\w.-])|(?<![\w.-])shutdown(?![\w.-])(?!\s+-r\b)|systemctl\s+(?:\S+\s+)*"
@@ -107,24 +107,34 @@ SENS_STRONG = re.compile(
     r"\.env(?:$|[./])|(?:^|/)secrets?(?:/|$)|\.ssh(?:/|$)|id_rsa|id_ed25519|id_ecdsa|\.pem$|\.key$|\.p12$|\.pfx$"
     r"|\.kdbx|\.keyx|\.gnupg|\.gpg$|auth\.json|credentials\.json|\.netrc|\.git-credentials|_history$"
     r"|\.claude\.json|rclone\.conf|gh/hosts\.yml|\.npmrc|\.pypirc|\.docker/config|/etc/shadow|sudoers"
-    r"|environ$|ntfy_eigen|\.pass$|syncthing/config|\.n8n(?:/|$)|wg0\.conf|/etc/wireguard|cookies"
-    r"|\.bashrc|\.bash_profile|\.profile$|\.zshrc|codex/config", re.I)
+    r"|environ$|ntfy_eigen(?:\.env|_marco)|\.pass$|syncthing/config|\.n8n(?:/|$)|wg0\.conf|/etc/wireguard|cookies"
+    r"|\.bashrc|\.bash_profile|\.profile$|\.zshrc|codex/config|creds|\.pgpass|\.kube/|\.my\.cnf|keyring"
+    r"|\.gemini/|google_accounts|\.aws/|\.azure/|\.config/gh/|\.vault|\.htpasswd", re.I)
 SENS_WEAK = re.compile(r"secret|credential|token|passw|apikey|api_key", re.I)
 SENS_EXEMPT = re.compile(r"\.env\.(?:example|sample|template|dist)$", re.I)
 CODE_EXT = re.compile(r"\.(?:py|pyc|js|mjs|ts|tsx|jsx|css|scss|md|html|htm|jinja|j2|sh|ps1|go|rs|java|rb|php|vue"
                       r"|svelte|ya?ml|toml|lock|log)$", re.I)
-PATHISH = re.compile(r"[\w.~$/+@%:-]*[/~][\w.~$/+@%:-]*|(?<![\w])\.[\w.-]+")
+_TOKSPLIT = re.compile(r"[\s'\"`;|&()<>=,]+")
+
+
+def _sens_tok(tok):
+    """Ein Wort als (moeglichen) Pfad pruefen. Stark: immer; schwach (token, secret ...): nur mit / oder ."""
+    if not tok or SENS_EXEMPT.search(tok) or re.search(r"[\\(|]", tok):  # Regex-Muster, kein Pfad
+        return None
+    if SENS_STRONG.search(tok):
+        return tok
+    if ("/" in tok or "." in tok) and SENS_WEAK.search(tok) and not CODE_EXT.search(tok):
+        return tok
+    return None
 
 
 def sensitive_in(text):
-    for m in PATHISH.finditer(text):
-        tok = m.group(0)
-        if SENS_EXEMPT.search(tok):
-            continue
-        if SENS_STRONG.search(tok):
-            return tok
-        if SENS_WEAK.search(tok) and not CODE_EXT.search(tok):
-            return tok
+    """Pfadartige Woerter (/, ~ oder fuehrender Punkt) im Text pruefen. Linear (kein Regex-Backtracking)."""
+    for tok in _TOKSPLIT.split(text or ""):
+        if tok and ("/" in tok or "~" in tok or tok.startswith(".")):
+            r = _sens_tok(tok)
+            if r:
+                return r
     return None
 
 
@@ -133,13 +143,18 @@ class Reject(Exception):
     pass
 
 
-_DEVNULL_REDIR = re.compile(r"(?:[12]?>|&>)\s*/dev/null(?=$|[\s;|&)])")
-_DUP_REDIR = re.compile(r"(?:2>&1|>&2|1>&2)(?=$|[\s;|&)])")
-_EXP_START = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789{(@*#?$!-")
+_DEVNULL_REDIR = re.compile(r"(?:[12]?>|&>)[ 	]*/dev/null(?=$|[ 	;|&)])")
+_DUP_REDIR = re.compile(r"(?:2>&1|>&2|1>&2)(?=$|[ 	;|&)])")
+_EXP_START = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789{(@*#?$!-[")
 _UNQUOTED_BAD = set("$`\\*?[]{}()<>!#&")
 
 
-def lex(s):
+def lex(s, local=False):
+    """local=True: Befehl fuer die PC-Shell. Dort ist auch ein ungequotetes ~ verboten, weil Git Bash es
+    vor ssh erweitert (~+ = $PWD mit '&' im Pfad) und der Fernbefehl dann anders aussieht als geprueft.
+    Steuerzeichen und Unicode-Leerraum sind ganz verboten (Python-\\s != Bash-Worttrennung, Runde 2)."""
+    if re.search(r"[\x00-\x08\x0a-\x1f\x7f\x85\xa0  -​    　﻿]", s):
+        raise Reject("Steuerzeichen oder Unicode-Leerraum")
     toks = []
     cur = None
     i, n = 0, len(s)
@@ -217,7 +232,7 @@ def lex(s):
             toks.append(("op", c))
             i += 1
             continue
-        if c in _UNQUOTED_BAD:
+        if c in _UNQUOTED_BAD or (local and c == "~"):
             raise Reject(f"Zeichen {c!r}")
         cur = (cur or "") + c
         i += 1
@@ -318,7 +333,7 @@ _SSH_O_OK = {
     "serveralivecountmax": re.compile(r"^\d{1,3}$"),
     "connectionattempts": re.compile(r"^\d{1,2}$"),
     "loglevel": re.compile(r"^(?:error|quiet|fatal)$", re.I),
-    "stricthostkeychecking": re.compile(r"^(?:yes|accept-new)$", re.I),
+    "stricthostkeychecking": re.compile(r"^yes$", re.I),
 }
 
 
@@ -362,26 +377,47 @@ def parse_ssh(words):
 WZ_PROGS = {"~/.local/bin/wz", "$HOME/.local/bin/wz", "wz"}
 WZ_ALLOW = {"find", "get", "wo", "nachbarn", "neu", "set", "archiv", "historie", "bereich", "merk", "verify",
             "lint", "-h", "--help"}
-PLAIN_READ = {"echo", "printf", "true", "pwd", "whoami", "id", "uname", "uptime", "free", "df", "du", "wc",
-              "md5sum", "sha1sum", "sha256sum", "stat", "file", "ls", "readlink", "realpath", "basename", "dirname",
-              "sleep", "nproc", "lsb_release", "which", "cut", "tr", "head", "tail", "cat", "nl", "diff", "cmp",
-              "pgrep", "cd", "column"}
+WZ_WRITE = {"neu", "set", "archiv", "merk"}
+# Positivliste fuer schreibende wz-Befehle (exakt, keine argparse-Abkuerzungen). Bewusst NICHT: --aus (liest
+# eine Datei ein), --marco-ok (des Nutzers Bestaetigung), --trotzdem (uebergeht Pruefungen).
+WZ_OPTS_OK = {"--area", "--type", "--title", "--fakt", "--key", "--tag", "--quelle", "--quelle-url", "--link",
+              "--xref", "--bezug", "--warum", "--prio", "--personendaten", "--quote", "--ersetzt", "--grund",
+              "--ohne-reindex", "--von-merk", "--regel", "--base-sha", "--fakt-neu", "--fakt-weg", "--key-weg",
+              "--link-weg", "--xref-weg", "--bereich", "--titel", "--text", "-h", "--help"}
+PLAIN_READ = {"echo", "printf", "true", "pwd", "whoami", "id", "uname", "uptime", "free", "df", "nproc",
+              "lsb_release", "which", "readlink", "realpath", "basename", "dirname", "sleep"}
 SYSTEMCTL_SUB = {"status", "is-active", "is-enabled", "is-failed", "list-units", "list-timers", "list-unit-files",
-                 "list-sockets", "show", "cat", "list-dependencies"}
-SYSTEMCTL_FLAGS = re.compile(r"^(?:--user|--no-pager|--full|-l|--all|-a|--plain|--no-legend|-q|--quiet|--value"
-                             r"|--lines=\d+|-n\d*|--state=[\w,-]+|--type=[\w,-]+|-t|--property=[\w,]+|-p)$")
+                 "list-sockets", "list-dependencies"}
+SYSTEMCTL_FLAGS = re.compile(r"^(?:--user|--no-pager|--full|-l|--all|-a|--plain|--no-legend|-q|--quiet"
+                             r"|--lines=\d+|-n\d+|--state=[\w,-]+|--type=[\w,-]+)$")
 JOURNAL_FLAGS = re.compile(r"^(?:--user|--no-pager|-q|--quiet|-r|--reverse|-e|-x|-k|--utc|--no-hostname|-f"
-                           r"|--follow|-b|--boot(?:=\S+)?|-n\d*|--lines=\d+|-u|--unit=\S+|--user-unit(?:=\S+)?"
-                           r"|--since(?:=.+)?|-S|--until(?:=.+)?|-U|-o|--output=\w+(?:-\w+)*|-p|--priority=\w+"
-                           r"|-g|--grep=.+|-t|--identifier=\S+|--case-sensitive(?:=\w+)?)$")
-JOURNAL_TAKES_VALUE = {"-u", "-n", "-S", "-U", "-o", "-p", "-g", "-t", "--since", "--until", "--user-unit", "-b"}
-GIT_SUB = {"status", "log", "diff", "show", "rev-parse", "ls-files", "describe", "shortlog", "blame"}
-GIT_BAD_ARG = re.compile(r"^(?:--output|--ext-diff|-c$|--exec-path|--upload-pack|--receive-pack|-O|"
-                         r"--open-files-in-pager|--no-index)")
+                           r"|--follow|-b|-n\d*|--lines=\d+|-u|--unit=[\w@.:-]+|--user-unit=[\w@.:-]+"
+                           r"|--since=.+|-S|--until=.+|-U|-o|--output=[\w-]+|-p|--priority=\w+"
+                           r"|-g|--grep=.+|-t|--identifier=[\w@.:-]+)$")
+JOURNAL_TAKES_VALUE = {"-u", "-S", "-U", "-o", "-p", "-g", "-t"}
+GIT_SUB = {"status", "log", "diff", "show", "rev-parse", "ls-files", "describe", "shortlog", "blame", "branch",
+           "remote"}
+GIT_LONG_OK = re.compile(
+    r"^--(?:oneline|stat|shortstat|numstat|short|name-only|name-status|graph|decorate|no-decorate|abbrev-commit"
+    r"|porcelain(?:=v\d)?|branch|show-toplevel|abbrev-ref|is-inside-work-tree|show-current|all|reverse|no-merges"
+    r"|merges|first-parent|cached|staged|others|exclude-standard|tags|long|always|summary|patch|no-color"
+    r"|untracked-files(?:=\w+)?|ahead-behind|verbose|remotes|list)$"
+    r"|^--(?:format|pretty|since|until|after|before|author|grep|max-count|date|abbrev|sort|contains|merged"
+    r"|no-merged|points-at)=")
+FIND_OK = {"-name", "-iname", "-type", "-maxdepth", "-mindepth", "-mtime", "-mmin", "-size", "-newer", "-path",
+           "-ipath", "-print", "-o", "-a", "-not", "-prune", "-empty", "-perm", "-user", "-group", "-printf",
+           "-print0", "-depth", "-xdev", "-regex", "-iregex", "-ls", "-or", "-and", "-links", "-readable",
+           "-writable", "-executable", "-atime", "-ctime", "-amin", "-cmin", "-wholename", "-iwholename",
+           "-lname", "-ilname", "-uid", "-gid", "-nouser", "-nogroup", "-quit", "-true", "-false", "-daystart"}
+FIND_TAKES = {"-name", "-iname", "-type", "-maxdepth", "-mindepth", "-mtime", "-mmin", "-size", "-newer", "-path",
+              "-ipath", "-perm", "-user", "-group", "-printf", "-regex", "-iregex", "-links", "-atime", "-ctime",
+              "-amin", "-cmin", "-wholename", "-iwholename", "-lname", "-ilname", "-uid", "-gid"}
 FIND_BAD = {"-exec", "-execdir", "-ok", "-okdir", "-delete", "-fprint", "-fprint0", "-fprintf", "-fls"}
 SAFE_SED = re.compile(
     r"^(?:(?:\d+|\$|/[^/\n]*/)(?:,(?:\d+|\$|/[^/\n]*/))?\s*[pdq]"
     r"|s(?P<d>[/|#,:@])(?:(?!(?P=d)).)*(?P=d)(?:(?!(?P=d)).)*(?P=d)[gIip0-9]*)$")
+GREP_LETTERS = "EFGivwxcnlLhHsoqzaIUT"
+GREP_ARG = "emABC"
 
 
 def _short_letters(w):
@@ -390,39 +426,51 @@ def _short_letters(w):
     return m.group(1) if m and not w.startswith("--") else ""
 
 
-def check_grep(args, remote):
+def _no_secret(p):
+    if _sens_tok(p):
+        raise Reject("geheimer Pfad")
+
+
+def _opts(args, letters="", arg_letters="", long_ok=(), long_val_ok=(), num_ok=False, max_pos=None):
+    """Positivliste (16.11. nach dem Angriffstest): Kurzoptionen nur aus `letters` (Buendel erlaubt, wie
+    getopt), `arg_letters` nehmen einen Wert (angehaengt oder naechstes Wort); Langoptionen nur EXAKT aus
+    long_ok bzw. '--name=wert' mit name aus long_val_ok - GNU-Abkuerzungen (--compress-prog, --out=) fallen
+    damit weg. -> Positionsargumente."""
     pos = []
-    takes = {"-e", "-m", "-A", "-B", "-C", "--max-count", "--after-context", "--before-context", "--context",
-             "--regexp", "--label", "--color", "--colour"}
-    has_e = False
     k = 0
     while k < len(args):
         a = args[k]
+        if a == "--":
+            pos.extend(args[k + 1:])
+            break
         if a.startswith("--"):
-            name = a.split("=", 1)[0]
-            if name in ("--recursive", "--dereference-recursive", "--directories", "--devices", "--file",
-                        "--include-dir"):
-                raise Reject("grep rekursiv/Datei")
-            if name == "--regexp":
-                has_e = True
-            if name in takes and "=" not in a:
-                k += 2
+            if a in long_ok or ("=" in a and a.split("=", 1)[0] in long_val_ok):
+                k += 1
                 continue
-        elif a.startswith("-") and a != "-":
-            letters = _short_letters(a)
-            if set(letters) & set("rRdDf"):
-                raise Reject("grep -r/-f")
-            if "e" in letters:
-                has_e = True
-            if letters and letters[-1] in "emABC" and a == "-" + letters:
-                k += 2
+            raise Reject(f"Option {a[:30]}")
+        if a.startswith("-") and len(a) > 1:
+            if re.fullmatch(r"-\d+", a):
+                if not num_ok:
+                    raise Reject(f"Option {a}")
+                k += 1
                 continue
-        else:
-            pos.append(a)
+            body = a[1:]
+            took_next = False
+            for j, c in enumerate(body):
+                if c in arg_letters:
+                    took_next = j + 1 == len(body)
+                    break
+                if c not in letters:
+                    raise Reject(f"Option -{c}")
+            if took_next and k + 1 >= len(args):
+                raise Reject(f"Option {a} ohne Wert")
+            k += 2 if took_next else 1
+            continue
+        pos.append(a)
         k += 1
-    if not remote:
-        if len(pos) > (0 if has_e else 1):
-            raise Reject("lokales grep liest Dateien")
+    if max_pos is not None and len(pos) > max_pos:
+        raise Reject("zu viele Argumente")
+    return pos
 
 
 def check_sed(args, remote):
@@ -444,35 +492,29 @@ def check_sed(args, remote):
             raise Reject("sed-Skript nicht harmlos")
 
 
+def _grep(args, local):
+    pos = _opts(args, GREP_LETTERS, GREP_ARG, num_ok=True)
+    has_e = any(a.startswith("-") and not a.startswith("--") and "e" in _short_letters(a) for a in args)
+    if local and len(pos) > (0 if has_e else 1):
+        raise Reject("lokales grep liest Dateien")
+
+
 def check_local_filter(words):
     prog, args = words[0], words[1:]
     if prog in ("head", "tail"):
-        for k, a in enumerate(args):
-            if re.match(r"^-[nc]?\d*$|^--lines=\d+$|^--bytes=\d+$|^-q$", a):
-                continue
-            if a.isdigit() and k > 0 and args[k - 1] in ("-n", "-c"):
-                continue
-            raise Reject(f"{prog}-Argument")
-    elif prog in ("wc", "sort", "uniq"):
-        for a in args:
-            if not a.startswith("-") or re.match(r"^(?:-o|--output|--compress-program|--files0-from|-T"
-                                                 r"|--temporary-directory)", a):
-                raise Reject(f"{prog}-Argument")
+        _opts(args, "qv", "nc", long_val_ok=("--lines", "--bytes"), num_ok=True, max_pos=0)
+    elif prog == "wc":
+        _opts(args, "lwcmL", max_pos=0)
+    elif prog == "sort":
+        _opts(args, "nrufhVbdgMR", "kt", max_pos=0)
+    elif prog == "uniq":
+        _opts(args, "cdiu", max_pos=0)
     elif prog == "cut":
-        k = 0
-        while k < len(args):
-            a = args[k]
-            if a in ("-d", "-f", "-c", "-b"):
-                k += 2
-                continue
-            if re.match(r"^-[dfcb].+$|^--(?:delimiter|fields|characters|bytes)=.+$|^-s$|^--only-delimited$", a):
-                k += 1
-                continue
-            raise Reject("cut-Argument")
+        _opts(args, "s", "dfcb", long_val_ok=("--delimiter", "--fields", "--characters", "--bytes"), max_pos=0)
     elif prog == "tr":
-        pass
+        _opts(args, "dsc")
     elif prog in ("grep", "egrep", "fgrep"):
-        check_grep(args, remote=False)
+        _grep(args, local=True)
     elif prog == "sed":
         check_sed(args, remote=False)
     elif prog == "cat":
@@ -482,165 +524,209 @@ def check_local_filter(words):
         raise Reject(f"lokaler Filter {prog}")
 
 
+def _check_find(args):
+    k = 0
+    while k < len(args) and not args[k].startswith("-"):
+        k += 1
+    while k < len(args):
+        a = args[k]
+        if a not in FIND_OK:
+            raise Reject(f"find {a[:20]}")
+        k += 2 if a in FIND_TAKES else 1
+
+
+def _check_systemctl(args):
+    sub = None
+    k = 0
+    while k < len(args):
+        a = args[k]
+        if a.startswith("-"):
+            if a in ("-n", "-t") and k + 1 < len(args):
+                k += 2
+                continue
+            if not SYSTEMCTL_FLAGS.match(a):
+                raise Reject(f"systemctl-Option {a[:20]}")
+        elif sub is None:
+            sub = a
+        k += 1
+    if sub not in SYSTEMCTL_SUB:
+        raise Reject("systemctl-Unterbefehl")
+
+
+def _check_journal(args):
+    k = 0
+    while k < len(args):
+        a = args[k]
+        if a.startswith("-"):
+            if not JOURNAL_FLAGS.match(a):
+                raise Reject(f"journalctl-Option {a[:20]}")
+            if a in ("-n", "-b"):  # optionales Argument: nur eine Zahl darf folgen (systemd liest sie mit)
+                k += 2 if k + 1 < len(args) and re.fullmatch(r"[+-]?\d+|all", args[k + 1]) else 1
+                continue
+            if a in JOURNAL_TAKES_VALUE:
+                if k + 1 >= len(args) or args[k + 1].startswith("-"):
+                    raise Reject("journalctl-Wert fehlt")
+                k += 2
+                continue
+        elif not re.fullmatch(r"[A-Z_]+=[\w@.:/-]+", a):
+            raise Reject("journalctl-Argument")
+        k += 1
+
+
+def _check_git(args):
+    k = 0
+    while k < len(args) and args[k].startswith("-"):
+        if args[k] == "-C" and k + 1 < len(args):
+            k += 2
+        elif args[k] in ("--no-pager", "-P"):
+            k += 1
+        else:
+            raise Reject(f"git-Option {args[k][:20]}")
+    if k >= len(args) or args[k] not in GIT_SUB:
+        raise Reject("git-Unterbefehl")
+    sub, rest = args[k], args[k + 1:]
+    if sub == "show":
+        raise Reject("git show zeigt Inhalte aus der Historie")
+    if sub == "branch":  # nur Auflisten; -u/-m/-d usw. schreiben die Konfiguration
+        if any(a not in ("-a", "-r", "-v", "-vv", "-l", "--list", "--all", "--remotes", "--verbose",
+                         "--show-current", "--no-color") for a in rest):
+            raise Reject("git branch-Option")
+        return
+    if sub == "log" and any(a in ("--patch", "--full-diff") or re.fullmatch(r"-[a-zA-Z]*[pu][a-zA-Z]*|-U\d*", a)
+                            for a in rest):
+        raise Reject("git log mit Inhalten")
+    if sub == "diff" and not ({"--stat", "--name-only", "--name-status", "--shortstat", "--numstat", "--quiet",
+                               "--exit-code"} & set(rest)):
+        raise Reject("git diff nur mit --stat/--name-only")
+    for a in rest:
+        if a.startswith("--"):
+            if not GIT_LONG_OK.match(a):
+                raise Reject(f"git-Option {a[:20]}")
+        elif a.startswith("-"):
+            if not re.fullmatch(r"-(?:\d+|[nspuvbaqrlz]+|n\d+|U\d+)", a):
+                raise Reject(f"git-Option {a[:20]}")
+    if sub in ("branch", "remote") and [a for a in rest if not a.startswith("-")]:
+        raise Reject(f"git {sub} mit Argument")
+
+
 def check_remote_simple(words):
     words = strip_timeout(words)
-    for w in words:
-        if sensitive_in(w) or "\x01" in w:
-            raise Reject("geheimer Pfad")
+    if any("\x01" in w for w in words):
+        raise Reject("Marker")
     prog, args = words[0], words[1:]
     if prog in WZ_PROGS:
         if not args or args[0] not in WZ_ALLOW:
             raise Reject("wz-Befehl nicht in der Allowlist")
+        if args[0] in WZ_WRITE:
+            for a in args[1:]:
+                if a.startswith("-") and a.split("=", 1)[0] not in WZ_OPTS_OK:
+                    raise Reject(f"wz-Option {a[:20]}")
         return
+    for a in args:  # geheime Namen auch ohne Pfad (cat gemini.env, environ, rclone.conf)
+        _no_secret(a.split("=", 1)[1] if a.startswith("-") and "=" in a else a)
     if prog in PLAIN_READ:
         return
-    if prog in ("grep", "egrep", "fgrep"):
-        return check_grep(args, remote=True)
-    if prog == "sed":
-        return check_sed(args, remote=True)
-    if prog == "find":
-        if any(a in FIND_BAD for a in args):
-            raise Reject("find mit Aktion")
-        return
-    if prog == "sort":
-        if any(re.match(r"^(?:-o|--output|--compress-program)", a) for a in args):
-            raise Reject("sort -o")
-        return
-    if prog == "uniq":
-        if len([a for a in args if not a.startswith("-")]) > 1:
-            raise Reject("uniq mit Ausgabedatei")
-        return
-    if prog == "date":
-        if any(re.match(r"^(?:-s|--set|-f|--file)", a) for a in args):
-            raise Reject("date -s/-f")
-        return
-    if prog == "hostname":
+    if prog == "du":
+        _opts(args, "shacbkmxLDPS0", "dBt", long_val_ok=("--max-depth",))
+    elif prog == "cat":
+        _opts(args, "nAbeEsTv")
+    elif prog in ("head", "tail"):
+        _opts(args, "qvfF" if prog == "tail" else "qv", "nc", long_val_ok=("--lines", "--bytes"), num_ok=True)
+    elif prog == "wc":
+        _opts(args, "lwcmL")
+    elif prog in ("md5sum", "sha1sum", "sha256sum", "sha512sum"):
+        _opts(args, "bt")
+    elif prog == "stat":
+        _opts(args, "Ltf", "c", long_val_ok=("--format", "--printf"))
+    elif prog == "ls":
+        _opts(args, "lahtrSdR1AFigGnoQcuUvX", long_ok=("--full-time", "--color=never"),
+              long_val_ok=("--time-style", "--sort"))
+    elif prog in ("grep", "egrep", "fgrep"):
+        _grep(args, local=False)
+    elif prog == "sed":
+        check_sed(args, remote=True)
+    elif prog == "sort":
+        _opts(args, "nrufhVbdgMR", "kt", max_pos=0)
+    elif prog == "uniq":
+        _opts(args, "cdiu", max_pos=0)
+    elif prog == "cut":
+        _opts(args, "s", "dfcb", long_val_ok=("--delimiter", "--fields", "--characters", "--bytes"))
+    elif prog == "tr":
+        _opts(args, "dsc")
+    elif prog == "find":
+        _check_find(args)
+    elif prog == "date":
+        if any(not (a.startswith("+") or a in ("-u", "-I", "-R", "--utc", "-Iseconds", "-Iminutes", "-Idate"))
+               for a in args):
+            raise Reject("date-Argument")
+    elif prog == "hostname":
         if any(not re.match(r"^(?:-[fsiIdA]|--fqdn|--short)$", a) for a in args):
             raise Reject("hostname-Argument")
-        return
-    if prog == "command":
-        if len(args) >= 2 and args[0] in ("-v", "-V"):
-            return
-        raise Reject("command")
-    if prog == "set":
-        if args and all(re.match(r"^[-+][euxo]+$|^pipefail$", a) for a in args):
-            return
-        raise Reject("set")
-    if prog == "ps":
-        for a in args:
-            if not re.match(r"^(?:aux|ax|-ef|-e|-f|-F|-aux|--forest|-H|-o|-p|-u|-C|--sort=[\w,+-]+|[\w,%:=+-]+)$", a) \
-                    or (not a.startswith("-") and "e" in a.lower() and a not in ("-ef",)) or "env" in a.lower():
-                raise Reject("ps-Argument")
-        return
-    if prog == "ss":
-        for a in args:
-            if a.startswith("--") and a.split("=")[0] in ("--kill", "--diag"):
-                raise Reject("ss --kill")
-            if a.startswith("-") and not a.startswith("--") and set(_short_letters(a)) & set("KD"):
-                raise Reject("ss -K/-D")
-        return
-    if prog == "crontab":
-        if args == ["-l"]:
-            return
-        raise Reject("crontab")
-    if prog == "systemctl":
-        sub = None
+    elif prog == "command":
+        if not (len(args) == 2 and args[0] in ("-v", "-V")):
+            raise Reject("command")
+    elif prog == "set":
+        if not (args and all(re.match(r"^[-+][euxo]+$|^pipefail$", a) for a in args)):
+            raise Reject("set")
+    elif prog == "ps":
         k = 0
-        while k < len(args):
+        while k < len(args):  # exakte Formen: procps parst Buendel wie -uxe zur Not BSD-artig (e = Umgebung)
             a = args[k]
-            if a.startswith("-"):
-                if not SYSTEMCTL_FLAGS.match(a):
-                    raise Reject(f"systemctl-Option {a}")
-                if a in ("-n", "-t", "-p") and k + 1 < len(args):
-                    k += 2
-                    continue
-            elif sub is None:
-                sub = a
-            k += 1
-        if sub not in SYSTEMCTL_SUB:
-            raise Reject("systemctl-Unterbefehl")
-        return
-    if prog == "journalctl":
-        k = 0
-        while k < len(args):
-            a = args[k]
-            if a.startswith("-"):
-                if not JOURNAL_FLAGS.match(a):
-                    raise Reject(f"journalctl-Option {a}")
-                if a in JOURNAL_TAKES_VALUE and k + 1 < len(args):
-                    k += 2
-                    continue
-            k += 1
-        return
-    if prog == "docker":
-        if args[:1] in (["ps"], ["images"], ["logs"], ["inspect"], ["version"], ["info"]) or \
-                args[:2] == ["stats", "--no-stream"]:
-            return
-        raise Reject("docker-Unterbefehl")
-    if prog == "git":
-        k = 0
-        while k < len(args) and args[k].startswith("-"):
-            if args[k] == "-C" and k + 1 < len(args):
+            if a in ("aux", "ax", "-ef", "-e", "-f", "-F", "--forest", "-H", "-A"):
+                k += 1
+            elif a in ("-o", "-p", "-C") and k + 1 < len(args) and re.fullmatch(r"[\w,%:=+.-]+", args[k + 1]) \
+                    and "env" not in args[k + 1].lower():
                 k += 2
-            elif args[k] in ("--no-pager", "-P"):
+            elif re.fullmatch(r"--sort=[\w,+-]+", a):
                 k += 1
             else:
-                raise Reject(f"git-Option {args[k]}")
-        if k >= len(args) or args[k] not in GIT_SUB:
-            raise Reject("git-Unterbefehl")
-        if any(GIT_BAD_ARG.match(a) for a in args[k + 1:]):
-            raise Reject("git-Argument")
-        return
-    raise Reject(f"Fernbefehl {prog} nicht in der Allowlist")
+                raise Reject("ps-Argument")
+    elif prog == "pgrep":
+        _opts(args, "flnoxciv", "uUgGtPs")
+    elif prog == "ss":
+        _opts(args, "tulnpaxw46sHeomi0r")
+    elif prog == "crontab":
+        raise Reject("crontab -l zeigt Cron-Zeilen (moeglich mit Schluesseln)")
+    elif prog == "systemctl":
+        _check_systemctl(args)
+    elif prog == "journalctl":
+        _check_journal(args)
+    elif prog == "docker":
+        if not (args in (["ps"], ["ps", "-a"], ["images"], ["version"]) or args == ["stats", "--no-stream"]):
+            raise Reject("docker-Unterbefehl")
+    elif prog == "git":
+        _check_git(args)
+    else:
+        raise Reject(f"Fernbefehl {prog} nicht in der Allowlist")
 
 
 def check_remote(remote_str, body):
     if body is not None:
-        if remote_str.split() not in (["bash", "-s"], ["bash"], ["sh", "-s"], ["sh"]):
-            raise Reject("heredoc nur fuer bash -s")
-        cmds = []
-        for line in body:
-            st = line.strip()
-            if not st or st.startswith("#"):
-                continue
-            cmds.extend(split_cmds(lex(st)))
-        if not cmds:
-            raise Reject("leeres Skript")
-    else:
-        cmds = split_cmds(lex(remote_str))
-    for _conn, words in cmds:
+        raise Reject("heredoc-Skript")  # Befehle im Skript lesen dessen stdin mit (head -c ...)
+    for _conn, words in split_cmds(lex(remote_str)):
         check_remote_simple(words)
 
 
 def allow_parse(cmd):
     """True, wenn der ganze Befehl streng geparst werden kann und nur Erlaubtes enthaelt; sonst Reject."""
-    head, body = split_heredoc(cmd)
-    cmds = split_cmds(lex(head))
-    conn0, ssh_words = cmds[0]
-    if any(w == HD_MARK for w in ssh_words):
-        if body is None:
-            raise Reject("Marker ohne heredoc")
-        ssh_words = [w for w in ssh_words if w != HD_MARK]
-    elif body is not None:
-        raise Reject("heredoc nicht am ssh-Befehl")
-    remote_words = parse_ssh(ssh_words)
+    if "<<" in cmd:
+        raise Reject("heredoc")
+    if "\n" in cmd or "\r" in cmd:
+        raise Reject("mehrzeilig")
+    cmds = split_cmds(lex(cmd, local=True))
+    remote_words = parse_ssh(cmds[0][1])
     for conn, words in cmds[1:]:
         if conn != "|":
             raise Reject("lokale Verkettung")
-        if any("\x01" in w for w in words):
-            raise Reject("heredoc an Filter")
         check_local_filter(words)
-    for w in remote_words:
-        if "\x01" in w:
-            raise Reject("heredoc im Fernbefehl")
-    check_remote(" ".join(remote_words), body)
+    check_remote(" ".join(remote_words), None)
     return True
 
 
 # ---------------------------------------------------------------- Muster-Stufen
 _SSH_OPT_GROUP = re.compile(r"(?<![\w.-])ssh(?:\.exe)?((?:\s+-\S+(?:\s+(?!-)[^\s'\";|&]+)?)*)", re.I)
 _SSH_O_SAFE = set(_SSH_O_OK) | {"requesttty", "compression", "ipqos", "tcpkeepalive", "addressfamily"}
-_SSH_ASK_LETTERS = set("FESwLRDJWMNfiAXYIgOsl")
+_SSH_ASK_LETTERS = set("FESwLRDJWMNfiAXYIgOslPK")
 _SSH_ARG_LETTERS = set("BbcDEeFIiJLlmOoPpQRSWw")
 
 
@@ -683,7 +769,16 @@ def scp_upload(text):
     return False
 
 
-def deny_reason(text):
+MAX_LEN = 16000
+
+
+def _text_rm_crit(text):
+    """Nur das rm-r-auf-kritischem-Pfad-Muster im Rohtext (fuer verdeckte Faelle neben der Zerlegung)."""
+    r = deny_reason(text, only_rm=True)
+    return r
+
+
+def deny_reason(text, only_rm=False):
     for m in re.finditer(CMDPOS + r"rm(?![\w.-])", text):
         seg = re.split(r"[;&|\n)]", text[m.end():], maxsplit=1)[0]
         toks = [t.strip("'\"") for t in seg.split()]
@@ -697,6 +792,8 @@ def deny_reason(text):
                 norm = norm if norm in ("/", "/*") else norm.rstrip("/") or "/"
                 if norm in CRIT_TARGETS:
                     return f"rm -r auf {t}"
+    if only_rm:
+        return None
     for pat, why in DENY_PATTERNS:
         if re.search(pat, text):
             return why
@@ -727,7 +824,7 @@ def ask_reason(text):
 # bash -c / eval / heredoc-Skripten. Geprueft werden nur Befehlswoerter, die auf netcup laufen; Text in
 # Anfuehrungszeichen (z. B. wz-Eintraege) loest so keine Fehlalarme aus. Faellt die Zerlegung aus,
 # greifen die Textmuster oben (deny_reason/ask_reason).
-_HD_ANY = re.compile(r"<<(-?)\s*(['\"]?)([A-Za-z_]\w*)\2")
+_HD_ANY = re.compile(r"<<(-?)\s*\\?(['\"]?)([A-Za-z_]\w*)\2")
 _PUNCT = set(";&|<>()")
 
 
@@ -755,6 +852,38 @@ def _quotes_closed(prefix):
     return q is None
 
 
+def _quote_closed_map(line):
+    """closed[i] = True, wenn vor Position i keine Quote offen ist."""
+    res = [True] * (len(line) + 1)
+    q = None
+    i = 0
+    while i < len(line):
+        res[i] = q is None
+        c = line[i]
+        if q is None:
+            if c == "\\":
+                if i + 1 < len(line):
+                    res[i + 1] = False
+                i += 2
+                continue
+            if c in "'\"":
+                q = c
+        elif q == "'":
+            if c == "'":
+                q = None
+        else:
+            if c == "\\":
+                if i + 1 < len(line):
+                    res[i + 1] = False
+                i += 2
+                continue
+            if c == '"':
+                q = None
+        i += 1
+    res[len(line)] = q is None
+    return res
+
+
 def _extract_heredocs(s):
     lines = s.split("\n")
     out, bodies = [], {}
@@ -763,10 +892,13 @@ def _extract_heredocs(s):
         line = lines[i].rstrip("\r")
         i += 1
         parts, last = [], 0
+        closed_at = None
         for m in _HD_ANY.finditer(line):
             if line[m.start():].startswith("<<<") or (m.start() > 0 and line[m.start() - 1] == "<"):
                 continue
-            if not _quotes_closed(line[:m.start()]):
+            if closed_at is None:  # Quote-Zustand einmal je Zeile berechnen (linear statt je Treffer)
+                closed_at = _quote_closed_map(line)
+            if not closed_at[m.start()]:
                 continue
             key = f"__HD{len(bodies)}__"
             parts.append(line[last:m.start()])
@@ -868,8 +1000,7 @@ def _simple_cmds(toks):
     return cmds, outs, ins
 
 
-_WRAP_SKIP = {"then", "do", "else", "elif", "if", "while", "until", "!", "{", "}", "time", "exec", "nohup",
-              "builtin", "coproc"}
+_WRAP_SKIP = {"then", "do", "else", "elif", "if", "while", "until", "!", "{", "}", "nohup", "builtin", "coproc"}
 _WRAP_OPTS = {"nice", "ionice", "stdbuf", "xargs", "watch", "chronic", "setsid", "unbuffer", "flock"}
 _WRAP_ARG = {"-n", "-c", "-I", "-P", "-d", "-a", "-E", "-L", "-s", "-o", "-e", "-w", "--max-args", "--max-procs",
              "--delimiter", "--arg-file", "--replace", "--interval"}
@@ -891,8 +1022,34 @@ def _effective(words):
             if k + 1 < n and words[k + 1] in ("-v", "-V"):
                 return words[k:], sudo
             k += 1
+            while k < n and words[k] == "-p":
+                k += 1
             continue
-        if b in ("sudo", "doas", "su", "pkexec", "runuser"):
+        if b == "time":
+            k += 1
+            while k < n and words[k] == "-p":
+                k += 1
+            continue
+        if b == "exec":
+            k += 1
+            while k < n and words[k].startswith("-"):
+                k += 2 if words[k] == "-a" else 1
+            continue
+        if b in ("flock", "sg"):  # flock [opts] DATEI -c "cmd" | sg GRUPPE "cmd" -> Shell-String
+            rest = words[k + 1:]
+            if "-c" in rest and rest.index("-c") + 1 < len(rest):
+                return ["bash", "-c", rest[rest.index("-c") + 1]], sudo
+            if b == "sg" and len(rest) >= 2:
+                return ["bash", "-c", " ".join(rest[1:])], sudo
+        if b in ("taskset", "chrt", "setarch", "linux32", "linux64", "busybox", "toybox", "setpriv", "prlimit",
+                 "systemd-inhibit", "nsenter", "unshare", "firejail", "cgexec", "numactl", "schedtool"):
+            k += 1
+            while k < n and words[k].startswith("-"):
+                k += 1
+            if b in ("taskset", "chrt", "setarch") and k < n:
+                k += 1  # Maske / Prioritaet / Architektur
+            continue
+        if b in ("sudo", "doas", "su", "pkexec", "runuser", "sudoedit"):
             sudo = True
             k += 1
             while k < n and words[k].startswith("-"):
@@ -905,7 +1062,12 @@ def _effective(words):
         if b == "env":
             k += 1
             while k < n and (words[k].startswith("-") or "=" in words[k]):
-                k += 2 if words[k] in ("-u", "-C", "--unset", "--chdir") else 1
+                w2 = words[k]
+                if w2.startswith("-S") or w2.startswith("--split-string"):
+                    s_ = w2[2:] if w2.startswith("-S") and len(w2) > 2 else (
+                        w2.split("=", 1)[1] if "=" in w2 else (words[k + 1] if k + 1 < n else ""))
+                    return ["bash", "-c", s_ + " " + " ".join(words[k + (1 if len(w2) > 2 or "=" in w2 else 2):])], sudo
+                k += 2 if w2 in ("-u", "-C", "--unset", "--chdir") else 1
             if k >= n:
                 return ["env"], sudo
             continue
@@ -931,31 +1093,33 @@ def _ssh_split(args):
     risky = None
 
     def eat_opts(lst):
+        """Wie OpenSSH-getopt: Buendel Buchstabe fuer Buchstabe; der erste Buchstabe mit Argument nimmt den
+        Rest des Buendels oder das naechste Wort (-qo X, -qp <ssh-port>, -qL a:b:c)."""
         nonlocal risky
         k = 0
-        while k < len(lst) and lst[k].startswith("-"):
+        while k < len(lst) and lst[k].startswith("-") and lst[k] != "-":
             t = lst[k]
             if t == "--":
                 return k + 1
-            if t.startswith("-o"):
-                val = t[2:] if len(t) > 2 else (lst[k + 1] if k + 1 < len(lst) else "")
-                key, _, v = val.partition("=")
-                key = key.strip().split(" ")[0].lower()
-                if key not in _SSH_O_SAFE or (key == "stricthostkeychecking"
-                                              and v.strip().lower() not in ("yes", "accept-new")):
-                    risky = risky or f"-o {key}"
-                k += 1 if len(t) > 2 else 2
-                continue
-            letters = t[1:]
-            if letters and letters[0] in _SSH_ARG_LETTERS:
-                if letters[0] in _SSH_ASK_LETTERS:
-                    risky = risky or f"-{letters[0]}"
-                k += 1 if len(letters) > 1 else 2
-                continue
-            bad = set(letters) & _SSH_ASK_LETTERS
-            if bad:
-                risky = risky or "-" + "".join(sorted(bad))
-            k += 1
+            body = t[1:]
+            took_next = False
+            for j, c in enumerate(body):
+                if c in _SSH_ARG_LETTERS:
+                    attached = body[j + 1:]
+                    took_next = not attached
+                    val = attached or (lst[k + 1] if k + 1 < len(lst) else "")
+                    if c == "o":
+                        key, _, v = val.partition("=")
+                        key = key.strip().split(" ")[0].lower()
+                        if key not in _SSH_O_SAFE or (key == "stricthostkeychecking"
+                                                      and v.strip().lower() not in ("yes", "accept-new")):
+                            risky = risky or f"-o {key}"
+                    elif c in _SSH_ASK_LETTERS:
+                        risky = risky or f"-{c}"
+                    break
+                if c in _SSH_ASK_LETTERS:
+                    risky = risky or f"-{c}"
+            k += 2 if took_next else 1
         return k
 
     k = eat_opts(args)
@@ -1000,15 +1164,27 @@ def _check_remote_cmd(b, args, res):
     def deny(why):
         res.setdefault("deny", why)
 
-    pos = [a for a in args if not a.startswith("-")]
+    pos = [a for a in args if not a.startswith("-") or a == "-"]
     clus = "".join(_cluster(a) for a in args)
+    if any(a.startswith(("--out", "--compress", "--cursor-file", "--dia", "--vacuum", "--rotate")) for a in args) \
+            or (b == "sort" and set(clus) & set("oST")) or (b == "uniq" and len(pos) >= 2) \
+            or (b == "file" and "C" in clus):
+        return ask(f"{b} schreibt eine Datei oder startet ein Programm")
     if b == "rm":
-        if ("r" in clus or "R" in clus or "--recursive" in args) and any(_norm_target(a) in CRIT_TARGETS
-                                                                          for a in pos):
+        rec = "r" in clus or "R" in clus or any(a.startswith("--rec") or a.startswith("--recu") for a in args)
+        if rec and any(_norm_target(a) in CRIT_TARGETS for a in pos):
             return deny("rm -r auf kritischem Pfad")
         return ask("rm auf netcup")
-    if b.startswith("mkfs") or b == "wipefs":
+    if re.match(r"^mk(?:fs|e2fs|ntfs|dosfs|exfatfs|fs\.\w+)", b) or b == "wipefs":
         return deny("Dateisystem formatieren")
+    if b in ("init", "telinit") and args[:1] in (["0"], ["6"]):
+        return deny("Server abschalten") if args[0] == "0" else ask("Neustart des Servers")
+    if b in ("tar", "gzip", "gunzip", "bzip2", "bunzip2", "xz", "unxz", "zstd", "unzip", "zip", "7z", "unrar"):
+        if b == "tar" and (re.match(r"^-?[a-zA-Z]*t", args[0]) if args else False) and "x" not in args[0]:
+            return None
+        return ask(f"{b} schreibt Dateien")
+    if b in ("killall5", "fuser") and (b == "killall5" or "k" in clus):
+        return ask(f"{b} beendet Prozesse")
     if b == "dd":
         return deny("dd schreibt auf ein Geraet") if any(a.startswith("of=/dev/") for a in args) else ask("dd")
     if b == "crontab":
@@ -1048,8 +1224,8 @@ def _check_remote_cmd(b, args, res):
         if sub == "stash" and rest[:1] != ["list"]:
             return ask("git stash")
         if sub in ("branch", "tag") and ({"-d", "-D", "-m", "-M", "-c", "-C", "-f", "--delete", "--move", "--force",
-                                          "-a", "-s"} & set(rest) or (sub == "tag" and [a for a in rest
-                                                                                         if not a.startswith("-")])):
+                                          "-s"} & set(rest) or (sub == "tag" and not ({"-l", "--list"} & set(rest))
+                                                                and [a for a in rest if not a.startswith("-")])):
             return ask(f"git {sub} aendert")
         return None
     if b in ("poweroff", "halt"):
@@ -1057,7 +1233,15 @@ def _check_remote_cmd(b, args, res):
     if b == "shutdown":
         return ask("Neustart des Servers") if ("-r" in args or "--reboot" in args) else deny("Server abschalten")
     if b == "systemctl":
-        sub = next((a for a in args if not a.startswith("-")), "")
+        sub, k = "", 0
+        while k < len(args):
+            if args[k].startswith("-"):
+                k += 2 if args[k] in ("-t", "-p", "-n", "-H", "-M", "-s", "-o", "--type", "--property", "--state",
+                                      "--host", "--machine", "--signal", "--lines", "--output", "--kill-whom",
+                                      "--job-mode", "--root", "--what") else 1
+                continue
+            sub = args[k]
+            break
         if sub in ("poweroff", "halt"):
             return deny("Server abschalten")
         if sub in _SYSTEMCTL_MUT:
@@ -1069,23 +1253,54 @@ def _check_remote_cmd(b, args, res):
         return ask(b)
     if b in _ASK_VERBS:
         return ask(f"{b} auf netcup")
-    if b in ("pip", "pip3") and args[:1] and args[0] in ("install", "uninstall", "download"):
-        return ask("pip installiert")
-    if b.startswith("python") and "-m" in args:
-        i = args.index("-m")
-        if args[i + 1:i + 3] and args[i + 1] == "pip" and args[i + 2:i + 3] and args[i + 2] in ("install",
-                                                                                               "uninstall"):
+    def first_pos(lst, value_opts=()):
+        k = 0
+        while k < len(lst):
+            if lst[k].startswith("-"):
+                k += 2 if lst[k] in value_opts else 1
+                continue
+            return k
+        return None
+
+    if b in ("pip", "pip3") or (b.startswith("python") and ("-m" in args or "-mpip" in args)):
+        a2 = args
+        if b.startswith("python"):
+            i = args.index("-mpip") + 1 if "-mpip" in args else args.index("-m") + 2
+            if (args[i - 1] if "-mpip" in args else (args[i - 1] if i - 1 < len(args) else "")) not in ("pip",
+                                                                                                         "-mpip"):
+                a2 = []
+            else:
+                a2 = args[i:]
+        i = first_pos(a2, ("--index-url", "-i", "--log", "--proxy", "--timeout", "--cache-dir"))
+        if i is not None and a2[i] in ("install", "uninstall", "download"):
             return ask("pip installiert")
-    if b == "npm" and args[:1] and args[0] in ("i", "install", "uninstall", "update", "ci", "publish", "run",
-                                                 "exec", "link"):
-        return ask("npm")
-    if b == "docker" and args[:1] and args[0] in ("run", "rm", "rmi", "stop", "kill", "restart", "start", "exec",
-                                                    "compose", "system", "volume", "network", "build", "pull",
-                                                    "push", "cp", "commit", "update", "prune", "container",
-                                                    "image"):
-        return ask("docker aendert")
-    if b == "sed" and ("i" in clus or any(a.startswith("--in-place") for a in args)):
-        return ask("sed -i")
+    if b == "npm":
+        i = first_pos(args, ("--prefix", "-C", "--registry", "--userconfig"))
+        if i is not None and args[i] in ("i", "install", "uninstall", "update", "ci", "publish", "run", "exec",
+                                         "link", "add", "remove", "rm", "un"):
+            return ask("npm")
+    if b == "docker":
+        i = first_pos(args, ("--context", "-c", "-H", "--host", "--config", "-l", "--log-level"))
+        if i is not None:
+            sub, rest_ = args[i], args[i + 1:]
+            if sub in ("compose", "container", "image", "volume", "network", "system"):
+                j = first_pos(rest_, ("-f", "--file", "-p", "--project-name", "--env-file", "--profile"))
+                if j is None or rest_[j] not in ("ps", "ls", "list", "images", "top", "port", "version"):
+                    return ask(f"docker {sub}")
+            elif sub in ("run", "rm", "rmi", "stop", "kill", "restart", "start", "exec", "build", "pull", "push",
+                         "cp", "commit", "update", "prune", "create", "load", "import", "tag", "rename", "pause",
+                         "unpause", "attach", "inspect", "logs", "config", "secret", "service", "stack"):
+                return ask(f"docker {sub}")
+    if b == "sed":
+        if "i" in clus or any(a.startswith("--in-place") for a in args):
+            return ask("sed -i")
+        scripts = [args[i + 1] for i, a in enumerate(args) if a in ("-e", "--expression") and i + 1 < len(args)]
+        if not scripts:
+            p_ = [a for a in args if not a.startswith("-")]
+            scripts = p_[:1]
+        if any(not SAFE_SED.match(part.strip()) for s_ in scripts for part in s_.split(";")) or \
+                any(a in ("-f", "--file") or a.startswith("--file=") for a in args):
+            return ask("sed-Skript mit Schreib- oder Ausfuehrungsbefehl")
     if b == "perl" and ("i" in clus or "p" in clus and "i" in clus):
         return ask("perl -i")
     if b == "curl":
@@ -1140,8 +1355,11 @@ def _has_ansi_c(s):
 
 
 _LOCAL_READERS = {"cat", "head", "tail", "base64", "xxd", "od", "strings", "gzip", "tar", "zip", "7z", "gpg",
-                  "openssl", "type", "more", "less", "dd", "scp", "pscp", "sftp", "rsync", "curl", "ssh", "tee",
-                  "cp"}
+                  "openssl", "type", "more", "less", "dd", "scp", "pscp", "sftp", "rsync", "curl", "tee",
+                  "cp", "grep", "egrep", "fgrep"}  # ssh nicht: dessen Fernteil prueft die Fern-Analyse
+
+
+_SHELLS = {"bash", "sh", "dash", "zsh", "ksh", "busybox-sh"}
 
 
 def _analyze(text, remote, depth, bodies, res):
@@ -1175,43 +1393,70 @@ def _analyze(text, remote, depth, bodies, res):
         b = eff[0].rsplit("/", 1)[-1].rsplit("\\", 1)[-1].lower()
         if b.endswith(".exe"):
             b = b[:-4]
-        if remote or b in _LOCAL_READERS:
+        if remote and b != "wz":  # auf netcup: jedes Wort direkt (auch 'gemini.env' nach cd, 'environ')
+            for w in words[1:]:
+                tok = _sens_tok(w.split("=", 1)[1] if w.startswith("-") and "=" in w else w)
+                if tok:
+                    res.setdefault("ask", f"geheimer Pfad ({tok[:40]})")
+        elif not remote and b in _LOCAL_READERS:
             for w in words:
                 tok = sensitive_in(w)
                 if tok:
                     res.setdefault("ask", f"geheimer Pfad ({tok[:40]})")
         hds = [a for a in eff[1:] if a in bodies]
         args = [a for a in eff[1:] if a not in bodies]
-        if b in ("bash", "sh", "dash", "zsh"):
-            if "-c" in args and args.index("-c") + 1 < len(args):
-                _analyze(args[args.index("-c") + 1], remote, depth + 1, bodies, res)
+        if remote and eff[0] not in ("[", "[[") and re.search(r"[*?\[{]", eff[0]):
+            res.setdefault("ask", "verdeckter Befehl (Glob/Klammer im Programmnamen)")
+        if b in _SHELLS:
+            ci = next((i for i, a in enumerate(args) if re.fullmatch(r"-[a-zA-Z]*c[a-zA-Z]*", a)), None)
+            if ci is not None:
+                script = next((a for a in args[ci + 1:] if not a.startswith("-")), None)
+                if script is not None:
+                    _analyze(script, remote, depth + 1, bodies, res)
             elif hds:
                 _analyze("\n".join(bodies[hds[0]]), remote, depth + 1, bodies, res)
+            elif remote and not [a for a in args if not a.startswith("-")]:
+                res.setdefault("ask", "Shell auf netcup liest Skript von stdin")
             continue
         if b == "eval":
             _analyze(" ".join(args), remote, depth + 1, bodies, res)
             continue
         if b in ("ssh", "plink"):
+            if remote:
+                res.setdefault("ask", "ssh von netcup aus weiter")
+                continue
             host, rest, risky = _ssh_split(args)
-            if host and HOST_TOKEN.search(host):
+            hl = (host or "").lower()
+            if host and HOST_TOKEN.search(hl):
                 if risky:
                     res.setdefault("ask", f"riskante ssh-Option ({risky})")
-                if "botuser" in host:
+                if "botuser" in hl:
                     res.setdefault("ask", "Zugang als botuser")
+                if "@" in hl and hl.split("@", 1)[0] != "marco":
+                    res.setdefault("ask", "anderer Benutzer auf netcup")
                 if rest:
-                    _analyze(" ".join(rest), True, depth + 1, bodies, res)
-                    if rest[0] in ("bash", "sh") and hds:
+                    rtxt = " ".join(rest)
+                    rtoks = _ltoks(_mask_newlines(rtxt))
+                    first = rtoks[0].rsplit("/", 1)[-1] if rtoks else ""
+                    if first in _SHELLS and hds:
                         _analyze("\n".join(bodies[hds[0]]), True, depth + 1, bodies, res)
+                    else:
+                        _analyze(rtxt, True, depth + 1, bodies, res)
             continue
         if b in ("scp", "pscp"):
-            if any(a in ("-S", "-F", "-J", "-i") or (a.startswith("-o") and a[2:].split("=")[0].lower()
-                                                       not in _SSH_O_SAFE and len(a) > 2) for a in args):
-                res.setdefault("ask", "riskante scp-Option")
-            if "-o" in args:
-                v = args[args.index("-o") + 1] if args.index("-o") + 1 < len(args) else ""
-                if v.split("=")[0].lower() not in _SSH_O_SAFE:
-                    res.setdefault("ask", "riskante scp-Option")
-            pos = [a for a in args if not a.startswith("-")]
+            k = 0
+            while k < len(args) and args[k].startswith("-") and args[k] != "-":
+                body_ = args[k][1:]
+                took = False
+                for j, c in enumerate(body_):
+                    if c in "cFiJlPSoX":
+                        val = body_[j + 1:] or (args[k + 1] if k + 1 < len(args) else "")
+                        took = not body_[j + 1:]
+                        if c in "FiJSX" or (c == "o" and val.split("=")[0].strip().lower() not in _SSH_O_SAFE):
+                            res.setdefault("ask", "riskante scp-Option")
+                        break
+                k += 2 if took else 1
+            pos = [a for a in args[k:] if not a.startswith("-")]
             if pos and HOST_TOKEN.search(pos[-1]) and ":" in pos[-1]:
                 res.setdefault("ask", "scp-Upload nach netcup")
             if remote:
@@ -1240,22 +1485,22 @@ def decide(tool, cmd):
     """-> (entscheidung oder None, grund)"""
     if not cmd or not SSH_WORD.search(cmd) or not HOST_TOKEN.search(cmd):
         return None, "kein netcup-ssh"
+    if len(cmd) > MAX_LEN:  # Laufzeitschutz (Hook-Timeout 5 s); lange Befehle entscheidet der normale Weg
+        return ("ask", "Befehl zu lang fuer den Waechter, Strikt-Modus") if (FLAGS / "ssh_guard_strikt.on").exists() \
+            else (None, "zu lang fuer den Waechter")
     if re.search(r":\(\)\s*\{", cmd):
         return "deny", "Fork-Bombe"
     res = analyze_bash(cmd) if tool == "Bash" else None
-    if res is None:  # Rueckfall: Textmuster
-        why = deny_reason(cmd)
+    if res is None:  # Rueckfall: Textmuster, nie harter Block (Fehlalarme wie 'halt' im Fliesstext)
+        why = deny_reason(cmd) or ask_reason(cmd)
         if why:
-            return "deny", why
-        why = ask_reason(cmd)
-        if why:
-            return "ask", why
+            return "ask", f"{why} (Textmuster)"
     else:
         if "deny" in res:
             return "deny", res["deny"]
         if "ask" in res:
             return "ask", res["ask"]
-        why = deny_reason(cmd)
+        why = _text_rm_crit(cmd)
         if why:
             return "ask", f"Datenverlust-Muster im Text ({why})"
     if tool == "Bash":
@@ -1328,14 +1573,15 @@ CASES = [
     ("allow", f"ssh {H} '~/.local/bin/wz find \"Version C MW4 live\" 2>&1 | head -12' 2>&1 | tail -12"),
     ("allow", f"ssh -o BatchMode=yes -o ConnectTimeout=15 {H} '~/.local/bin/wz get audio/x-43bb 2>&1 | grep -i -m3 "
               f"tag' 2>&1 | grep -v -E \"post-quantum|store now|^\\*+$|AUTHORISED\""),
-    ("allow", f"timeout 60 ssh -o BatchMode=yes -o ConnectTimeout=8 {H} bash -s <<'EOF' 2>&1 | grep -v -E "
+    ("weiter", f"timeout 60 ssh -o BatchMode=yes -o ConnectTimeout=8 {H} bash -s <<'EOF' 2>&1 | grep -v -E "
               f"'WARNING|^\\*'\nset -e\n# Kommentar\n~/.local/bin/wz find foo\necho ---\n"
               f"systemctl --user is-active ntfy-eigen\nEOF"),
     ("allow", f"ssh {H} systemctl --user status claude-rc-skills --no-pager -n 20"),
     ("allow", f"ssh {H} \"journalctl --user -u ntfy-eigen -n 50 --no-pager\""),
     ("allow", f"ssh {H} 'git -C ~/projects/x status --short && git -C ~/projects/x log --oneline -5'"),
     ("allow", f"ssh {H} 'ls -la ~/.claude/hooks | head -20'"),
-    ("allow", f"ssh {H} md5sum ~/.claude/hooks/notify_fallback.py"),
+    ("weiter", f"ssh {H} md5sum ~/.claude/hooks/notify_fallback.py"),  # ~ ungequotet: Git Bash erweitert lokal
+    ("allow", f"ssh {H} 'md5sum ~/.claude/hooks/notify_fallback.py'"),
     ("allow", f"ssh -o BatchMode=yes {H} '~/.local/bin/wz neu --titel \"Test\" --text \"kurzer Text\"'"),
     ("allow", f"ssh {H} 'echo ===RESULT===; uptime; df -h /' | sed -n '/===RESULT===/,$p'"),
     ("allow", f"ssh -p <ssh-port> marco@100.x.y.z 'cat \"$HOME/projects/Skills_&_Co/PROGRESS.md\" | tail -40'"),
@@ -1383,10 +1629,10 @@ CASES = [
     ("weiter", f"ssh {H} 'python3 ~/x.py'"),
     ("weiter", f"ssh {H} 'ls' ; echo fertig"),
     ("weiter", f"ssh {H} 'ls $HOME'"),
-    ("weiter", f"ssh {H} ls | grep x ~/.ssh/known_hosts_x"),  # lokales Lesen: nicht Sache des Waechters
+    ("ask", f"ssh {H} ls | grep x ~/.ssh/known_hosts_x"),  # lokales grep auf geheimen Pfad
     ("ask", f"cat ~/.ssh/id_ed25519 | ssh {H} 'cat > /tmp/k'"),
     ("ask", f"ssh {H} 'cat > /tmp/k' < ~/.claude/.credentials.json"),
-    ("allow", f"ssh {H} 'crontab -l 2>/dev/null | head -5'"),
+    ("weiter", f"ssh {H} 'crontab -l 2>/dev/null | head -5'"),  # Runde 2: Cron-Zeilen koennen Schluessel tragen
     ("allow", f"ssh {H} 'grep -c x f.txt' | grep -v -E \"^\\*+$|AUTH\""),
     ("ask", f"ssh {H} -oProxyCommand=x ls"),
     ("weiter", f"ssh {H} 'grep -r foo ~/.claude'"),
@@ -1414,12 +1660,12 @@ CASES = [
     ("weiter", f"ssh {H} 'ls' & echo x"),
     ("weiter", f"ssh {H} 'LD_PRELOAD=/tmp/x.so ls'"),
     ("ask", f"ssh {H} 'wz find x'\nrm -rf ~"),  # lokales rm: destructive_command_blocker; hier Rueckfrage
-    ("weiter", f"ssh {H} 'git -C ~/p diff --output=/tmp/x'"),
+    ("ask", f"ssh {H} 'git -C ~/p diff --output=/tmp/x'"),
 ]
 TOOL_CASES = [
     ("PowerShell", "ask", f"ssh {H} 'rm x.txt'"),
     ("PowerShell", "weiter", f"ssh {H} 'ls'"),
-    ("Monitor", "deny", f"ssh {H} 'rm -rf ~'"),
+    ("Monitor", "ask", f"ssh {H} 'rm -rf ~'"),  # ohne Zerlegung nur Textmuster -> nie harter Block
 ]
 
 

@@ -46,8 +46,18 @@ def roots() -> list:
     if env:
         return [r for r in env.split(os.pathsep) if r]
     if os.name == "nt":
-        return [os.path.join(HOME, ".claude"), os.path.join(HOME, ".codex"),
-                os.path.join(HOME, "OneDrive", "Dokumente"), "C:\\Allgemein_Projektübergreifend"]
+        r = [os.path.join(HOME, ".claude"), os.path.join(HOME, ".codex"),
+             os.path.join(HOME, "OneDrive", "Dokumente"), "C:\\Allgemein_Projektübergreifend"]
+        # Games ausserhalb von OneDrive (Umzug 16.11.): gleiche Wurzel wie backup_prune_pc.py (scripts/games_dir.py)
+        try:
+            sys.path.insert(0, os.path.join(HOME, ".claude", "scripts"))
+            from games_dir import games_dir
+            g = str(games_dir())
+            if not any(os.path.normcase(g).startswith(os.path.normcase(w) + os.sep) for w in r):
+                r.append(g)
+        except Exception:
+            pass
+        return r
     return [os.path.join(HOME, ".claude"), os.path.join(HOME, "projects"),
             os.path.join(HOME, ".config", "systemd", "user"), os.path.join(HOME, ".codex")]
 

@@ -60,7 +60,7 @@ nach Situation:
 | Sprachsteuerung | `/voice [hold\|tap\|off]` — UI-Kommando, nur mit claude.ai-Login und nur, wenn das Feature fürs Konto freigeschaltet ist (sonst ausgeblendet) |
 | Selbstdiagnose | `/doctor` · `/insights` (HTML-Report über Sessions) · `/usage` · `/status` · `/tasks` |
 | Session-Mobilität | `/remote-control` · `/teleport` (Web-Session ins Terminal) · `/desktop` · `/cd <pfad>` · `/add-dir` |
-| Mehrere Hintergrund-Sessions parallel führen | **`claude agents`** (Agent View, Research Preview seit 2.1.139: laufend / „Needs input" / fertig auf einen Blick) · Start per `claude --bg "<auftrag>"` oder `/bg` — jede Session zieht eigenes Kontingent (10 parallel ≈ 10× Verbrauch); dasselbe Repo nur über Worktrees (`.claude/worktrees/`, legt Claude selbst an); „Needs input" geht nach Discord (`hooks/bg_needs_input_notify.py`), aber nur solange die Agent View offen ist |
+| Mehrere Hintergrund-Sessions parallel führen | **`claude agents`** (Agent View, Research Preview seit 2.1.139: laufend / „Needs input" / fertig auf einen Blick) · Start per `claude --bg "<auftrag>"` oder `/bg` — jede Session zieht eigenes Kontingent (10 parallel ≈ 10× Verbrauch); dasselbe Repo nur über Worktrees (`.claude/worktrees/`, legt Claude selbst an); „Needs input" geht über `notify_fallback` an die Zentrale bzw. aufs Handy ([zentrale-meldungen](zentrale-meldungen.md); `hooks/bg_needs_input_notify.py`), aber nur solange die Agent View offen ist |
 
 Rest (Verwaltung, selbsterklärend): `/help /clear /resume /export /copy /diff /config /settings
 /permissions /hooks /memory /mcp /plugin /reload-plugins /reload-skills /keybindings /login
