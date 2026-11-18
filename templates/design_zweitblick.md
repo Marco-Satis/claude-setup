@@ -36,6 +36,11 @@ Fällt Codex aus (Limit, Fehler, ungültige Antwort), schaut nur Claude; im Prot
    bei y = 58 (gemessen 13.11. an Bögen mit 930 und 1566 px Breite); geschnitten wird bei 56, damit der Rahmen
    bleibt (Befehl unten). Ganzseiten und Einzelbilder haben keine Kopfzeile und werden nur kopiert.
 5. **Auftrag erzeugen**, für beide Prüfer gleich (Befehl unten).
+6. **Vorbild-Vergleich (Pflicht bei Stufe L und V, prüfende Session, nicht die blinden Prüfer):** Eigenen Entwurf und
+   das gewählte Vorbild aus `~/.claude/skills/site-anatomy/references/vorbilder.md` in derselben Breite (1280 und
+   390 px) nebeneinander ansehen und die Prüfliste V1–V20 aus `~/.claude/templates/profi_kanon.md` (Abschnitt 7) mit
+   Zahlen ausfüllen (Vorbild · eigen · Δ · ok). Das Vorbild-Bild kommt **nicht** in `<Z>/bilder/`: fremde Kopien gehen
+   an keinen Prüfer, und der Blick bleibt blind. Ergebnis ins Prüfprotokoll; „nein“-Zeilen ohne Begründung sind Befunde.
 
 Die Befehle stehen bewusst ohne Einrückung, damit die Heredoc-Endmarke `PY` in Spalte 1 bleibt:
 

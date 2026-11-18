@@ -129,7 +129,7 @@ def parse_command(command: str) -> tuple[str, list[Path]]:
         if tok.startswith("-"):
             continue
         if tok.startswith("~") or "/" in tok or "\\" in tok:
-            paths.append(Path(tok).expanduser())
+            paths.append(Path(os.path.expandvars(tok)).expanduser())  # $HOME/%USERPROFILE% wie die Shell
     return interpreter, paths
 
 

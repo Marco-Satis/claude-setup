@@ -23,6 +23,10 @@
 3. **Von echten Vorbildern ausgehen**, wenn Qualität zählt: fremde Seiten mit `site-anatomy` zerlegen, Technik mit
    `leanrea`, dann im eigenen Design umsetzen (keine Marken- oder Logoübernahme). Bei Stufe V ist ein Vorbild
    Standard; ohne Vorbild nur auf des Nutzers ausdrückliches „ohne Vorbild“.
+   **Vor jedem Design (Stufe L und V) `~/.claude/templates/profi_kanon.md` lesen** (positiver Maßstab mit Messwerten,
+   Weiche Werkzeug/Marketing) und das Vorbild aus `~/.claude/skills/site-anatomy/references/vorbilder.md` wählen.
+   **Im Tor Vorbild-Vergleich:** eigenen Entwurf und Vorbild in derselben Breite (1280 und 390 px) nebeneinander
+   rendern und ansehen, Abweichungen in Zahlen nach der Prüfliste V1–V20 des Kanons (Abschnitt 7) ins Prüfprotokoll.
 4. **Bewegung:** Kein Überschwingen oder Federn (Anti-KI A12, hart). Dauerbewegung nur als ein benannter
    Signaturmoment, über 5 s mit Pause- oder Stopp-Möglichkeit (WCAG 2.2.2) und immer mit Reduced-Motion-Variante;
    dafür gehen WCAG und `impeccable` vor `design-taste-frontend` (MB84; Fassung von der Nutzer am 14.11. bestätigt, MB133).
