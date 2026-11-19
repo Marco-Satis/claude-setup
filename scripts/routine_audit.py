@@ -90,6 +90,9 @@ CRON_ROUTINES = [
      "since": "2026-08-17",
      "note": "prueft nach, ob die Scraper-Fixes a4bf740/cb9d9fe halten "
              "(0-URL-Quote und EPIPE gegen die Ausgangslage 62 % / 3 in 5 Tagen)"},
+    {"name": "uym_watch", "plan": "alle 15 min", "kind": "event_only",
+     "path": HOME / ".claude/logs/uym_watch.log", "since": "2026-11-18",
+     "note": "MB295 V1: meldet nur bei Ausfall/Rückkehr von uym-memory; Stille = erreichbar"},
     {"name": "memory_pressure_watch", "plan": "alle 5 min", "kind": "event_only",
      "path": HOME / ".claude/logs/memory_pressure.log",
      "note": "meldet nur bei Druck; Stille = Slice unter der Drossel"},

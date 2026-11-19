@@ -20,6 +20,11 @@ Indizien fürs Prüfprotokoll; über Bestehen entscheiden die Checklisten. Nach 
 Fällt Codex aus (Limit, Fehler, ungültige Antwort), schaut nur Claude; im Protokoll steht dann
 „Zweitblick: nur Claude, Codex <Grund>“.
 
+**Keine Personen an Codex (seit 18.11.2026):** Prüfbilder für Codex (geht an OpenAI) enthalten keine Fotos echter Menschen,
+keine Kunden- oder Agenturfotos, keine Handschrift-Fonts und keine Kontodaten. Vorher ersetzen (graue Fläche mit Bildmaß)
+oder Codex nur Ausschnitte ohne Foto zeigen. Anlass: Bei der UYM-Instanz gingen Prüfbilder mit einem Foto der beiden
+Inhaber an Codex.
+
 ## 2. Bilder vorbereiten (prüfende Session)
 
 1. **Nur eigene Entwürfe mit Dummy-Daten** (Abschnitt 6). Jedes Bild vorher selbst mit Read ansehen.

@@ -12,6 +12,17 @@ PowerShell `Get-ChildItem -Recurse`, `dir /s`, `du`, `find`, Speicher- und Besta
 C:\ProgramData\Microsoft\Windows\Containers
 ```
 
+Das gilt auch für Suchwerkzeuge, nicht nur für Skripte: das Grep- und Glob-Werkzeug von Claude Code mit einem Pfad
+unter `C:\ProgramData` oder `C:\`, `grep -r`, `rg` (ripgrep) und Codex-Suchen. Belegt 15.11.2026 07:10: Ein Grep-Aufruf
+mit Pfad `C:\ProgramData` erzeugte einen Handle-Sprung. Am PC sperrt zusätzlich eine Leseregel in der `settings.json`
+(`permissions.deny` für den Containers-Ordner, genaue Schreibweise siehe PC-`settings.json`; Windows-Pfade werden für die
+Regel in POSIX-Form gebracht) den Ordner; das Grep-Werkzeug gibt
+Leseverbote als `--iglob` an ripgrep weiter (Claude Code 2.1.325). Suche gezielt im Unterordner, nie ab `C:\ProgramData`.
+
+Seit 18.11.2026 22:24 meldet ein Wächter im SystemLogger am PC hohe Handle-Stände (ab 150.000 ENTSCHEIDUNG, ab 400.000
+ALARM, Sprung +50.000 in 15 min) an die Zentrale (wz `pc-system/handle-waechter-im-systemlogger-meldet-hohe-system-f1ad`).
+Die Windows-Sandbox bleibt installiert (der Nutzer 18.11.2026).
+
 ## Warum
 
 Jede Erstöffnung eines Ordners im Container-Basis-Layer (`…\Containers\Layers\<guid>\Files`) legt im System-Prozess

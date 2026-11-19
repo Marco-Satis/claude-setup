@@ -315,6 +315,57 @@ def reply_codex(text: str, thread_id: str, in_reply_to: str, message_id: str | N
     return 0
 
 
+_PC_MID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+
+
+def pending_codex(thread_id: str, seen: set[str], api=None) -> int:
+    """Modellfreier, rein lesender Vorabcheck fuer den Codex-Weckruf (K19, 19.11.2026, gehaertet 09:10).
+    Zaehlt nur korrekt adressierte Antworten: alle fuenf Routing-Tags (agent-msg, to-codex,
+    to-thread:<id>, from:claude, scope:shared), memory_type communication, schema codex-reply-v1,
+    body.target_thread_id == thread_id, gueltige message_id, nicht in `seen`. Gibt nur Kennungen aus.
+    Unerwartete oder unvollstaendige API-Antwort (results fehlt, total_found fehlt oder > geliefert)
+    ist ein Fehler. Exit 0 = neue Post, 1 = nichts Neues, 2 = Fehler."""
+    def fehler(text: str) -> int:
+        print(json.dumps({"ok": False, "schema": "codex-pending-v1", "fehler": text[:200]}))
+        return 2
+    if not re.fullmatch(r"[0-9a-fA-F-]{36}", thread_id or ""):
+        return fehler("thread-id ist keine UUID")
+    try:
+        d = (api or _post)("/api/search/by-tag", {"tags": [f"to-thread:{thread_id}"]})
+    except SystemExit as e:
+        return fehler(str(e))
+    if not isinstance(d, dict) or not isinstance(d.get("results"), list) \
+            or not isinstance(d.get("total_found"), int):
+        return fehler("unerwartete API-Form (results/total_found)")
+    if d["total_found"] != len(d["results"]):
+        return fehler(f"unvollstaendig: {len(d['results'])} von {d['total_found']} geliefert")
+    pflicht = {"agent-msg", "to-codex", f"to-thread:{thread_id}", "from:claude", "scope:shared"}
+    neu, ignoriert = [], 0
+    for it in d["results"]:
+        m = it.get("memory") if isinstance(it, dict) and isinstance(it.get("memory"), dict) else it
+        if not isinstance(m, dict):
+            return fehler("Eintrag ohne erwartete Form")
+        tags = set(t for t in (m.get("tags") or []) if isinstance(t, str))
+        try:
+            body = json.loads(m.get("content") or "")
+        except ValueError:
+            body = None
+        mid = body.get("message_id") if isinstance(body, dict) else None
+        if (not pflicht <= tags or m.get("memory_type") != "communication" or not isinstance(body, dict)
+                or body.get("schema") != "codex-reply-v1" or body.get("target_thread_id") != thread_id
+                or not isinstance(mid, str) or not _PC_MID.match(mid)):
+            ignoriert += 1
+            continue
+        if mid not in seen:
+            neu.append({"message_id": mid, "created_at": body.get("created_at"),
+                        "in_reply_to": body.get("in_reply_to")})
+    neu.sort(key=lambda x: str(x.get("created_at") or ""))
+    print(json.dumps({"ok": True, "schema": "codex-pending-v1", "thread_id": thread_id, "neu": len(neu),
+                      "geprueft": len(d["results"]), "ignoriert": ignoriert, "nachrichten": neu},
+                     ensure_ascii=False))
+    return 0 if neu else 1
+
+
 def inbox(to: str | None, limit: int) -> int:
     ms = fetch_inbox()
     if to:
@@ -372,6 +423,9 @@ def main() -> int:
     c.add_argument("--limit", type=int, default=10)
     sub.add_parser("threads")
     sub.add_parser("notify-pending")
+    pc = sub.add_parser("pending-codex", help="Nur lesend: neue Antworten an einen Codex-Thread zaehlen (ohne Inhalt)")
+    pc.add_argument("--thread-id", required=True)
+    pc.add_argument("--seen", default="", help="Kommagetrennte, schon verarbeitete message_ids")
     r = sub.add_parser("reply-codex", help="Antwort an einen Codex-Chat (auch PC) als codex-reply-v1 im Store")
     r.add_argument("message", nargs="?", default=None, help="Text; laenger besser per --file")
     r.add_argument("--file", help="Text aus Datei lesen (UTF-8), statt ihn als Shell-Argument zu uebergeben")
@@ -405,6 +459,8 @@ def main() -> int:
             return 2
         text = Path(args.file).read_text(encoding="utf-8") if args.file else args.message
         return reply_codex(text, args.thread_id, args.in_reply_to, args.message_id)
+    if args.cmd == "pending-codex":
+        return pending_codex(args.thread_id, {x.strip() for x in args.seen.split(",") if x.strip()})
     if args.cmd == "threads":
         return list_threads()
     return notify_pending()
