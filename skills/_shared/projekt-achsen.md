@@ -87,7 +87,7 @@ Skill fehlt/failt → Achse manuell nach den Kriterien unten, Notiz „delegiert
 
 Aus dem Vorlauf + Lesen: **Divergierte Duplikate** (dieselbe Verantwortung an 2 Orten, Inhalte auseinander — der teuerste Befund dieser Achse, weil Fixes nur eine Seite treffen; byte-identisch ist harmloser als divergiert). **God-Files** (>1000 LoC mit mehreren unabhaengigen Verantwortlichkeiten — reine Laenge allein ist kein Finding). **Zirkulaere/Layering-verletzende Imports** (Low-Level importiert Feature-Modul). **Copy-Paste-Block ≥30 Zeilen in 3+ Files.** **Modulgrenzen:** gibt es einen Ort an dem eine neue Funktion offensichtlich hingehoert, oder muss man raten?
 
-Bei aktivem Graphify (6.5B): dessen God-Nodes/Cluster als Beleg heranziehen statt zweiter Analyse.
+Zusammenhaenge mit Setup-Wissen: `wz nachbarn <id>` als Beleg heranziehen statt zweiter Analyse (graphify seit 20.11.2026 entfernt).
 
 > **Reuse-first-Kopplung:** in den Gamebot-Projekten gilt zusaetzlich die Regel `~/.claude/rules/gamebot-reuse-first.md` — `_botcore/` ist die kanonische Basis, bekannte Abweichung ist `CellSurvivor/bots/core.py`. Diese bekannte Abweichung ist **kein neues Finding** (dokumentierter der Nutzer-Entscheid), aber ihre **Divergenz** (was ist inzwischen auseinandergelaufen) ist eine.
 

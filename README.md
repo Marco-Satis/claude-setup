@@ -1,6 +1,6 @@
 # claude-setup
 
-Ein gewachsenes Claude-Code-Setup: 46 Skills, 19 Agents, 47 Hooks, 15 Regel-Dateien und die
+Ein gewachsenes Claude-Code-Setup: 45 Skills, 19 Agents, 47 Hooks, 15 Regel-Dateien und die
 Betriebs-Skripte drumherum. Kein Framework — das hier läuft täglich produktiv auf einem
 Linux-Server und einem Windows-PC. Übernommene Fremdanteile stehen in [THIRD_PARTY.md](THIRD_PARTY.md).
 
@@ -11,7 +11,7 @@ und wie man merkt, dass eine Automatisierung seit zwei Wochen still nichts tut.
 ## Was hier drin steckt
 
 ```
-skills/      46 Skills — Review-Orchestrierung, Prompt-Optimierung, Security-Audits,
+skills/      45 Skills — Review-Orchestrierung, Prompt-Optimierung, Security-Audits,
              Debugging, Doku-Drift, Tool-Discovery, Website-Analyse
 agents/      19 Sub-Agents — spezialisierte Reviewer (async, Security, Performance,
              Dependencies) und Brücken zu anderen Modellen

@@ -13,10 +13,8 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 
 | Hook | Matcher | Timeout | Zweck |
 |---|---|---|---|
-| `context_bundle_loader.py` | `startup|resume|clear|compact|fork` | 5 | SessionStart-Hook: injiziert einen Index der Projekt-Wissens-Bundles. |
 | `backup_health_check.py` | `startup|resume|clear|fork` | 10 | SessionStart Hook: warnt wenn das Memory-DB-Backup veraltet oder fehlgeschlagen ist. |
 | `memory_start_probe.py` | `startup|resume|clear|fork` | 10 | SessionStart Hook: merkt sich ob der Memory-Service beim Session-Start erreichbar war. |
-| `reap_orphan_graphify.py` | `startup|resume|clear|fork` | 5 | SessionStart-Hook: raeumt verwaiste graphify.serve-MCP-Prozesse weg. |
 | `problems_banner.py` | `startup|resume|clear|fork` | 5 | SessionStart Hook: zeigt offene Probleme aus dem Problem-Tracker. |
 | `project_scaffold.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: richtet fehlende Projektstruktur automatisch ein. |
 | `syncthing_project_notice.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: Sync-Status-Hinweis fuer Sessions in Syncthing-gesyncten Ordnern. |
