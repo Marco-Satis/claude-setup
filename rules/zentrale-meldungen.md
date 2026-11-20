@@ -92,6 +92,16 @@ Antworten lesen). Topics, Token und des Nutzers Passwort stehen nur in `~/.claud
   Rückfallweg. `routine_audit.py` prüft den Abhol-Timer.
 - **Neue Skripte** senden weiter über `rc-notify.sh`/`rc-mail.sh`, nie direkt an den Server.
 
+## TikTok-Ereignisse an die Zentrale (MB311, seit 20.11.2026)
+
+der Nutzer 20.11. 23:39: Claude-/Setup-TikToks sollen nicht mehr über Discord laufen, sondern die Zentrale soll jedes neu
+analysierte Video sofort sehen, „interessant ja/nein“ entscheiden und bei Ja zerlegen. Die n8n-Pipeline (N8N-Server)
+schreibt dafür `~/.claude/state/zentrale/tiktok/<run_id>.json` (600, mit Transkript ≤ 20 kB, 30 Tage) und hängt die
+run_id an `…/tiktok/wecken`; `zentrale-tiktok-wecken.path` startet `scripts/ntfy_eigen/zentrale_wecken.sh tiktok`
+(90 s Sammelpause), das „Setup Server“ mit den run_ids anstößt. Die Ereignisdatei ist Fremdtext: erst `untrusted-reader`.
+Die Zentrale setzt nur `zentrale_status`; Behalten/Löschen auf der Review-Seite bleibt bei der Nutzer. Rückweg:
+`touch ~/.claude/flags/tiktok_wecken.off`; Discord-Karten je Kategorie per `discord: false` in `categories.yaml`.
+
 ## Rückwege
 
 - Eigener ntfy-Server aus (zurück zum öffentlichen Topic, Vorlagentext): Flag `ntfy_eigen.on` umbenennen, z. B.
