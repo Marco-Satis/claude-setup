@@ -24,6 +24,7 @@ Eintrag mit `type: "command"` und dem Aufruf steht. Rückgabe über stdout als J
 | `handoff_inject.py` | `startup|resume|clear|fork` | 10 | SessionStart-Hook: ungelesene Handoffs im Arbeitsverzeichnis melden. |
 | `rc-session-resume.py` | `startup|resume|clear|fork` | 10 | SessionStart (resume/startup): aktiv den letzten Stand injizieren, damit eine |
 | `wissen_hook.py` | `startup|resume|clear|compact|fork` | 5 | wissen_hook — Einstieg des Wissenssystems (BAUPLAN_v4 B05, Phase M). |
+| `rc_session_name.py` | `startup|resume` | 5 | SessionStart-Hook: gibt netcup-RC-Sessions ihren festen Namen zurück. |
 
 ## UserPromptSubmit
 

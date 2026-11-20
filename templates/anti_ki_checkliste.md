@@ -39,11 +39,16 @@ Vorbild, nicht durch das nächste Standardmuster.
 
 ### A2 · Reflex-Schrift (H)
 - **Frage:** Ist die Schrift eine Gewohnheitswahl ohne Begründung im Brief?
-- **Im Bild:** Inter, Space Grotesk, Geist, Outfit, Satoshi oder eine andere Schrift der impeccable-Ablehnungsliste;
-  mehr als zwei Schriftfamilien; Fließtextzeilen über 80 Zeichen (bei 1280 px über die halbe Breite).
+- **Im Bild:** eine Schrift ohne Begründung im Plan (ungewählter Standard, keine Skala, keine Rolle); mehr als zwei
+  Schriftfamilien; Fließtextzeilen über 80 Zeichen (bei 1280 px über die halbe Breite).
+- **Namen sind kein Befund (der Nutzer 20.11.2026, MB289):** Inter, Space Grotesk, Geist, IBM Plex, DM Sans und die
+  übrigen Namen der impeccable-Ablehnungsliste sind erlaubt, wenn die Wahl bewusst getroffen und im Plan begründet
+  ist (Kanon P5); die Vorbilder Linear, Raycast, Vercel, Sunsama und Mercury nutzen genau diese. Ein Namenstreffer ist
+  nur ein Hinweis, die Begründung im Plan nachzusehen. Fehlt sie, ist es ein A2-Befund.
 - **Fix:** Schrift nach Rolle wählen (Lesetext, Auszeichnung, Daten) und im Plan begründen, höchstens zwei Familien,
   Zeilenlänge mit `max-width` in `ch` auf 60–75 Zeichen begrenzen.
-- **Prüfung:** Detektor `overused-font`, berechnete `font-family`, Bild.
+- **Prüfung:** Begründung im Plan, berechnete `font-family`, Bild; Detektor `overused-font` und Flag `reflex-schrift`
+  nur als Hinweis.
   **Quelle:** impeccable reference/brand.md :28-40; frontend-design :19-23
 
 ### A3 · Template-Grammatik (H)

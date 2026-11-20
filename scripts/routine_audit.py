@@ -262,6 +262,12 @@ TIMERS = [
     # 2026-10-01 auf Meldung der Discord_Bots-Session (der Nutzer-Entscheid 29.09.): System-Timer,
     # nicht --user. Skript /usr/local/sbin/weekly-apt-upgrade schreibt den Report selbst.
     ("weekly-apt-upgrade.timer", "Mo 05:00", 8 * 24, "system"),
+    # 2026-11-20 Trading Kohorte D (Trading-Server, MB9): stuendliche Timer. Der Report-Timer schreibt den
+    # Tagesbericht des Vortags einmal als trading_intraday ueber routine_md.sh, WARN/FAIL sofort. Bis zum
+    # ersten Lauf (22:17/22:25/22:40) meldet der Audit "kein LastTrigger"; das ist erwartet.
+    ("trading-intraday-report.timer", "stuendlich :40", 2),
+    ("trading-intraday-rescue.timer", "stuendlich :17", 2),
+    ("trading-intraday-dashboard.timer", "stuendlich :25", 2),
 ]
 
 # Stillgelegt: keine Faelligkeitspruefung, nur Nachweis im MD-Digest.

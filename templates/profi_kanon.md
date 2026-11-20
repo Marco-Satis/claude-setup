@@ -318,6 +318,8 @@ begründete Wahl. Verbotslisten verschieben nur den Default. [L]
   Die Vorbilder nutzen Inter (Linear, Raycast), Geist (Vercel), DM Sans (Sunsama), IBM Plex Mono und Instrument Serif
   (Mercury, Raycast). Die Regeln sind bedingt formuliert („ohne Begründung“), der Detektor aber namensbasiert.
   Kanon-Regel: P5 („bewusst wählen und begründen“). Eine begründete Inter-Wahl ist kein A2-Befund.
+  **Entschieden (der Nutzer 20.11.2026 21:51, MB289 „ja“):** A2 und `visual_sheet.mjs` umgestellt; `overused-font` und
+  `reflex-schrift` sind nur noch Hinweise, Befund ist allein die fehlende Begründung im Plan.
 - **K2 Überschwingen:** A12 wertet Überschwingen hart; Vercel („swift“, 10 %) und Raycast (Federn) nutzen es klein
   bei Popovern ≤ 300 ms. Kanon: bleibt verboten bei Inhalt/Sektionen; für Popover offen (Entscheidung Zentrale).
 - **K3 Akzentwort/Verlauf:** Sunsama und Stripe haben ein farbiges Wort in der Headline (A3) und Stripe einen
