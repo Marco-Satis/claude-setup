@@ -24,7 +24,7 @@
 | Fremde Website (URL/Domain) gestalterisch analysieren oder als Vorlage fürs eigene Design nutzen | `site-anatomy` (danach `design-html` über DESIGN.md + Sektionsplan) | `leanrea` (nur Technik: Bundles, APIs), `impeccable` extract/critique, `ui-critique` (nur eigener Code), `design:design-critique` |
 | Bewegung einer fremden Seite zerlegen | `site-anatomy` (Phase 2d „Bewegung“, kommt mit G247 B9); JS-Zeitleisten → `leanrea` | Screenshots allein |
 | Perspektive zu einer Urteils-Frage im Review | **läuft automatisch** (review K6, Trigger C1–C5, Einzel-Mitglied ~1,5k) | nicht zusätzlich `/council` starten |
-| Echte Deliberation zu einer offenen Entscheidung | `/council --duo`/`--triad` (~21–23k) | `--full` (~47k) außer der Nutzer will es ausdrücklich |
+| Echte Deliberation zu einer offenen Entscheidung | `/council --duo --no-auto-route` bzw. `--triad --no-auto-route` (~21–23k, nur Claude-Mitglieder) | `--full` (~47k) außer der Nutzer will es ausdrücklich; ohne `--no-auto-route` routet council 1.2.0 Mitglieder automatisch an Codex/Gemini (Prompts an OpenAI/Google, an `codex_call.py`/`gemini_call.py` vorbei, SkillSpector-Fund 21.11.2026) – nur auf des Nutzers ausdrücklichen Wunsch |
 
 ## Regel
 1. Bei Namens-Gleichheit gewinnt **des Nutzers eigener Skill** (getunte Pipeline) über Builtin/Plugin — außer die Tabelle sagt explizit anders.
