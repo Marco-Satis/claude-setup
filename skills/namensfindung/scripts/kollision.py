@@ -82,7 +82,7 @@ def check_domain(name, tld):
     if not base and tld in WHOIS_FREI:
         try:
             out = subprocess.run(["whois", f"{slug(name)}.{tld}"], capture_output=True,
-                                 text=True, timeout=TIMEOUT).stdout
+                                 text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT).stdout
         except Exception as e:
             return "UNKLAR", f"whois fehlgeschlagen: {e}"[:80]
         return ("FREI", "") if WHOIS_FREI[tld] in out else ("BELEGT", "")
@@ -98,7 +98,7 @@ def check_github(name):
         out = subprocess.run(
             ["gh", "api", "-X", "GET", "search/repositories", "-f", f"q={q}",
              "-f", "per_page=5", "-f", "sort=stars"],
-            capture_output=True, text=True, timeout=TIMEOUT + 5)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT + 5)
         if out.returncode != 0:
             raise RuntimeError(out.stderr.strip()[:80])
         data = json.loads(out.stdout)
@@ -137,10 +137,15 @@ def manual_urls(name):
     q = urllib.parse.quote(name)
     return {
         "DPMAregister (nur identisch, keine Aehnlichkeit)": "https://register.dpma.de/DPMAregister/marke/uebersicht",
-        # Deep-Link mit Suchparameter lieferte headless am 2026-11-16 eine leere Seite -> Startseite + Suchfeld
-        "TMview (EUIPO, DE+EU+national, unscharfe Suche)": "https://www.tmdn.org/tmview/welcome",
+        # Ergebnis-URL lief am 2026-11-24 im Browser (Namens-Agent MB227). F5-Bot-Sperre bei API-POSTs, Serien
+        # und kaltem Direktaufruf ("Problem detected", Setup PC 24.11.): erst die Startseite laden, je Name eine
+        # Abfrage mit >= 5 s Abstand; bei Sperre nicht wiederholen, Kandidat unter "ohne Zugriff".
+        "TMview (EUIPO, DE+EU+national, unscharfe Suche; erst Startseite laden)":
+            "https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=100&criteria=C&basicSearch=" + q,
         "EUIPO eSearch plus (EU-Marken)": "https://euipo.europa.eu/eSearch/",
-        "WIPO Global Brand Database": "https://branddb.wipo.int/en/quicksearch",
+        # Aehnlichkeitssuche (similarname/results) lief am 2026-11-24 mit ~5 s Abstand ohne Sperre
+        "WIPO Global Brand Database (Aehnlichkeitssuche ueber die Maske, ~5 s Abstand)":
+            "https://branddb.wipo.int/en/quicksearch",
         "Google Play": f"https://play.google.com/store/search?q={q}&c=apps",
         "Google (Branche)": f"https://www.google.com/search?q=%22{q}%22+software+OR+app",
     }
@@ -152,7 +157,11 @@ def main():
     ap.add_argument("--tlds", default="com,de,io")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
-    tlds = [t.strip(".").strip() for t in a.tlds.split(",") if t.strip()]
+    # Windows: Pipe-Ausgabe ist sonst cp1252, Namen/Apps mit Sonderzeichen brachen ab (p-88636b22db, 24.11.2026)
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+    tlds =[t.strip(".").strip() for t in a.tlds.split(",") if t.strip()]
     report = {}
     for name in a.namen:
         r = {"PyPI": check_pypi(name), "npm": check_npm(name), "GitHub": check_github(name),

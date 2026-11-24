@@ -45,7 +45,8 @@ Jede Aussage im Skill, die sich auf Fachwissen stützt, steht hier mit Quelle un
 | PyPI | https://pypi.org/pypi/<name>/json, Name nach PEP 503 normalisiert | getestet. Die zusätzliche Sperre „too similar to an existing project“ ist nicht öffentlich dokumentiert (Nutzerberichte discuss.python.org); ein freier Name kann beim Hochladen trotzdem abgelehnt werden |
 | npm | https://registry.npmjs.org/<name> | getestet |
 | App Store | iTunes Search API, entity=software | getestet |
-| TMview | Startseite https://www.tmdn.org/tmview/welcome; Deep-Link mit Suchparameter lieferte headless eine leere Seite | nicht automatisierbar belegt |
+| TMview | Im Browser über die Ergebnis-URL `https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=100&criteria=C&basicSearch=<name>`; vorher die Startseite https://www.tmdn.org/tmview/welcome laden. API-POSTs, schnelle Serienabfragen und ein kalter Direktaufruf lösen die F5-Bot-Sperre aus („Problem detected“). Je Name eine Abfrage mit mindestens 5 s Abstand; bei Sperre nicht wiederholen und nicht umgehen, Kandidat unter „ohne Zugriff“ | im Browser nutzbar (Namens-Agent MB227, 24.11.2026); kalter Direktaufruf im eingebauten Browser landete am 24.11. 16:33 auf der Sperrseite (Setup PC). Stand 16.11.: Deep-Link headless leer |
+| WIPO Global Brand Database | Ähnlichkeitssuche über die Suchmaske ab https://branddb.wipo.int/en/quicksearch (Ergebnisseite `branddb.wipo.int/en/similarname/results?…`), etwa 5 s Abstand | lief am 24.11.2026 ohne Sperre (Namens-Agent MB227) |
 
 ## Ohne Zugriff geblieben
 

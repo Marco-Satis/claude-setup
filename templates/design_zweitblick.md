@@ -1,7 +1,8 @@
 # Zweitblick: blinde KI-Prüfung an Bildern (G247)
 
-> Vorlage für die Session, die eine Oberfläche prüft, und für den blinden Prüfer (nur Abschnitt 3). Codex-Weg nur
-> auf netcup. Verbindlich bleibt `~/.claude/rules/design-qualitaet.md`. Checklisten:
+> Vorlage für die Session, die eine Oberfläche prüft, und für den blinden Prüfer (nur Abschnitt 3). Codex-Weg auf
+> netcup und am PC (belegt TCG_Mods 24.11.2026: `codex exec` mit `-i` je Bild, `--ignore-user-config --ephemeral
+> --sandbox read-only`, Bildpfade unter Windows per `cygpath -m`). Verbindlich bleibt `~/.claude/rules/design-qualitaet.md`. Checklisten:
 > `~/.claude/templates/anti_ki_checkliste.md` (A1–A15) und `~/.claude/scripts/visual_sheet_checkliste.md` (M1–M12).
 > Antwortschema: `~/.claude/templates/design_zweitblick.schema.json`.
 
