@@ -364,7 +364,7 @@ def auto_compact_fenster():
 def checkliste_auto(fenster_k: int) -> str:
     return (_CHECKLIST_KERN
             + f"ERST DANACH in der Antwort genau diese Zeile: 'Gesichert fuer Auto-Compact: <Datei(en)>.' "
-            f"der Nutzer NICHT um /compact bitten: Claude Code compactet bei ~{fenster_k}K von selbst "
+            f"der Nutzer NICHT um /compact bitten: Claude Code compactet kurz vor dem Fenster von ~{fenster_k}K von selbst "
             f"(MB353, der Nutzer 24.11.2026). Danach normal weiterarbeiten; bei neuen Ergebnissen den Snapshot "
             f"kurz nachziehen, nicht neu schreiben.")
 
@@ -391,7 +391,7 @@ def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, fi
             return (f"[CONTEXT-WARN] {base} Auto-Compact bei ~{fk}K. Den Snapshot (Punkt a unten) schon "
                     f"jetzt nebenbei anlegen und nach jeder groesseren Arbeitseinheit nachziehen. "
                     f"{checkliste_auto(fk)}")
-        return (f"[CONTEXT-STRONG] {base} Aktions-Schwelle erreicht, Auto-Compact bei ~{fk}K steht bevor. "
+        return (f"[CONTEXT-STRONG] {base} Aktions-Schwelle erreicht, Auto-Compact (Fenster ~{fk}K, greift ca. 30K davor) steht bevor. "
                 f"Aktuellen Sub-Step abschliessen, keine neuen grossen Tasks starten, in DIESEM Turn: "
                 f"{checkliste_auto(fk)}")
 
