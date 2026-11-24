@@ -20,7 +20,14 @@ Keine eigenen Webhooks, Bot-Token oder direkten ntfy-Aufrufe in neuen Skripten.
 |---|---|---|
 | ALARM | sofort `rc-mail.sh` (ntfy Prio 4), danach Eingang | RC-Hosts down, Auth tot, Login ≤ 1 Tag, Speicher kritisch, mcp-memory hängt, Exposure-ALARM |
 | UNKLASSIFIZIERT | wie ALARM, Titel „neu: …“ | Titel ohne Eintrag in `meldungs_klassen.json` |
-| ENTSCHEIDUNG | Eingang + gebündelter ntfy-Push (Prio 3, höchstens 1 je 15 min, 23–7 Uhr keiner) | Session wartet (Freigabe/Frage/Eingabe), Routine WARN/FAIL mit BRAUCHT, CVE, Reboot nötig |
+| ENTSCHEIDUNG | Eingang + gebündelter ntfy-Push (Prio 3, höchstens 1 je 15 min, 23–7 Uhr keiner), **nur wenn der Nutzer seit ≥ 20 min nicht mehr in der Zentrale geschrieben hat**, und dann nur mit Punkten, die nach seiner letzten Nachricht entstanden sind | Session wartet (Freigabe/Frage/Eingabe), Routine WARN/FAIL mit BRAUCHT, CVE, Reboot nötig |
+
+**Anwesenheit (der Nutzer 2026-11-24, 15:30):** „Notify war … so gedacht, dass ich dann den Hinweis bekomme, wenn ich so ab
+20 Minuten oder so weg vom PC bin, bzw. nicht mehr geantwortet habe … und die anderen Sessions über dich senden.“
+`zeit_kontext.py` schreibt bei jeder Nachricht des Nutzers an „Setup Server“ `~/.claude/state/zeit/_zentrale_marco.ts`;
+`zentrale_eingang.py buendel` (Cron alle 5 min) pusht ENTSCHEIDUNG erst nach 20 min Stille dort. ALARM bleibt sofort.
+Schwelle per `ZENTRALE_ABWESEND_MIN` (0 = aus). Grenze: Schreibt der Nutzer nur direkt in einer anderen Session, gilt er für
+die Zentrale als abwesend.
 | INFO | nur Eingang, Zähler im Digest | Trading OK, Repo-Beobachtung, Speicher-Warnung |
 | RAUSCHEN | nur Eingang | „Wochen-Update erledigt“ |
 | DIGEST | 07:45 aus `projekt_kompass.py` | eine feste Vorlage aus Zählern |

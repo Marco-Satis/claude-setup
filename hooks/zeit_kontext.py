@@ -98,6 +98,12 @@ def main():
         with open(tmp, "w") as f:
             f.write(str(int(jetzt)))
         os.replace(tmp, pfad)
+        if ist_zentrale(data):
+            # Anwesenheit fuer zentrale_eingang.py (der Nutzer 2026-11-24): Pushes erst nach ~20 min ohne Nachricht hier.
+            ztmp = os.path.join(STATE, "_zentrale_marco.ts.tmp")
+            with open(ztmp, "w") as f:
+                f.write(str(int(jetzt)))
+            os.replace(ztmp, os.path.join(STATE, "_zentrale_marco.ts"))
     except OSError:
         pass
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": text}}))
