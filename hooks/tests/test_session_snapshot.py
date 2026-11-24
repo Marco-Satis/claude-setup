@@ -41,7 +41,9 @@ class Basis(unittest.TestCase):
         self.env = {"ZENTRALE_DIR": str(t / "z"), "ZENTRALE_ERR": str(t / "err.log"), "ZENTRALE_MAIL": str(fake),
                     "ZENTRALE_MARCO_BLOCK": str(self.mb), "ZENTRALE_VOLLTEXT_FLAG": str(self.flag),
                     "ZENTRALE_BUENDEL_SYNC": "1", "ZENTRALE_KEIN_SYSTEMCTL": "1",
-                    "ZENTRALE_JETZT": "2026-11-15T12:00:00"}
+                    "ZENTRALE_JETZT": "2026-11-15T12:00:00",
+                    # Anwesenheits-Tor (24.11.2026) liest des Nutzers echte Zentrale-Zeit; im Test aus
+                    "ZENTRALE_ABWESEND_MIN": "0"}
         self._alt = {k: os.environ.get(k) for k in self.env}
         os.environ.update(self.env)
         sys.path.insert(0, str(SCRIPTS))
@@ -80,6 +82,7 @@ class StatusErkennung(unittest.TestCase):
             ("Diese Session wartet ohnehin, bis Nutzerin A und Nutzer B antworten.", "wartet-auf-ereignis"),
             ("Commit 1234 ist drin, Tests grün.", "fertig"),
             ("**Nächste Aktion: keine von dir nötig.** Frag einfach, wenn du etwas brauchst.", "fertig"),
+            ("Arbeitsblock erledigt in 10 Minuten — fünfter TikTok-Auftrag, kein `BRAUCHT`.", "fertig"),  # G253
         ]
         for text, soll in f:
             self.assertEqual(self.h.status_erkennen(text)[0], soll, text)

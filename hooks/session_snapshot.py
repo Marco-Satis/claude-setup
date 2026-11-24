@@ -96,6 +96,7 @@ _B_NEG = [  # Session hat geparkt bzw. gesammelt, fragt bewusst nicht jetzt
     r"\bBis zu deiner Antwort\b",
     r"\bAm Ende bekommst du\b",
     r"\bNächste Aktion: keine\b",
+    r"\bkeine?n? `?BRAUCHT`?",  # G253 24.11.2026: CoD meldete „kein `BRAUCHT`“ und galt als braucht-marco
 ]
 _A = [  # eigene Arbeit laeuft weiter
     r"\bläuft (noch|gerade|im Hintergrund|jetzt)\b",
@@ -311,6 +312,9 @@ def main() -> None:
     try:
         data = json.load(sys.stdin)
         if not isinstance(data, dict) or FLAG_OFF.exists():
+            return
+        # G253 24.11.2026: _health_check.py ruft Stop-Hooks mit session_id „healthcheck“ auf; das ergab sessions/marco.json
+        if str(data.get("session_id") or "") == "healthcheck" or os.environ.get("CLAUDE_HEALTH_CHECK") == "1":
             return
         snap = snapshot_bauen(data, time.time())
         if not snap:
