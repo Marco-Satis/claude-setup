@@ -175,6 +175,35 @@ if systemctl --user is-enabled --quiet ntfy-eigen.service 2>/dev/null; then
     fi
   fi
 fi
+# (f) Syncthing zum PC (24.11.2026, Befund Setup PC: nach dem abgebrochenen Herunterfahren 23.11. 08:24 lief Syncthing am
+# PC 22 h nicht, niemand merkte es). Geraet "gamingpc" > 2 h getrennt -> ENTSCHEIDUNG (hoechstens alle 12 h), danach
+# wieder verbunden -> INFO. Zustand "<getrennt_seit> <gemeldet>" in watchdog_syncthing_pc.state. Aus: Flag syncthing_pc_waechter.off
+if [ ! -e "$HOME/.claude/flags/syncthing_pc_waechter.off" ] && command -v syncthing >/dev/null 2>&1; then
+  z_stid=""
+  for z_d in $(timeout 10 syncthing cli config devices list 2>/dev/null); do
+    [ "$(timeout 5 syncthing cli config devices "$z_d" name get 2>/dev/null)" = "gamingpc" ] && z_stid="$z_d" && break
+  done
+  z_stc=""
+  [ -n "$z_stid" ] && z_stc="$(timeout 10 syncthing cli show connections 2>/dev/null | python3 -I -c 'import sys,json
+c=json.load(sys.stdin).get("connections",{}).get(sys.argv[1]) or {}
+print("ja" if c.get("connected") else "nein")' "$z_stid" 2>/dev/null)"
+  z_sf="$ZDIR/watchdog_syncthing_pc.state"; z_seit=0; z_gem=0
+  [ -r "$z_sf" ] && read -r z_seit z_gem <"$z_sf" 2>/dev/null
+  [[ "${z_seit:-}" =~ ^[0-9]+$ ]] || z_seit=0; [[ "${z_gem:-}" =~ ^[01]$ ]] || z_gem=0
+  if [ "$z_stc" = "ja" ]; then
+    if [ "$z_gem" = 1 ]; then
+      "$NOTIFY" "Syncthing PC wieder verbunden" "Der PC synchronisiert wieder mit netcup (getrennt etwa $(( (z_now - z_seit) / 3600 )) h)." INFO
+    fi
+    echo "0 0" >"$z_sf"
+  elif [ "$z_stc" = "nein" ]; then
+    [ "$z_seit" -gt 0 ] || z_seit="$z_now"
+    if [ $((z_now - z_seit)) -gt 7200 ] && z_drossel syncthing_pc 43200; then
+      "$NOTIFY" "Syncthing PC getrennt" "Der PC ist seit $(( (z_now - z_seit) / 3600 )) h nicht per Syncthing mit netcup verbunden; claude-env und Projekte synchronisieren nicht. Pruefen: Aufgabe Syncthing am PC (Setup PC)." ENTSCHEIDUNG
+      z_gem=1
+    fi
+    echo "$z_seit $z_gem" >"$z_sf"
+  fi
+fi
 
 now="$(date +%s)"
 # State-Datei: "state ts badcount lastmail" — aeltere 2-Feld-Form liest sich mit Defaults.
