@@ -66,6 +66,10 @@ WARN_THRESHOLD     = 0.68
 STRONG_THRESHOLD   = 0.75   # Aktions-Tier (Universal Rule 7)
 CRITICAL_THRESHOLD = 0.85
 HARDSTOP_THRESHOLD = 0.90
+# MB353: mit gesetztem autoCompactWindow gelten diese Anteile VOM FENSTER (800K -> 560K / 640K / 704K)
+AUTO_HINT = 0.70
+AUTO_WARN = 0.80
+AUTO_STRONG = 0.88
 PRECOMPACT_THRESHOLD = 0.80   # Loop-Sessions: ab hier vor (nahem) Auto-Compact zum Memory-Snapshot anstossen
 LOOP_DEFER_THRESHOLD = 0.70   # Loop-Sessions: ab hier MONITOR-ONLY — nur Ueberwachung + State-Save, jede
                               # andere Aufgabe wird nach DEFERRED.md geparkt statt begonnen (der Nutzer 2026-07-28:
@@ -279,7 +283,11 @@ def _notice_once(sid: str, tier: str) -> bool:
     return True
 
 
-def _discord(text: str) -> None:
+def pct_of(usage: float) -> int:
+    return int(usage * 100)
+
+
+def _discord(text: str, klasse: str = "") -> None:
     """Best-effort Discord-Post ueber dieselben ENV-Vars wie discord_afk_relay.py.
     Ohne Token/Channel: stiller No-Op. Kurzer Timeout, schluckt jeden Fehler —
     eine Benachrichtigung darf einen Loop-Tick nie aufhalten."""
@@ -290,7 +298,7 @@ def _discord(text: str) -> None:
         try:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             import notify_fallback
-            notify_fallback.send("Claude Kontext-Warnung", text, timeout=4)
+            notify_fallback.send("Claude Kontext-Warnung", text, timeout=4, klasse=klasse)
         except Exception:
             pass
         return
@@ -381,10 +389,11 @@ def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, fi
                    f"gewarnt (zuerst ~{first_pct}%) und der Context ist NICHT gesunken — die "
                    f"Warnung wurde uebergangen. Jetzt umsetzen statt weiter aufzuschieben.")
 
-    if level == "HINT":
-        return (f"[CONTEXT-HINT] {base} Aktions-Schwelle ist 75%. Headroom da — nur Vor-Info.")
-
     fenster = auto_compact_fenster()
+    if level == "HINT":
+        schwelle = f"{int(AUTO_STRONG * 100)}% des Auto-Compact-Fensters" if fenster else "75%"
+        return (f"[CONTEXT-HINT] {base} Aktions-Schwelle ist {schwelle}. Headroom da — nur Vor-Info.")
+
     if fenster and level in ("WARN", "STRONG"):
         fk = fenster // 1000
         if level == "WARN":
@@ -468,6 +477,31 @@ def main():
 
     usage = context_tokens / context_limit
 
+    # MB353-Folge (der Nutzer 24.11.2026 16:06 im Survivor.io-Chat: „Die Sessions dürfen sich auch gerne früher compacten …
+    # damit mehr Kontext erhalten bleibt“): Ist ein Auto-Compact-Fenster gesetzt, beziehen sich ALLE Schwellen darauf.
+    # Sonst kommt der Auto-Compact (~Fenster minus ~30K) vor LOOP-PRECOMPACT bzw. STRONG, und die Sicherung fällt aus.
+    fenster = auto_compact_fenster()
+    if fenster and fenster < context_limit:
+        usage = context_tokens / fenster
+        context_limit = fenster
+    else:
+        fenster = None
+    fk = fenster // 1000 if fenster else 0
+    if fenster:
+        meldung_pre = (f"AUTO-COMPACT (MB353, der Nutzer 24.11.2026): Claude Code compactet kurz vor ~{fk}K von selbst; "
+                       f"der Nutzer NICHT um /compact bitten. Deine Tick-Antwort beginnt mit genau dieser Zeile: "
+                       f"'[AUTO-COMPACT NAHT] Context ~{pct_of(usage)}% des Fensters — Uebergabe gesichert'. ")
+        meldung_defer = (f"AUTO-COMPACT (MB353): kommt kurz vor ~{fk}K von selbst, der Nutzer muss nichts tun; keine "
+                         f"/compact-Bitte. ")
+    else:
+        meldung_pre = (f"COMPACT-MELDUNG (der Nutzer 2026-07-28, Pflicht): Deine Tick-Antwort MUSS mit genau dieser "
+                       f"Zeile beginnen: '[COMPACT BITTE] Context ~{pct_of(usage)}% — bitte /compact ausfuehren'. "
+                       f"Jeden Tick wiederholen, solange diese Meldung kommt. der Nutzer compactet selbst, sobald er "
+                       f"es sieht; du selbst kannst /compact nicht ausloesen. ")
+        meldung_defer = (f"COMPACT-MELDUNG (der Nutzer 2026-07-28, Pflicht): Deine Tick-Antwort MUSS mit genau dieser "
+                         f"Zeile beginnen: '[COMPACT SINNVOLL] Context ~{pct_of(usage)}% — /compact waere jetzt gut'. "
+                         f"Jeden Tick wiederholen, solange diese Meldung kommt. ")
+
     # --- Loop-Mode Teil 2: aktive Loop-Session / TICK-Wake -> KEIN Nag, aber Pre-Compact-Memory-Warnung ---
     # Loops werden nicht angehalten, ABER kurz vor dem (projekt-scopeden) Auto-Compact einmal angestossen,
     # einen Memory-Snapshot zu ziehen -> nichts geht verloren falls der Compact summarisiert. Nicht-anhaltend.
@@ -486,10 +520,7 @@ def main():
                     f"+ LOOP_TICK.md sichern, dann NUR noch winzige Aktionen/State-Save. KEINE neue schwere "
                     f"Aktion, KEIN Screenshot, KEIN Voll-Log in DIESEM Turn (sprengt das Fenster vor dem "
                     f"Auto-Compact). MONITOR-ONLY gilt weiter: alles Nicht-Ueberwachende gehoert nach {deferred}. "
-                    f"COMPACT-MELDUNG (der Nutzer 2026-07-28, Pflicht): Deine Tick-Antwort MUSS mit genau dieser "
-                    f"Zeile beginnen: '[COMPACT BITTE] Context ~{pct0}% — bitte /compact ausfuehren'. "
-                    f"Jeden Tick wiederholen, solange diese Meldung kommt. der Nutzer compactet selbst, sobald er "
-                    f"es sieht; du selbst kannst /compact nicht ausloesen. "
+                    f"{meldung_pre}"
                     f"UEBERGABE SICHERN (Pflicht, VOR jeder anderen Aktion in diesem Turn): "
                     f"{bd / 'HANDOVER.md' if bd else 'HANDOVER.md im Bot-Verzeichnis'} aktualisieren "
                     f"(Felder: LAUFENDE ARBEIT / HYPOTHESEN [ausgeschlossen|offen] + Beleg / HALBFERTIG "
@@ -508,9 +539,7 @@ def main():
                     f"(Format: '- [ ] <Aufgabe> | warum | woran erkennbar dass sie erledigt ist'). "
                     f"Nach dem Compact liest der Inject-Hook DEFERRED.md wieder ein und du arbeitest sie ab — "
                     f"deshalb muss der Nutzer nichts erneut erklaeren. Antworte in diesem Turn kurz. "
-                    f"COMPACT-MELDUNG (der Nutzer 2026-07-28, Pflicht): Deine Tick-Antwort MUSS mit genau dieser "
-                    f"Zeile beginnen: '[COMPACT SINNVOLL] Context ~{pct0}% — /compact waere jetzt gut'. "
-                    f"Jeden Tick wiederholen, solange diese Meldung kommt. "
+                    f"{meldung_defer}"
                     f"UEBERGABE SICHERN (Pflicht, JETZT in DIESEM Turn): schreibe/aktualisiere "
                     f"{bd / 'HANDOVER.md' if bd else 'HANDOVER.md im Bot-Verzeichnis'} (OVERWRITE, Zustand statt "
                     f"Historie, ~40 Zeilen) mit genau diesen Feldern: 'LAUFENDE ARBEIT:' (woran du gerade "
@@ -532,7 +561,8 @@ def main():
                 label = "MONITOR-ONLY aktiv" if tier == "defer" else "Pre-Compact"
                 _discord(f"⚠️ **{bd.name}** — Context ~{pct0}% ({label}). "
                          f"Ab jetzt nur noch Ueberwachung; neue Aufgaben werden in DEFERRED.md geparkt "
-                         f"und nach dem Compact abgearbeitet.")
+                         f"und nach dem Compact abgearbeitet.",
+                         klasse="INFO" if fenster else "")   # MB353: Auto-Compact laeuft von selbst -> kein Push
             print(json.dumps({
                 "systemMessage": note,
                 "hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": note},
@@ -587,7 +617,13 @@ def main():
     est_k = int(context_tokens / 1000)
     limit_k = context_limit // 1000
 
-    if usage >= HARDSTOP_THRESHOLD:
+    if fenster:
+        # Auto-Compact-Modus (MB353): Prozent vom Fenster; Compact kommt bei ~96 % (Fenster minus ~30K).
+        # Kein CRITICAL/HARDSTOP: Arbeit soll bis zum Auto-Compact weiterlaufen, nur gesichert.
+        if usage < AUTO_HINT:
+            sys.exit(0)
+        level = "STRONG" if usage >= AUTO_STRONG else "WARN" if usage >= AUTO_WARN else "HINT"
+    elif usage >= HARDSTOP_THRESHOLD:
         level = "HARDSTOP"
     elif usage >= CRITICAL_THRESHOLD:
         level = "CRITICAL"
