@@ -21,6 +21,8 @@ Eskalierende Schwellen (2026-07-13 aufs 1M-Window kalibriert):
     75%  STRONG    -- Aktion: Sub-Step abschliessen, sichern, der Nutzer /compact vorschlagen
     85%  CRITICAL  -- Priority-Override: nichts Neues starten, finalisieren + /compact
     90%  HARDSTOP  -- nur noch sichern + /compact-Aufforderung, KEINE anderen Tool-Calls
+    MB353 (2026-11-24): Ist "autoCompactWindow" gesetzt (netcup 800000), sagen WARN/STRONG nur noch
+    "selbst sichern"; Claude Code compactet am Fenster von allein, der Nutzer tippt kein /compact mehr.
 
 Stateful Nag (state/compact_nag.json, pro session_id): zaehlt wie oft schon bei
 STRONG+ gewarnt wurde. Steigt der Zaehler (Claude promptet weiter ohne dass der
@@ -313,7 +315,7 @@ def _discord(text: str) -> None:
 # schlugen /compact vor, bevor alles gesichert war. Jetzt: erst die volle Checkliste
 # selbst abarbeiten, dann EINE feste Bereit-Zeile. Ein /compact-Hinweis ohne erledigte
 # Checkliste ist ausdruecklich verboten.
-COMPACT_READY_CHECKLIST = (
+_CHECKLIST_KERN = (
     "COMPACT-VORBEREITUNG (selbst erledigen, NICHT auf des Nutzers Aufforderung warten): "
     "(a) Projekt-Stand in PROGRESS.md (bzw. HANDOVER.md des Projekts) als Abschnitt "
     "'COMPACT-SNAPSHOT <Datum>' schreiben: laufende Arbeit, des Nutzers Entscheidungen und "
@@ -323,11 +325,48 @@ COMPACT_READY_CHECKLIST = (
     "(b) dauerhafte Fakten/Entscheidungen per wz bzw. mcp-memory sichern, Setup-Aenderungen "
     "mit Tag setup-change; "
     "(c) laufende Einzel-Edits abschliessen oder als halbfertig im Snapshot vermerken. "
+)
+_CHECKLIST_MANUELL = (
     "ERST DANACH in der Antwort genau diese Zeile: 'Compact-bereit: gesichert in <Datei(en)>. "
     "Du kannst jetzt /compact tippen.' Ein /compact-Hinweis vor erledigter Checkliste ist verboten. "
     "Ist der Snapshot in dieser Session schon geschrieben und seitdem nichts Neues passiert: "
     "nur kurz nachziehen, nicht neu schreiben."
 )
+COMPACT_READY_CHECKLIST = _CHECKLIST_KERN + _CHECKLIST_MANUELL
+
+# MB353 (der Nutzer 2026-11-24 15:55: "MB353 ja, auch am PC"): Compact soll ohne sein Tippen laufen.
+# Ist ein Auto-Compact-Fenster gesetzt (settings.json "autoCompactWindow" bzw. ENV
+# CLAUDE_CODE_AUTO_COMPACT_WINDOW) und Auto-Compact nicht abgeschaltet, sichert die Session ab
+# STRONG nur selbst und arbeitet weiter; Claude Code compactet am Fenster von allein.
+SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
+
+
+def auto_compact_fenster():
+    """Gesetztes Auto-Compact-Fenster in Tokens, sonst None (dann alter Ablauf mit /compact-Bitte)."""
+    if os.environ.get("DISABLE_AUTO_COMPACT"):
+        return None
+    try:
+        cfg = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        cfg = {}
+    if cfg.get("autoCompactEnabled") is False:
+        return None
+    roh = os.environ.get("CLAUDE_CODE_AUTO_COMPACT_WINDOW") or cfg.get("autoCompactWindow")
+    try:
+        s = str(roh).strip().lower()
+        mult = 1_000_000 if s.endswith("m") else 1000 if s.endswith("k") else 1
+        w = int(float(s.rstrip("mk")) * mult)
+    except (TypeError, ValueError):
+        return None
+    return w if w >= 100_000 else None
+
+
+def checkliste_auto(fenster_k: int) -> str:
+    return (_CHECKLIST_KERN
+            + f"ERST DANACH in der Antwort genau diese Zeile: 'Gesichert fuer Auto-Compact: <Datei(en)>.' "
+            f"der Nutzer NICHT um /compact bitten: Claude Code compactet bei ~{fenster_k}K von selbst "
+            f"(MB353, der Nutzer 24.11.2026). Danach normal weiterarbeiten; bei neuen Ergebnissen den Snapshot "
+            f"kurz nachziehen, nicht neu schreiben.")
 
 
 def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, first_pct: int) -> str:
@@ -344,6 +383,17 @@ def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, fi
 
     if level == "HINT":
         return (f"[CONTEXT-HINT] {base} Aktions-Schwelle ist 75%. Headroom da — nur Vor-Info.")
+
+    fenster = auto_compact_fenster()
+    if fenster and level in ("WARN", "STRONG"):
+        fk = fenster // 1000
+        if level == "WARN":
+            return (f"[CONTEXT-WARN] {base} Auto-Compact bei ~{fk}K. Den Snapshot (Punkt a unten) schon "
+                    f"jetzt nebenbei anlegen und nach jeder groesseren Arbeitseinheit nachziehen. "
+                    f"{checkliste_auto(fk)}")
+        return (f"[CONTEXT-STRONG] {base} Aktions-Schwelle erreicht, Auto-Compact bei ~{fk}K steht bevor. "
+                f"Aktuellen Sub-Step abschliessen, keine neuen grossen Tasks starten, in DIESEM Turn: "
+                f"{checkliste_auto(fk)}")
 
     if level == "WARN":
         return (f"[CONTEXT-WARN] {base} Naehert sich der 75%-Aktions-Schwelle. Den Snapshot "
