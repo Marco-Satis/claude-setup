@@ -32,13 +32,21 @@ def main():
     backup_dir = backups_root / f"precompact_{ts}"
 
     # Dynamisch jeweils juengstes Status / Backlog / Review-Report finden
-    fp_docs = Path("C:/Users/der Nutzer/AudioSetup/FootstepAnalyzer/docs")  # seit 17.11.2026 ausserhalb von OneDrive
-    # Seit 17.11.2026 (Phase 4 Stufe 4) ist die projects-sync-Kopie der Arbeitsordner, die OneDrive-Kopie heisst _ALT.
-    prompt_opt = Path("C:/Users/der Nutzer/projects-sync/Skills_&_Co")
+    if os.name == "nt":
+        fp_docs = Path("C:/Users/der Nutzer/AudioSetup/FootstepAnalyzer/docs")  # seit 17.11.2026 ausserhalb von OneDrive
+        # Seit 17.11.2026 (Phase 4 Stufe 4) ist die projects-sync-Kopie der Arbeitsordner, die OneDrive-Kopie heisst _ALT.
+        prompt_opt = Path("C:/Users/der Nutzer/projects-sync/Skills_&_Co")
+        quellordner = (fp_docs, prompt_opt)
+    else:
+        # netcup (25.11.2026): FootstepAnalyzer liegt nur am PC; Skills_&_Co unter ~/projects. Vorher meldete K4 bei
+        # jedem Compact auf netcup beide PC-Pfade als fehlend (Fehlalarm).
+        fp_docs = None
+        prompt_opt = home / "projects" / "Skills_&_Co"
+        quellordner = (prompt_opt,)
 
     sources = []
     for directory, pat in [(fp_docs, "STATUS_*.md"), (fp_docs, "BACKLOG_v*.md")]:
-        candidate = find_latest(directory, pat) if directory.is_dir() else None
+        candidate = find_latest(directory, pat) if directory is not None and directory.is_dir() else None
         if candidate:
             sources.append(candidate)
     if prompt_opt.is_dir():
@@ -87,7 +95,7 @@ def main():
         except Exception:
             pass  # Retention darf den Backup-Flow nicht stoeren
         # K4 (Umzugsplan 16.11.): fehlende Quellordner melden statt still uebergehen
-        fehlt = [str(d) for d in (fp_docs, prompt_opt) if not d.is_dir()]
+        fehlt = [str(d) for d in quellordner if not d.is_dir()]
         if copied or fehlt:
             msg = f"PreCompact-Backup -> {backup_dir} ({len(copied)} Files: {', '.join(copied)})"
             if fehlt:
