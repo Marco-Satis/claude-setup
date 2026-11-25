@@ -220,6 +220,20 @@ if [ ! -e "$HOME/.claude/flags/pa_serve_waechter.off" ] && systemctl --user is-e
     fi
   fi
 fi
+# (h) Kommandozentrale G253 (25.11.2026, Folgepunkt Stufe 1): nur wenn kommandozentrale.service aktiviert ist.
+# GET 127.0.0.1:8790/gesund, 5 s, zwei Fehlschlaege in Folge -> ENTSCHEIDUNG (hoechstens 1x/h). Aus: Flag kz_waechter.off
+if [ ! -e "$HOME/.claude/flags/kz_waechter.off" ] && systemctl --user is-enabled --quiet kommandozentrale.service 2>/dev/null; then
+  z_kf="$ZDIR/watchdog_kommandozentrale.fails"; z_kn=0
+  [ -r "$z_kf" ] && read -r z_kn <"$z_kf" 2>/dev/null; [[ "${z_kn:-}" =~ ^[0-9]+$ ]] || z_kn=0
+  if [ "$(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8790/gesund 2>/dev/null)" = "200" ]; then
+    echo 0 >"$z_kf"
+  else
+    z_kn=$((z_kn + 1)); echo "$z_kn" >"$z_kf"
+    if [ "$z_kn" -ge 2 ] && z_drossel kommandozentrale 3600; then
+      "$NOTIFY" "Kommandozentrale antwortet nicht" "kommandozentrale.service antwortet seit ${z_kn} Pruefungen nicht auf /gesund (systemctl --user status kommandozentrale)." ENTSCHEIDUNG
+    fi
+  fi
+fi
 
 now="$(date +%s)"
 # State-Datei: "state ts badcount lastmail" — aeltere 2-Feld-Form liest sich mit Defaults.
