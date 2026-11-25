@@ -31,6 +31,7 @@ die Zentrale als abwesend.
 | INFO | nur Eingang, Zähler im Digest | Trading OK, Repo-Beobachtung, Speicher-Warnung |
 | RAUSCHEN | nur Eingang | „Wochen-Update erledigt“ |
 | DIGEST | 07:45 aus `projekt_kompass.py` | eine feste Vorlage aus Zählern |
+| ABEND | 21:30 aus `abend_uebersicht.py` (der Nutzer 25.11.2026) | Heute / Offen für dich / Morgen per Push, `claude -p` sonnet ohne Werkzeuge, Report `abend_uebersicht_<datum>.md`; Aus: Flag `abend_uebersicht.off` |
 
 - Die Klasse kommt aus dem 3. Argument oder per Titel aus `~/.claude/scripts/meldungs_klassen.json`
   (erste passende Regex). **Wer einen neuen Titel einführt, trägt ihn dort ein** (mit `kurz`-Label), sonst kommt er
