@@ -204,6 +204,11 @@ CRON_ROUTINES = [
     {"name": "pa_backup", "plan": "taeglich 03:50", "kind": "append", "path": HOME / ".claude/logs/pa_backup.log", "max_h": 30, "since": "2026-11-16"},
     {"name": "gdrive_offsite", "plan": "taeglich 04:20", "kind": "append",
      "path": HOME / ".claude/logs/gdrive_offsite.log", "max_h": 30, "since": "2026-11-15"},
+    # 2026-11-25 (der Nutzer 22:17): Abend-Uebersicht per Push, claude -p sonnet ohne Werkzeuge, schreibt Report selbst.
+    {"name": "abend_uebersicht", "plan": "taeglich 21:30", "kind": "append",
+     "path": HOME / ".claude/logs/abend_uebersicht.log", "max_h": 30, "since": "2026-11-26",
+     "note": "~/.claude/scripts/abend_uebersicht.sh; Quellen Sammelmappe, Snapshots, Eingang, Routinen, PROGRESS, "
+             "der Nutzer-Block; Aus: flags/abend_uebersicht.off"},
     # 2026-11-25 (der Nutzer 07:50 an Allgemein-Server): Black-Week-Deals stuendlich bis 30.11., befristet.
     # Nach Ablauf Cron-Zeile entfernen (Allgemein-Server) und Eintrag nach RETIRED.
     {"name": "blackweek_deals", "plan": "stuendlich :05 bis 30.11.2026", "kind": "append",
