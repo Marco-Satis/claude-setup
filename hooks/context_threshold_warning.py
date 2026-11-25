@@ -373,8 +373,10 @@ def checkliste_auto(fenster_k: int) -> str:
     return (_CHECKLIST_KERN
             + f"ERST DANACH in der Antwort genau diese Zeile: 'Gesichert fuer Auto-Compact: <Datei(en)>.' "
             f"der Nutzer NICHT um /compact bitten: Claude Code compactet kurz vor dem Fenster von ~{fenster_k}K von selbst "
-            f"(MB353, der Nutzer 24.11.2026). Danach normal weiterarbeiten; bei neuen Ergebnissen den Snapshot "
-            f"kurz nachziehen, nicht neu schreiben.")
+            f"(MB353, der Nutzer 24.11.2026). Er kommt nur waehrend eines laufenden Zugs, nie im Leerlauf. Deshalb "
+            f"nichts auf 'nach dem Compact' verschieben oder so ankuendigen: was jetzt machbar ist, sofort erledigen "
+            f"(Lehre 25.11.: Auftraege bis zum Compact vertagt, Session stand 12 h bei 757K still). Danach normal "
+            f"weiterarbeiten; bei neuen Ergebnissen den Snapshot kurz nachziehen, nicht neu schreiben.")
 
 
 def build_message(pct: int, est_k: int, limit_k: int, level: str, nag_n: int, first_pct: int) -> str:

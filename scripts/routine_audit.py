@@ -204,6 +204,12 @@ CRON_ROUTINES = [
     {"name": "pa_backup", "plan": "taeglich 03:50", "kind": "append", "path": HOME / ".claude/logs/pa_backup.log", "max_h": 30, "since": "2026-11-16"},
     {"name": "gdrive_offsite", "plan": "taeglich 04:20", "kind": "append",
      "path": HOME / ".claude/logs/gdrive_offsite.log", "max_h": 30, "since": "2026-11-15"},
+    # 2026-11-25 (der Nutzer 07:50 an Allgemein-Server): Black-Week-Deals stuendlich bis 30.11., befristet.
+    # Nach Ablauf Cron-Zeile entfernen (Allgemein-Server) und Eintrag nach RETIRED.
+    {"name": "blackweek_deals", "plan": "stuendlich :05 bis 30.11.2026", "kind": "append",
+     "path": HOME / "general/blackweek_deals/scan.log", "max_h": 2, "since": "2026-11-25",
+     "until": "2026-11-30",
+     "note": "~/general/blackweek_deals/deal_scan.py ueber routine_wrap.sh; Gebiet Allgemein-Server"},
     # 2026-11-13: Aufbewahrung .bak (rules/backup-aufbewahrung.md), cron by der Nutzer
     {"name": "backup_prune", "plan": "taeglich 04:50", "kind": "append",
      "path": HOME / ".claude/logs/backup_prune.log", "max_h": 30, "since": "2026-11-14"},
@@ -212,7 +218,7 @@ CRON_ROUTINES = [
     # 2026-11-13: CoD-DB-Update-Check (cron 07:23, ohne Wrapper) fehlte im Audit (Inventur offene Punkte)
     {"name": "cod_db_update_check", "plan": "taeglich 07:23", "kind": "append",
      "path": HOME / "projects/CoD_Waffen_DB/cod_db_deltas_v2/_raw/update_check.log", "max_h": 30,
-     "since": "2026-11-13"},
+     "since": "2026-11-13", "cron_match": "daily_update_check.py"},
     {"name": "codex_rc_watch", "plan": "taeglich 08:40", "kind": "append",
      "path": HOME / ".claude/logs/codex_rc_watch.log", "max_h": 30, "since": "2026-09-29"},
     # 2026-10-18 auf Meldung der Trading-Session: Paper-Trading-Bot (~/projects/Trading).
@@ -246,6 +252,9 @@ TIMERS = [
     # 2026-11-15 eigener ntfy-Server: holt des Nutzers Antworten (Antwort-Topic) in den Eingang. Ausfall des
     # Servers selbst meldet rc-watchdog (e) als ALARM; hier nur, ob der Abhol-Timer laeuft. Kein MD je Lauf.
     ("ntfy-eigen-antwort.timer", "jede Minute", 1),
+    # 2026-11-17 (K18-Fix): holt vorgemerkte Postfach-Weckrufe fuer gesperrte/nicht erreichte Rollen nach.
+    # Nachgetragen 25.11., gefunden von routine_selbstpruefung (P1).
+    ("postfach-wecken.timer", "alle 5 min", 1),
     # 2026-11-12 (FritzBox-Session, der Nutzer richtete ihn per sudo ein): löst den wg0-Endpoint der
     # FRITZ!Box neu auf, sonst stirbt der Tunnel bei jeder neuen Box-IP (wz netcup-infra/…-7dfe).
     ("wg-reresolve-dns@wg0.timer", "alle 2 min", 1, "system"),

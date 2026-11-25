@@ -204,6 +204,22 @@ print("ja" if c.get("connected") else "nein")' "$z_stid" 2>/dev/null)"
     echo "$z_seit $z_gem" >"$z_sf"
   fi
 fi
+# (g) Personal Agent serve (25.11.2026, Frage PA-Session): nur wenn personal-agent-serve.service aktiviert ist.
+# GET 127.0.0.1:8787/healthz, 5 s, zwei Fehlschlaege in Folge -> ENTSCHEIDUNG (hoechstens 1x/h). Erkennt nur einen
+# toten bzw. nicht antwortenden Prozess, keine haengende Watch-Schleife (das kommt mit alive.json, MB368).
+# Aus: Flag pa_serve_waechter.off
+if [ ! -e "$HOME/.claude/flags/pa_serve_waechter.off" ] && systemctl --user is-enabled --quiet personal-agent-serve.service 2>/dev/null; then
+  z_pf="$ZDIR/watchdog_pa_serve.fails"; z_pn=0
+  [ -r "$z_pf" ] && read -r z_pn <"$z_pf" 2>/dev/null; [[ "${z_pn:-}" =~ ^[0-9]+$ ]] || z_pn=0
+  if [ "$(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8787/healthz 2>/dev/null)" = "200" ]; then
+    echo 0 >"$z_pf"
+  else
+    z_pn=$((z_pn + 1)); echo "$z_pn" >"$z_pf"
+    if [ "$z_pn" -ge 2 ] && z_drossel pa_serve 3600; then
+      "$NOTIFY" "Personal Agent antwortet nicht" "personal-agent-serve antwortet seit ${z_pn} Pruefungen nicht auf /healthz (systemctl --user status personal-agent-serve)." ENTSCHEIDUNG
+    fi
+  fi
+fi
 
 now="$(date +%s)"
 # State-Datei: "state ts badcount lastmail" — aeltere 2-Feld-Form liest sich mit Defaults.
